@@ -189,8 +189,8 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
           </div>
         )}
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Form {...form}>
             <FormField
               control={form.control}
               name="title"
@@ -404,8 +404,8 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
                 </Button>
               </div>
             </div>
-          </form>
-        </Form>
+          </Form>
+        </form>
       </DialogContent>
     </Dialog>
   );
