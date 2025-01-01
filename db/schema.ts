@@ -20,6 +20,7 @@ export const recipes = pgTable("recipes", {
   cookTime: integer("cook_time"),
   servings: integer("servings"),
   image: text("image"),
+  sources: jsonb("sources").$type<string[]>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

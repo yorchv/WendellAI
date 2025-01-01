@@ -22,7 +22,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash } from "lucide-react";
+import { Loader2, Plus, Sparkles, Trash } from "lucide-react";
+import { generateRecipe } from "@/lib/perplexity";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 
 const recipeSchema = z.object({
@@ -46,10 +57,12 @@ interface RecipeManagerProps {
 
 export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
   const [open, setOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { createRecipe, updateRecipe, deleteRecipe } = useRecipes();
   const { toast } = useToast();
   const [ingredients, setIngredients] = useState<string[]>(recipe?.ingredients || [""]);
   const [instructions, setInstructions] = useState<string[]>(recipe?.instructions || [""]);
+  const [prompt, setPrompt] = useState("");
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeSchema),
@@ -110,6 +123,35 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
     }
   };
 
+  const handleGenerateRecipe = async () => {
+    if (!prompt) return;
+
+    setIsGenerating(true);
+    try {
+      const generatedRecipe = await generateRecipe(prompt);
+      form.reset({
+        title: generatedRecipe.title,
+        description: generatedRecipe.description,
+        ingredients: generatedRecipe.ingredients,
+        instructions: generatedRecipe.instructions,
+        prepTime: generatedRecipe.prepTime,
+        cookTime: generatedRecipe.cookTime,
+        servings: generatedRecipe.servings,
+        //sources: generatedRecipe.sources,  // Assuming 'sources' is not in RecipeFormData
+      });
+      setIngredients(generatedRecipe.ingredients);
+      setInstructions(generatedRecipe.instructions);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate recipe. Please try again.",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -130,6 +172,31 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
             {mode === "create" ? "Create New Recipe" : "Edit Recipe"}
           </DialogTitle>
         </DialogHeader>
+
+        {mode === "create" && (
+          <div className="mb-6">
+            <FormLabel>Generate Recipe with AI</FormLabel>
+            <div className="flex gap-2 mt-2">
+              <Input
+                placeholder="Describe the recipe you want to create..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+              <Button
+                type="button"
+                onClick={handleGenerateRecipe}
+                disabled={isGenerating || !prompt}
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
