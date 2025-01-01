@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { Recipe } from "@db/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Users, ChefHat, ArrowLeft } from "lucide-react";
-import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
+import { RecipeManager } from "@/components/RecipeManager";
 
 export default function RecipeView() {
   const [, navigate] = useLocation();
@@ -38,14 +38,16 @@ export default function RecipeView() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <Button
-        variant="ghost"
-        className="mb-6"
-        onClick={() => navigate("/")}
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to recipes
-      </Button>
+      <div className="flex items-center justify-between mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to recipes
+        </Button>
+        <RecipeManager recipe={recipe} mode="edit" onClose={() => navigate("/")} />
+      </div>
 
       <div className="space-y-8">
         {recipe.image && (
@@ -60,18 +62,22 @@ export default function RecipeView() {
 
         <div className="space-y-4">
           <h1 className="text-4xl font-bold">{recipe.title}</h1>
-          
+
           <div className="flex items-center gap-6 text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              <span>
-                {recipe.prepTime + recipe.cookTime} min total
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              <span>{recipe.servings} servings</span>
-            </div>
+            {(recipe.prepTime || recipe.cookTime) && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                <span>
+                  {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min total
+                </span>
+              </div>
+            )}
+            {recipe.servings && (
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                <span>{recipe.servings} servings</span>
+              </div>
+            )}
           </div>
 
           {recipe.description && (
