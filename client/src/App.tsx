@@ -1,10 +1,9 @@
 import { Switch, Route } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import AuthPage from "./pages/AuthPage";
 import Home from "./pages/Home";
 import RecipeView from "./pages/RecipeView";
+import RecipesPage from "./pages/RecipesPage";
 import MealPlanner from "./pages/MealPlanner";
 import Navigation from "./components/Navigation";
 import { useUser } from "./hooks/use-user";
@@ -31,6 +30,7 @@ function App() {
       <main className="container mx-auto px-4 py-8">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/recipes" component={RecipesPage} />
           <Route path="/recipes/:id" component={RecipeView} />
           <Route path="/meal-planner" component={MealPlanner} />
           <Route>404 - Not Found</Route>
