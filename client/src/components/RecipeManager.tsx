@@ -24,16 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Plus, Sparkles, Trash } from "lucide-react";
 import { generateRecipe } from "@/lib/perplexity";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 
 const recipeSchema = z.object({
@@ -45,6 +35,7 @@ const recipeSchema = z.object({
   cookTime: z.number().min(0).optional(),
   servings: z.number().min(1).optional(),
   image: z.string().url().optional(),
+  sources: z.array(z.string()).optional(),
 });
 
 type RecipeFormData = z.infer<typeof recipeSchema>;
@@ -75,6 +66,7 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
       cookTime: recipe?.cookTime || 0,
       servings: recipe?.servings || 2,
       image: recipe?.image || "",
+      sources: recipe?.sources || [],
     },
   });
 
