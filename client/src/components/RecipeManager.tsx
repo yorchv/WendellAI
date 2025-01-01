@@ -167,6 +167,7 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
 
         {mode === "create" && (
           <div className="mb-6">
+            Show something cool here
             <FormLabel>Generate Recipe with AI</FormLabel>
             <div className="flex gap-2 mt-2">
               <Input
