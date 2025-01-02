@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,8 +57,8 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
   });
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <Form {...form}>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="title"
@@ -266,7 +265,7 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
             </Button>
           </div>
         </div>
-      </Form>
-    </form>
+      </form>
+    </Form>
   );
 }
