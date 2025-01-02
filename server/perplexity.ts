@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { log } from "./vite";
 
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
@@ -40,7 +41,8 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
       messages: [
         {
           role: "system",
-          content: "You are a helpful cooking assistant. Generate recipes in JSON format with the following structure: { title: string, description: string, ingredients: string[], instructions: string[], prepTime: number, cookTime: number, servings: number }",
+          content:
+            "You are a helpful cooking assistant. Generate recipes in JSON format with the following structure: { title: string, description: string, ingredients: string[], instructions: string[], prepTime: number, cookTime: number, servings: number }",
         },
         {
           role: "user",
@@ -57,6 +59,7 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
   }
 
   const data: PerplexityResponse = await response.json();
+  log(data.choices[0].message.content);
   const recipeData = JSON.parse(data.choices[0].message.content);
 
   const result = recipePreviewSchema.safeParse({
