@@ -13,6 +13,35 @@ const generateRecipeSchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
 });
 
+const recipeSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  ingredients: z.array(z.string()).min(1, "At least one ingredient is required"),
+  instructions: z.array(z.string()).min(1, "At least one instruction is required"),
+  prepTime: z.number().optional(),
+  cookTime: z.number().optional(),
+  servings: z.number().optional(),
+  image: z.string().optional(),
+  sources: z.array(z.string()).optional(),
+});
+
+const mealPlanSchema = z.object({
+  weekStart: z.string().or(z.date()).transform(val => new Date(val)),
+  weekEnd: z.string().or(z.date()).transform(val => new Date(val)),
+  meals: z.array(z.object({
+    day: z.enum(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]),
+    recipes: z.object({
+      breakfast: z.number().optional(),
+      lunch: z.number().optional(),
+      dinner: z.number().optional()
+    })
+  })).min(1, "At least one day's meals are required")
+});
+
+const pantryItemSchema = z.object({
+
+});
+
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
 
@@ -74,8 +103,12 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
+    const result = recipeSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).send(result.error.errors.map(err => err.message).join(', '))
+    }
     const recipe = await db.insert(recipes).values({
-      ...req.body,
+      ...result.data,
       userId: req.user.id,
     }).returning();
     res.json(recipe[0]);
@@ -98,9 +131,14 @@ export function registerRoutes(app: Express): Server {
       return res.status(403).send("Not authorized to update this recipe");
     }
 
+    const result = recipeSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).send(result.error.errors.map(err => err.message).join(', '))
+    }
+
     const updatedRecipe = await db
       .update(recipes)
-      .set(req.body)
+      .set(result.data)
       .where(eq(recipes.id, parseInt(req.params.id)))
       .returning();
 
@@ -146,9 +184,13 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
+    const result = mealPlanSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).send(result.error.errors.map(err => err.message).join(', '))
+    }
     log(req.body);
     const mealPlan = await db.insert(mealPlans).values({
-      ...req.body,
+      ...result.data,
       userId: req.user.id,
     }).returning();
     res.json(mealPlan[0]);
