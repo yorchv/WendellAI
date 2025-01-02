@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
+import { log } from './vite'
 import { db } from "@db";
 import { recipes, mealPlans, pantryItems, shoppingLists } from "@db/schema";
 import { eq } from "drizzle-orm";
@@ -145,6 +146,7 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
+    log(req.body);
     const mealPlan = await db.insert(mealPlans).values({
       ...req.body,
       userId: req.user.id,
