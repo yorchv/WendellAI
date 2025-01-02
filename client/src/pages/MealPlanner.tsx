@@ -3,17 +3,16 @@ import { useRecipes } from "@/hooks/use-recipes";
 import { useMealPlans } from "@/hooks/use-meal-plans";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RecipeCard } from "@/components/RecipeCard";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { format, addDays, startOfWeek } from "date-fns";
-import { Loader2, Plus } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { format, addDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
 
 const MEALS = ["breakfast", "lunch", "dinner"] as const;
 type MealType = typeof MEALS[number];
@@ -23,11 +22,12 @@ type DayType = typeof DAYS[number];
 export default function MealPlanner() {
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
   const [selectedMeal, setSelectedMeal] = useState<MealType>("breakfast");
-  const { recipes, isLoading: recipesLoading } = useRecipes();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { createMealPlan } = useMealPlans();
   const { toast } = useToast();
 
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
   const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Partial<Record<MealType, number>>>>({
     Monday: {},
     Tuesday: {},
@@ -78,35 +78,36 @@ export default function MealPlanner() {
     }
   };
 
+  const navigateWeek = (direction: "prev" | "next") => {
+    setSelectedDate(direction === "prev" ? subWeeks(selectedDate, 1) : addWeeks(selectedDate, 1));
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
         <h1 className="text-3xl font-bold">Meal Planner</h1>
-        <div className="flex gap-4">
-          <Select value={selectedDay} onValueChange={(value: DayType) => setSelectedDay(value)}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Select day" />
-            </SelectTrigger>
-            <SelectContent>
-              {DAYS.map((day) => (
-                <SelectItem key={day} value={day}>
-                  {day}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedMeal} onValueChange={(value: MealType) => setSelectedMeal(value)}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Select meal" />
-            </SelectTrigger>
-            <SelectContent>
-              {MEALS.map((meal) => (
-                <SelectItem key={meal} value={meal}>
-                  {meal.charAt(0).toUpperCase() + meal.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => navigateWeek("prev")}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline">
+                Week of {format(weekStart, "MMM d, yyyy")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <Button variant="outline" size="icon" onClick={() => navigateWeek("next")}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -119,21 +120,27 @@ export default function MealPlanner() {
                 <div className="space-y-2">
                   {MEALS.map((meal) => {
                     const recipeId = selectedMeals[day]?.[meal];
-                    const recipe = recipes?.find((r) => r.id === recipeId);
                     return (
                       <div
                         key={meal}
-                        className={`p-2 rounded-md ${
+                        className={`p-2 rounded-md cursor-pointer ${
                           selectedDay === day && selectedMeal === meal
                             ? "bg-primary/10 ring-2 ring-primary"
-                            : "bg-muted"
+                            : "bg-muted hover:bg-muted/80"
                         }`}
+                        onClick={() => {
+                          setSelectedDay(day);
+                          setSelectedMeal(meal);
+                          setIsSearchOpen(true);
+                        }}
                       >
-                        {recipe ? (
-                          <div className="truncate">{recipe.title}</div>
-                        ) : (
-                          <Plus className="h-4 w-4 mx-auto text-muted-foreground" />
-                        )}
+                        <div className="truncate">
+                          {recipeId ? (
+                            "Recipe Selected"
+                          ) : (
+                            <Plus className="h-4 w-4 mx-auto text-muted-foreground" />
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -144,24 +151,11 @@ export default function MealPlanner() {
         </CardContent>
       </Card>
 
-      <section>
-        <h2 className="text-2xl font-bold mb-6">Select Recipe</h2>
-        {recipesLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {recipes?.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                recipe={recipe}
-                onClick={() => handleSelectRecipe(recipe.id)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      <RecipeSearchDialog
+        open={isSearchOpen}
+        onOpenChange={setIsSearchOpen}
+        onSelectRecipe={(recipe) => handleSelectRecipe(recipe.id)}
+      />
     </div>
   );
 }
