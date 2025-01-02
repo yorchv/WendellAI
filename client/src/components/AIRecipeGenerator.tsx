@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,8 +11,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
+import { generateRecipe } from "@/lib/perplexity";
+import { ManualRecipeForm, type RecipeFormData } from "./ManualRecipeForm";
 
 const promptSchema = z.object({
   prompt: z.string().min(1, "Please enter a prompt"),
@@ -22,11 +23,12 @@ const promptSchema = z.object({
 type PromptFormData = z.infer<typeof promptSchema>;
 
 interface AIRecipeGeneratorProps {
-  onGenerate: (prompt: string) => Promise<void>;
+  onGenerate: (recipe: RecipeFormData) => Promise<void>;
 }
 
 export function AIRecipeGenerator({ onGenerate }: AIRecipeGeneratorProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedRecipe, setGeneratedRecipe] = useState<RecipeFormData | null>(null);
 
   const form = useForm<PromptFormData>({
     resolver: zodResolver(promptSchema),
@@ -36,12 +38,43 @@ export function AIRecipeGenerator({ onGenerate }: AIRecipeGeneratorProps) {
   });
 
   async function onSubmit(data: PromptFormData) {
-    setIsLoading(true);
+    setIsGenerating(true);
     try {
-      await onGenerate(data.prompt);
+      const recipe = await generateRecipe(data.prompt);
+      setGeneratedRecipe({
+        title: recipe.title,
+        description: recipe.description,
+        ingredients: recipe.ingredients,
+        instructions: recipe.instructions,
+        prepTime: recipe.prepTime,
+        cookTime: recipe.cookTime,
+        servings: recipe.servings,
+        image: "",
+        sources: recipe.sources,
+      });
+    } catch (error) {
+      console.error("Failed to generate recipe:", error);
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
+  }
+
+  if (generatedRecipe) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium">Review Generated Recipe</h3>
+          <Button variant="ghost" onClick={() => setGeneratedRecipe(null)}>
+            Try Another Prompt
+          </Button>
+        </div>
+        <ManualRecipeForm
+          recipe={generatedRecipe}
+          mode="create"
+          onSubmit={onGenerate}
+        />
+      </div>
+    );
   }
 
   return (
@@ -55,7 +88,7 @@ export function AIRecipeGenerator({ onGenerate }: AIRecipeGeneratorProps) {
               <FormLabel>Recipe Prompt</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Describe the recipe you want to generate..."
+                  placeholder="Describe the recipe you want to generate... (e.g., 'A healthy vegetarian pasta dish with Mediterranean flavors')"
                   className="h-32"
                   {...field}
                 />
@@ -64,8 +97,15 @@ export function AIRecipeGenerator({ onGenerate }: AIRecipeGeneratorProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Generating..." : "Generate Recipe"}
+        <Button type="submit" disabled={isGenerating}>
+          {isGenerating ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Generating Recipe...
+            </>
+          ) : (
+            "Generate Recipe"
+          )}
         </Button>
       </form>
     </Form>

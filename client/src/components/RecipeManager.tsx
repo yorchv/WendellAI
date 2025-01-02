@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 import { useRecipes } from "@/hooks/use-recipes";
 import { useToast } from "@/hooks/use-toast";
@@ -72,33 +73,47 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
           </DialogTitle>
         </DialogHeader>
 
-        {mode === "create" && (
-          <AIRecipeGenerator onGenerate={handleSubmit} />
+        {mode === "create" ? (
+          <Tabs defaultValue="manual">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="manual">Manual Creation</TabsTrigger>
+              <TabsTrigger value="ai">AI Assisted</TabsTrigger>
+            </TabsList>
+            <TabsContent value="manual">
+              <ManualRecipeForm
+                mode={mode}
+                onSubmit={handleSubmit}
+              />
+            </TabsContent>
+            <TabsContent value="ai">
+              <AIRecipeGenerator onGenerate={handleSubmit} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <ManualRecipeForm
+            recipe={recipe}
+            mode={mode}
+            onSubmit={handleSubmit}
+            onDelete={async () => {
+              if (!recipe) return;
+              try {
+                await deleteRecipe(recipe.id);
+                toast({
+                  title: "Success",
+                  description: "Recipe deleted successfully",
+                });
+                setOpen(false);
+                onClose?.();
+              } catch (error) {
+                toast({
+                  variant: "destructive",
+                  title: "Error",
+                  description: error instanceof Error ? error.message : "Something went wrong",
+                });
+              }
+            }}
+          />
         )}
-
-        <ManualRecipeForm
-          recipe={recipe}
-          mode={mode}
-          onSubmit={handleSubmit}
-          onDelete={mode === "edit" ? async () => {
-            if (!recipe) return;
-            try {
-              await deleteRecipe(recipe.id);
-              toast({
-                title: "Success",
-                description: "Recipe deleted successfully",
-              });
-              setOpen(false);
-              onClose?.();
-            } catch (error) {
-              toast({
-                variant: "destructive",
-                title: "Error",
-                description: error instanceof Error ? error.message : "Something went wrong",
-              });
-            }
-          } : undefined}
-        />
       </DialogContent>
     </Dialog>
   );
