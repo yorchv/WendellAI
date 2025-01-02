@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
-import { generateRecipe } from "@/lib/perplexity";
 import { ManualRecipeForm, type RecipeFormData } from "./ManualRecipeForm";
+import { useToast } from "@/hooks/use-toast";
 
 const promptSchema = z.object({
   prompt: z.string().min(1, "Please enter a prompt"),
@@ -29,6 +29,7 @@ interface AIRecipeGeneratorProps {
 export function AIRecipeGenerator({ onGenerate }: AIRecipeGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedRecipe, setGeneratedRecipe] = useState<RecipeFormData | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<PromptFormData>({
     resolver: zodResolver(promptSchema),
@@ -40,20 +41,28 @@ export function AIRecipeGenerator({ onGenerate }: AIRecipeGeneratorProps) {
   async function onSubmit(data: PromptFormData) {
     setIsGenerating(true);
     try {
-      const recipe = await generateRecipe(data.prompt);
+      const response = await fetch("/api/recipes/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      const recipe = await response.json();
       setGeneratedRecipe({
-        title: recipe.title,
-        description: recipe.description,
-        ingredients: recipe.ingredients,
-        instructions: recipe.instructions,
-        prepTime: recipe.prepTime,
-        cookTime: recipe.cookTime,
-        servings: recipe.servings,
-        image: "",
-        sources: recipe.sources,
+        ...recipe,
+        image: "", // Initialize with empty image URL
       });
     } catch (error) {
-      console.error("Failed to generate recipe:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate recipe",
+      });
     } finally {
       setIsGenerating(false);
     }

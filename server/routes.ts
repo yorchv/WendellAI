@@ -4,9 +4,36 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { recipes, mealPlans, pantryItems, shoppingLists } from "@db/schema";
 import { eq } from "drizzle-orm";
+import { generateRecipe } from "./perplexity";
+import { z } from "zod";
+
+const generateRecipeSchema = z.object({
+  prompt: z.string().min(1, "Prompt is required"),
+});
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
+
+  // Recipe Generation
+  app.post("/api/recipes/generate", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    const result = generateRecipeSchema.safeParse(req.body);
+    if (!result.success) {
+      return res
+        .status(400)
+        .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+    }
+
+    try {
+      const preview = await generateRecipe(result.data.prompt);
+      res.json(preview);
+    } catch (error) {
+      res.status(500).send(error instanceof Error ? error.message : "Failed to generate recipe");
+    }
+  });
 
   // Recipes
   app.get("/api/recipes", async (req, res) => {

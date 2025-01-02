@@ -32,6 +32,10 @@ function App() {
           <Route path="/" component={Home} />
           <Route path="/recipes" component={RecipesPage} />
           <Route path="/recipes/:id" component={RecipeView} />
+          <Route path="/recipes/new" component={() => {
+            window.location.href = "/meal-planner";
+            return null;
+          }} />
           <Route path="/meal-planner" component={MealPlanner} />
           <Route>404 - Not Found</Route>
         </Switch>
