@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Recipe } from "@db/schema";
 import { Button } from "@/components/ui/button";
@@ -52,25 +51,6 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
     }
   };
 
-  const handleDelete = async () => {
-    if (!recipe) return;
-    try {
-      await deleteRecipe(recipe.id);
-      toast({
-        title: "Success",
-        description: "Recipe deleted successfully",
-      });
-      setOpen(false);
-      onClose?.();
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong",
-      });
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -100,7 +80,24 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
           recipe={recipe}
           mode={mode}
           onSubmit={handleSubmit}
-          onDelete={mode === "edit" ? handleDelete : undefined}
+          onDelete={mode === "edit" ? async () => {
+            if (!recipe) return;
+            try {
+              await deleteRecipe(recipe.id);
+              toast({
+                title: "Success",
+                description: "Recipe deleted successfully",
+              });
+              setOpen(false);
+              onClose?.();
+            } catch (error) {
+              toast({
+                variant: "destructive",
+                title: "Error",
+                description: error instanceof Error ? error.message : "Something went wrong",
+              });
+            }
+          } : undefined}
         />
       </DialogContent>
     </Dialog>
