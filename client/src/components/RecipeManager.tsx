@@ -73,7 +73,7 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
         </DialogHeader>
 
         {mode === "create" && (
-          <AIRecipeGenerator onGenerated={handleSubmit} />
+          <AIRecipeGenerator onGenerate={handleSubmit} />
         )}
 
         <ManualRecipeForm
