@@ -46,3 +46,48 @@ export async function formatRecipeResponse(text: string) {
     throw new Error("Failed to format recipe data");
   }
 }
+
+export async function analyzeRecipeImage(base64Image: string) {
+  try {
+    const response = await anthropic.messages.create({
+      model: "claude-3-5-sonnet-20241022",
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: "text",
+              text: "Please analyze this recipe image and extract the recipe details. Format the response as JSON with the following structure: { title: string, description: string, ingredients: string[], instructions: string[], prepTime: number, cookTime: number, servings: number }"
+            },
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/jpeg",
+                data: base64Image
+              }
+            }
+          ]
+        }
+      ],
+    });
+
+    // Access the content safely
+    const formattedJson = response.content[0].type === 'text' ? response.content[0].text : '';
+    log("Claude image analysis response:", formattedJson);
+
+    // Parse and validate the formatted JSON
+    const parsed = JSON.parse(formattedJson);
+    const result = recipePreviewSchema.safeParse(parsed);
+
+    if (!result.success) {
+      throw new Error("Invalid recipe format after image analysis");
+    }
+
+    return result.data;
+  } catch (error) {
+    log("Error analyzing recipe image:", error instanceof Error ? error.message : 'Unknown error');
+    throw new Error("Failed to analyze recipe image");
+  }
+}

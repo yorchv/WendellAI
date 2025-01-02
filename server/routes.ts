@@ -6,6 +6,7 @@ import { recipes, mealPlans, pantryItems, shoppingLists } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { generateRecipe } from "./perplexity";
 import { z } from "zod";
+import { analyzeRecipeImage } from "./claude";
 
 const generateRecipeSchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
@@ -193,6 +194,33 @@ export function registerRoutes(app: Express): Server {
       userId: req.user.id,
     }).returning();
     res.json(list[0]);
+  });
+
+  // Recipe Image Analysis
+  app.post("/api/recipes/analyze-image", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    const imageSchema = z.object({
+      image: z.string().min(1, "Image data is required"),
+    });
+
+    const result = imageSchema.safeParse(req.body);
+    if (!result.success) {
+      return res
+        .status(400)
+        .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+    }
+
+    try {
+      const recipe = await analyzeRecipeImage(result.data.image);
+      res.json(recipe);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to analyze recipe image";
+      console.error("Recipe image analysis error:", errorMessage);
+      res.status(500).send(errorMessage);
+    }
   });
 
   const httpServer = createServer(app);

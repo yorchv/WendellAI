@@ -14,6 +14,7 @@ import { useRecipes } from "@/hooks/use-recipes";
 import { useToast } from "@/hooks/use-toast";
 import { ManualRecipeForm, RecipeFormData } from "./ManualRecipeForm";
 import { AIRecipeGenerator } from "./AIRecipeGenerator";
+import { ImageUploadRecipe } from "./ImageUploadRecipe";
 
 interface RecipeManagerProps {
   recipe?: Recipe;
@@ -75,9 +76,10 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
 
         {mode === "create" ? (
           <Tabs defaultValue="manual">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="manual">Manual Creation</TabsTrigger>
               <TabsTrigger value="ai">AI Assisted</TabsTrigger>
+              <TabsTrigger value="image">Upload Image</TabsTrigger>
             </TabsList>
             <TabsContent value="manual">
               <ManualRecipeForm
@@ -87,6 +89,9 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
             </TabsContent>
             <TabsContent value="ai">
               <AIRecipeGenerator onGenerate={handleSubmit} />
+            </TabsContent>
+            <TabsContent value="image">
+              <ImageUploadRecipe onRecipeGenerated={handleSubmit} />
             </TabsContent>
           </Tabs>
         ) : (
