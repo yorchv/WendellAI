@@ -4,15 +4,48 @@ import { RecipeCard } from "@/components/RecipeCard";
 import { MealPlanCard } from "@/components/MealPlanCard";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { format } from "date-fns";
 import { Loader2, Plus } from "lucide-react";
 
 export default function Home() {
   const { recipes, isLoading: recipesLoading } = useRecipes();
-  const { mealPlans, isLoading: mealPlansLoading } = useMealPlans();
+  const { mealPlans, getCurrentDayMealPlan, isLoading: mealPlansLoading } = useMealPlans();
   const [, navigate] = useLocation();
+
+  const todayMealPlan = getCurrentDayMealPlan();
+  const todayDay = format(new Date(), "EEEE") as "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+  const todayMeals = todayMealPlan?.meals.find(meal => meal.day === todayDay)?.recipes;
 
   return (
     <div className="space-y-8">
+      {todayMealPlan && (
+        <section>
+          <h2 className="text-3xl font-bold tracking-tight mb-6">Today's Meals</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {["breakfast", "lunch", "dinner"].map((meal) => {
+              const recipeId = todayMeals?.[meal as keyof typeof todayMeals];
+              const recipe = recipes?.find(r => r.id === recipeId);
+
+              return (
+                <div key={meal} className="rounded-lg border p-4">
+                  <h3 className="font-medium capitalize mb-2">{meal}</h3>
+                  {recipe ? (
+                    <div>
+                      <p className="font-semibold">{recipe.title}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {recipe.description}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No meal planned</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <section>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold tracking-tight">Recent Recipes</h2>

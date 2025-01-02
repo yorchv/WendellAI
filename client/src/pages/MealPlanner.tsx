@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useRecipes } from "@/hooks/use-recipes";
+import { useState, useEffect } from "react";
 import { useMealPlans } from "@/hooks/use-meal-plans";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ export default function MealPlanner() {
   const [selectedMeal, setSelectedMeal] = useState<MealType>("breakfast");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { createMealPlan } = useMealPlans();
+  const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
   const { toast } = useToast();
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -38,6 +37,31 @@ export default function MealPlanner() {
     Sunday: {},
   });
 
+  // Load existing meal plan for the selected week
+  useEffect(() => {
+    const existingPlan = mealPlans?.find(
+      (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
+    );
+
+    if (existingPlan) {
+      const meals = existingPlan.meals.reduce((acc, meal) => ({
+        ...acc,
+        [meal.day]: meal.recipes
+      }), {} as Record<DayType, Record<MealType, number>>);
+      setSelectedMeals(meals);
+    } else {
+      setSelectedMeals({
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+        Sunday: {},
+      });
+    }
+  }, [weekStart, mealPlans]);
+
   const handleSelectRecipe = async (recipeId: number) => {
     const updatedMeals = {
       ...selectedMeals,
@@ -48,33 +72,37 @@ export default function MealPlanner() {
     };
     setSelectedMeals(updatedMeals);
 
-    // Check if the week is complete
-    const isWeekComplete = DAYS.every((day) =>
-      MEALS.every((meal) => updatedMeals[day]?.[meal])
+    // Find existing plan or create new one
+    const existingPlan = mealPlans?.find(
+      (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
     );
 
-    if (isWeekComplete) {
-      try {
-        await createMealPlan({
-          weekStart: weekStart.toISOString(),
-          weekEnd: addDays(weekStart, 6).toISOString(),
-          meals: DAYS.map((day) => ({
-            day,
-            recipes: updatedMeals[day] as Record<MealType, number>,
-          })),
-        });
+    try {
+      const mealPlanData = {
+        weekStart: weekStart.toISOString(),
+        weekEnd: addDays(weekStart, 6).toISOString(),
+        meals: DAYS.map((day) => ({
+          day,
+          recipes: updatedMeals[day] as Record<MealType, number>,
+        })),
+      };
 
-        toast({
-          title: "Success",
-          description: "Meal plan created successfully!",
-        });
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to create meal plan",
-        });
+      if (existingPlan) {
+        await updateMealPlan({ ...existingPlan, ...mealPlanData });
+      } else {
+        await createMealPlan(mealPlanData);
       }
+
+      toast({
+        title: "Success",
+        description: "Meal plan updated successfully",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update meal plan",
+      });
     }
   };
 
@@ -114,9 +142,14 @@ export default function MealPlanner() {
       <Card>
         <CardContent className="p-6">
           <div className="grid grid-cols-7 gap-4 text-sm font-medium">
-            {DAYS.map((day) => (
+            {DAYS.map((day, index) => (
               <div key={day} className="text-center">
-                <div className="mb-2">{day}</div>
+                <div className="mb-2">
+                  <div className="text-muted-foreground text-xs">
+                    {format(addDays(weekStart, index), "MMM d")}
+                  </div>
+                  <div>{day}</div>
+                </div>
                 <div className="space-y-2">
                   {MEALS.map((meal) => {
                     const recipeId = selectedMeals[day]?.[meal];
