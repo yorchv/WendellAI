@@ -16,17 +16,27 @@ import { Loader2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const MEALS = ["breakfast", "lunch", "dinner"] as const;
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+type MealType = typeof MEALS[number];
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+type DayType = typeof DAYS[number];
 
 export default function MealPlanner() {
-  const [selectedDay, setSelectedDay] = useState(DAYS[0]);
-  const [selectedMeal, setSelectedMeal] = useState<typeof MEALS[number]>("breakfast");
+  const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
+  const [selectedMeal, setSelectedMeal] = useState<MealType>("breakfast");
   const { recipes, isLoading: recipesLoading } = useRecipes();
   const { createMealPlan } = useMealPlans();
   const { toast } = useToast();
-  
+
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const [selectedMeals, setSelectedMeals] = useState<Record<string, Record<typeof MEALS[number], number>>>({});
+  const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Partial<Record<MealType, number>>>>({
+    Monday: {},
+    Tuesday: {},
+    Wednesday: {},
+    Thursday: {},
+    Friday: {},
+    Saturday: {},
+    Sunday: {},
+  });
 
   const handleSelectRecipe = async (recipeId: number) => {
     const updatedMeals = {
@@ -50,7 +60,7 @@ export default function MealPlanner() {
           weekEnd: addDays(weekStart, 6).toISOString(),
           meals: DAYS.map((day) => ({
             day,
-            recipes: updatedMeals[day] as Record<"breakfast" | "lunch" | "dinner", number>,
+            recipes: updatedMeals[day] as Record<MealType, number>,
           })),
         });
 
@@ -73,7 +83,7 @@ export default function MealPlanner() {
       <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
         <h1 className="text-3xl font-bold">Meal Planner</h1>
         <div className="flex gap-4">
-          <Select value={selectedDay} onValueChange={setSelectedDay}>
+          <Select value={selectedDay} onValueChange={(value: DayType) => setSelectedDay(value)}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Select day" />
             </SelectTrigger>
@@ -85,7 +95,7 @@ export default function MealPlanner() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={selectedMeal} onValueChange={setSelectedMeal}>
+          <Select value={selectedMeal} onValueChange={(value: MealType) => setSelectedMeal(value)}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Select meal" />
             </SelectTrigger>

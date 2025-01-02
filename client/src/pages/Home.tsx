@@ -68,7 +68,7 @@ export default function Home() {
       <section className="py-12">
         <div className="relative rounded-xl overflow-hidden bg-primary/10 p-8">
           <div className="relative z-10 max-w-2xl">
-            <h2 className="text-3xl font-bold mb-4">Welcome to MealMaster</h2>
+            <h2 className="text-3xl font-bold mb-4">Welcome to WendellAI</h2>
             <p className="text-lg text-muted-foreground mb-6">
               Plan your meals, manage your recipes, and streamline your grocery shopping all in one place.
               Get started by adding your favorite recipes or creating a meal plan for the week.

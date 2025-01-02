@@ -22,7 +22,7 @@ export default function Navigation({ user }: NavigationProps) {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/">
-            <a className="text-2xl font-bold text-primary">MealMaster</a>
+            <a className="text-2xl font-bold text-primary">WendellAI</a>
           </Link>
           <div className="hidden md:flex items-center gap-4">
             <Link href="/meal-planner">
