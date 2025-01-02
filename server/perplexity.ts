@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { log } from "./vite";
+import { formatRecipeResponse } from "./claude";
 
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
@@ -41,8 +42,7 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
       messages: [
         {
           role: "system",
-          content:
-            "You are a helpful cooking assistant. Generate recipes in JSON format with the following structure: { title: string, description: string, ingredients: string[], instructions: string[], prepTime: number, cookTime: number, servings: number }",
+          content: "You are a helpful cooking assistant. Generate detailed recipes based on user requests."
         },
         {
           role: "user",
@@ -59,17 +59,13 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
   }
 
   const data: PerplexityResponse = await response.json();
-  log(data.choices[0].message.content);
-  const recipeData = JSON.parse(data.choices[0].message.content);
+  log("Perplexity raw response:", data.choices[0].message.content);
 
-  const result = recipePreviewSchema.safeParse({
-    ...recipeData,
+  // Use Claude to format the response
+  const formattedRecipe = await formatRecipeResponse(data.choices[0].message.content);
+
+  return {
+    ...formattedRecipe,
     sources: data.citations,
-  });
-
-  if (!result.success) {
-    throw new Error("Invalid recipe format from Perplexity API");
-  }
-
-  return result.data;
+  };
 }

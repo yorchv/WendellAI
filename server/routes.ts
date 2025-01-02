@@ -31,7 +31,9 @@ export function registerRoutes(app: Express): Server {
       const preview = await generateRecipe(result.data.prompt);
       res.json(preview);
     } catch (error) {
-      res.status(500).send(error instanceof Error ? error.message : "Failed to generate recipe");
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate recipe";
+      console.error("Recipe generation error:", errorMessage);
+      res.status(500).send(errorMessage);
     }
   });
 
