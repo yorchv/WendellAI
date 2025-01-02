@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { log } from "./vite";
 import { formatRecipeResponse } from "./claude";
 
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
@@ -59,7 +58,6 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
   }
 
   const data: PerplexityResponse = await response.json();
-  log("Perplexity raw response:", data.choices[0].message.content);
 
   // Use Claude to format the response
   const formattedRecipe = await formatRecipeResponse(data.choices[0].message.content);
