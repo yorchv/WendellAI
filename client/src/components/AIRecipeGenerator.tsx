@@ -1,61 +1,73 @@
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { FormLabel } from "@/components/ui/form";
-import { Loader2, Sparkles } from "lucide-react";
-import { generateRecipe } from "@/lib/perplexity";
-import { useToast } from "@/hooks/use-toast";
-import type { RecipeFormData } from "./ManualRecipeForm";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+const promptSchema = z.object({
+  prompt: z.string().min(1, "Please enter a prompt"),
+});
+
+type PromptFormData = z.infer<typeof promptSchema>;
 
 interface AIRecipeGeneratorProps {
-  onGenerated: (recipe: RecipeFormData) => void;
+  onGenerate: (prompt: string) => Promise<void>;
 }
 
-export function AIRecipeGenerator({ onGenerated }: AIRecipeGeneratorProps) {
-  const [prompt, setPrompt] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
+export function AIRecipeGenerator({ onGenerate }: AIRecipeGeneratorProps) {
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleGenerateRecipe = async () => {
-    if (!prompt) return;
+  const form = useForm<PromptFormData>({
+    resolver: zodResolver(promptSchema),
+    defaultValues: {
+      prompt: "",
+    },
+  });
 
-    setIsGenerating(true);
+  async function onSubmit(data: PromptFormData) {
+    setIsLoading(true);
     try {
-      const generatedRecipe = await generateRecipe(prompt);
-      onGenerated(generatedRecipe);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to generate recipe. Please try again.",
-      });
+      await onGenerate(data.prompt);
     } finally {
-      setIsGenerating(false);
+      setIsLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="mb-6">
-      <FormLabel>Generate Recipe with AI</FormLabel>
-      <div className="flex gap-2 mt-2">
-        <Input
-          placeholder="Describe the recipe you want to create..."
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-        />
-        <Button
-          type="button"
-          onClick={handleGenerateRecipe}
-          disabled={isGenerating || !prompt}
-        >
-          {isGenerating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="h-4 w-4" />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="prompt"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Recipe Prompt</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Describe the recipe you want to generate..."
+                  className="h-32"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Generating..." : "Generate Recipe"}
         </Button>
-      </div>
-    </div>
+      </form>
+    </Form>
   );
 }
