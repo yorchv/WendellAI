@@ -240,6 +240,32 @@ export function registerRoutes(app: Express): Server {
     res.json(list[0]);
   });
 
+  app.put("/api/shopping-lists/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+    
+    const list = await db.query.shoppingLists.findFirst({
+      where: eq(shoppingLists.id, parseInt(req.params.id)),
+    });
+
+    if (!list) {
+      return res.status(404).send("Shopping list not found");
+    }
+
+    if (list.userId !== req.user.id) {
+      return res.status(403).send("Not authorized to update this shopping list");
+    }
+
+    const updatedList = await db
+      .update(shoppingLists)
+      .set(req.body)
+      .where(eq(shoppingLists.id, parseInt(req.params.id)))
+      .returning();
+
+    res.json(updatedList[0]);
+  });
+
   // Recipe Image Analysis
   app.post("/api/recipes/analyze-image", async (req, res) => {
     if (!req.isAuthenticated()) {
