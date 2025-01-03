@@ -1,3 +1,26 @@
+-- First drop foreign key constraints
+ALTER TABLE IF EXISTS "shopping_list_items" DROP CONSTRAINT IF EXISTS "shopping_list_items_user_id_fkey";
+ALTER TABLE IF EXISTS "shopping_list_items" DROP CONSTRAINT IF EXISTS "shopping_list_items_ingredient_id_fkey";
+ALTER TABLE IF EXISTS "shopping_lists" DROP CONSTRAINT IF EXISTS "shopping_lists_user_id_fkey";
+
+-- Drop existing tables that will be replaced
+DROP TABLE IF EXISTS "shopping_lists" CASCADE;
+
+-- Create initial shopping_list_items table
+CREATE TABLE IF NOT EXISTS "shopping_list_items" (
+  "id" serial PRIMARY KEY,
+  "user_id" integer REFERENCES "users"("id"),
+  "week_start" timestamp NOT NULL,
+  "name" text NOT NULL,
+  "checked" boolean DEFAULT false,
+  "recipes" jsonb,
+  "created_at" timestamp DEFAULT now(),
+  "updated_at" timestamp DEFAULT now()
+);
+
+-- Add indexes for better query performance
+CREATE INDEX IF NOT EXISTS "idx_shopping_list_items_user_id" ON "shopping_list_items"("user_id");
+
 -- Create ingredients table if it doesn't exist
 CREATE TABLE IF NOT EXISTS "ingredients" (
   "id" serial PRIMARY KEY,
@@ -54,7 +77,6 @@ ALTER TABLE "shopping_list_items"
   DROP COLUMN "name",
   DROP COLUMN "week_start";
 
--- Add indexes for better query performance
-CREATE INDEX IF NOT EXISTS "idx_shopping_list_items_user_id" ON "shopping_list_items"("user_id");
+-- Add indexes for better query performance (already added above, but adding again for completeness if this migration runs multiple times)
 CREATE INDEX IF NOT EXISTS "idx_shopping_list_items_ingredient_id" ON "shopping_list_items"("ingredient_id");
 CREATE INDEX IF NOT EXISTS "idx_shopping_list_items_date_range" ON "shopping_list_items"("start_date", "end_date");
