@@ -15,6 +15,39 @@ import { generateRecipe } from "./perplexity";
 import { z } from "zod";
 import { analyzeRecipeImage } from "./claude";
 
+// Enhanced validation for meal plans
+const mealPlanSchema = z.object({
+  weekStart: z.string().or(z.date()).transform((val) => new Date(val)),
+  weekEnd: z.string().or(z.date()).transform((val) => new Date(val)),
+  meals: z.array(
+    z.object({
+      day: z.enum([
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ]),
+      recipes: z.record(
+        z.enum(["breakfast", "lunch", "dinner"]),
+        z.array(z.number()).default([])
+      ),
+    })
+  ).min(1, "At least one day's meals are required"),
+}).refine(
+  (data) => {
+    // Validate date range
+    const start = new Date(data.weekStart);
+    const end = new Date(data.weekEnd);
+    return end >= start;
+  },
+  {
+    message: "Week end date must be after week start date",
+  }
+);
+
 // Validate date range for shopping list
 const dateRangeSchema = z.object({
   startDate: z.string().transform(val => new Date(val)),
@@ -47,28 +80,6 @@ const recipeSchema = z.object({
   sources: z.array(z.string()).optional(),
 });
 
-const mealPlanSchema = z.object({
-  weekStart: z.string().or(z.date()).transform((val) => new Date(val)),
-  weekEnd: z.string().or(z.date()).transform((val) => new Date(val)),
-  meals: z.array(
-    z.object({
-      day: z.enum([
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ]),
-      recipes: z.object({
-        breakfast: z.array(z.number()).default([]),
-        lunch: z.array(z.number()).default([]),
-        dinner: z.array(z.number()).default([]),
-      }),
-    })
-  ).min(1, "At least one day's meals are required"),
-});
 
 export function registerRoutes(app: Express): Server {
   // Important: Setup auth before registering routes
@@ -255,6 +266,30 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
+      // Verify all recipe IDs exist
+      const allRecipeIds = new Set<number>();
+      result.data.meals.forEach((meal) => {
+        Object.values(meal.recipes).forEach((mealRecipes) => {
+          mealRecipes.forEach((id) => allRecipeIds.add(id));
+        });
+      });
+
+      const existingRecipes = await db.query.recipes.findMany({
+        where: eq(recipes.userId, user.id),
+        columns: { id: true },
+      });
+
+      const existingRecipeIds = new Set(existingRecipes.map((r) => r.id));
+      const invalidRecipeIds = Array.from(allRecipeIds).filter(
+        (id) => !existingRecipeIds.has(id)
+      );
+
+      if (invalidRecipeIds.length > 0) {
+        return res.status(400).send(
+          `Invalid recipe IDs: ${invalidRecipeIds.join(", ")}`
+        );
+      }
+
       const [mealPlan] = await db
         .insert(mealPlans)
         .values({
@@ -264,6 +299,7 @@ export function registerRoutes(app: Express): Server {
           meals: result.data.meals,
         })
         .returning();
+
       res.json(mealPlan);
     } catch (error) {
       console.error("Error creating meal plan:", error);
@@ -295,6 +331,30 @@ export function registerRoutes(app: Express): Server {
 
       if (mealPlan.userId !== user.id) {
         return res.status(403).send("Not authorized to update this meal plan");
+      }
+
+      // Verify all recipe IDs exist
+      const allRecipeIds = new Set<number>();
+      result.data.meals.forEach((meal) => {
+        Object.values(meal.recipes).forEach((mealRecipes) => {
+          mealRecipes.forEach((id) => allRecipeIds.add(id));
+        });
+      });
+
+      const existingRecipes = await db.query.recipes.findMany({
+        where: eq(recipes.userId, user.id),
+        columns: { id: true },
+      });
+
+      const existingRecipeIds = new Set(existingRecipes.map((r) => r.id));
+      const invalidRecipeIds = Array.from(allRecipeIds).filter(
+        (id) => !existingRecipeIds.has(id)
+      );
+
+      if (invalidRecipeIds.length > 0) {
+        return res.status(400).send(
+          `Invalid recipe IDs: ${invalidRecipeIds.join(", ")}`
+        );
       }
 
       const [updatedMealPlan] = await db

@@ -56,22 +56,35 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
   notes: text("notes"),
 });
 
-// Meal plan types
-export type MealType = "breakfast" | "lunch" | "dinner";
-export type DayType = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+// Meal plan types and validation schemas
+export const mealTypeEnum = z.enum(["breakfast", "lunch", "dinner"]);
+export type MealType = z.infer<typeof mealTypeEnum>;
 
-export interface MealPlanRecipes {
-  breakfast: number[];
-  lunch: number[];
-  dinner: number[];
-}
+export const dayTypeEnum = z.enum([
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+]);
+export type DayType = z.infer<typeof dayTypeEnum>;
 
-export interface MealPlanDay {
-  day: DayType;
-  recipes: MealPlanRecipes;
-}
+// Each meal type (breakfast, lunch, dinner) can have multiple recipes
+export const mealRecipesSchema = z.record(
+  mealTypeEnum,
+  z.array(z.number()).default([])
+);
+export type MealRecipes = z.infer<typeof mealRecipesSchema>;
 
-// Meal plans table with strict typing
+export const mealPlanDaySchema = z.object({
+  day: dayTypeEnum,
+  recipes: mealRecipesSchema,
+});
+export type MealPlanDay = z.infer<typeof mealPlanDaySchema>;
+
+// Meal plans table
 export const mealPlans = pgTable("meal_plans", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
@@ -79,7 +92,7 @@ export const mealPlans = pgTable("meal_plans", {
     .notNull(),
   weekStart: timestamp("week_start").notNull(),
   weekEnd: timestamp("week_end").notNull(),
-  meals: jsonb("meals").$type<MealPlanDay[]>().notNull().default([]),
+  meals: jsonb("meals").$type<MealPlanDay[]>().notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -133,34 +146,30 @@ export const recipeIngredientRelations = relations(recipeIngredients, ({ one }) 
   }),
 }));
 
-// Zod schemas for runtime validation
-const mealTypeEnum = z.enum(["breakfast", "lunch", "dinner"]);
-const dayTypeEnum = z.enum([
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-]);
+// Create and export Zod schemas for validation
+export const insertUserSchema = createInsertSchema(users);
+export const selectUserSchema = createSelectSchema(users);
 
-export const mealPlanDaySchema = z.object({
-  day: dayTypeEnum,
-  recipes: z.object({
-    breakfast: z.array(z.number()).default([]),
-    lunch: z.array(z.number()).default([]),
-    dinner: z.array(z.number()).default([]),
-  }),
-});
+export const insertRecipeSchema = createInsertSchema(recipes);
+export const selectRecipeSchema = createSelectSchema(recipes);
+
+export const insertIngredientSchema = createInsertSchema(ingredients);
+export const selectIngredientSchema = createSelectSchema(ingredients);
+
+export const insertRecipeIngredientSchema = createInsertSchema(recipeIngredients);
+export const selectRecipeIngredientSchema = createSelectSchema(recipeIngredients);
 
 export const insertMealPlanSchema = z.object({
   weekStart: z.coerce.date(),
   weekEnd: z.coerce.date(),
   meals: z.array(mealPlanDaySchema).min(1, "At least one day's meals are required"),
 });
+export const selectMealPlanSchema = createSelectSchema(mealPlans);
 
-// Types
+export const insertShoppingListItemSchema = createInsertSchema(shoppingListItems);
+export const selectShoppingListItemSchema = createSelectSchema(shoppingListItems);
+
+// Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
