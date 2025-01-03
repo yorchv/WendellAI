@@ -7,10 +7,11 @@ import {
   recipes,
   mealPlans,
   pantryItems,
-  shoppingLists,
   shoppingListItems,
+  ingredients,
+  recipeIngredients,
 } from "@db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, between } from "drizzle-orm";
 import { generateRecipe } from "./perplexity";
 import { z } from "zod";
 import { analyzeRecipeImage } from "./claude";
@@ -23,7 +24,14 @@ const recipeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   ingredients: z
-    .array(z.string())
+    .array(
+      z.object({
+        name: z.string().min(1, "Ingredient name is required"),
+        quantity: z.number().optional(),
+        unit: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
     .min(1, "At least one ingredient is required"),
   instructions: z
     .array(z.string())
@@ -61,7 +69,7 @@ const mealPlanSchema = z.object({
           lunch: z.number().optional(),
           dinner: z.number().optional(),
         }),
-      }),
+      })
     )
     .min(1, "At least one day's meals are required"),
 });
@@ -81,7 +89,7 @@ export function registerRoutes(app: Express): Server {
         .status(400)
         .send(
           "Invalid input: " +
-            result.error.issues.map((i) => i.message).join(", "),
+            result.error.issues.map((i) => i.message).join(", ")
         );
     }
 
@@ -131,20 +139,48 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
-    const result = recipeSchema.safeParse(req.body);
-    if (!result.success) {
-      return res
-        .status(400)
-        .send(result.error.errors.map((err) => err.message).join(", "));
-    }
-    const recipe = await db
-      .insert(recipes)
-      .values({
-        ...result.data,
-        userId: req.user.id,
-      })
-      .returning();
-    res.json(recipe[0]);
+
+    const { ingredients: recipeIngredientsList, ...recipeData } = req.body;
+
+    // Start a transaction
+    const result = await db.transaction(async (tx) => {
+      // Create the recipe first
+      const [recipe] = await tx
+        .insert(recipes)
+        .values({
+          ...recipeData,
+          userId: req.user.id,
+        })
+        .returning();
+
+      // Process ingredients
+      for (const ingredient of recipeIngredientsList) {
+        // Find or create ingredient
+        let [ingredientRecord] = await tx
+          .insert(ingredients)
+          .values({
+            name: ingredient.name.toLowerCase().trim(),
+          })
+          .onConflictDoUpdate({
+            target: ingredients.name,
+            set: { updatedAt: new Date() },
+          })
+          .returning();
+
+        // Create recipe-ingredient relationship
+        await tx.insert(recipeIngredients).values({
+          recipeId: recipe.id,
+          ingredientId: ingredientRecord.id,
+          quantity: ingredient.quantity,
+          unit: ingredient.unit,
+          notes: ingredient.notes,
+        });
+      }
+
+      return recipe;
+    });
+
+    res.json(result);
   });
 
   app.put("/api/recipes/:id", async (req, res) => {
@@ -259,37 +295,25 @@ export function registerRoutes(app: Express): Server {
     res.json(item[0]);
   });
 
-  // Shopping Lists
-  app.get("/api/shopping-lists", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    const lists = await db.query.shoppingLists.findMany({
-      where: eq(shoppingLists.userId, req.user.id),
-    });
-    res.json(lists);
-  });
 
-  app.post("/api/shopping-lists", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    const list = await db
-      .insert(shoppingLists)
-      .values({
-        ...req.body,
-        userId: req.user.id,
-      })
-      .returning();
-    res.json(list[0]);
-  });
-
+  // Shopping List Items with date range
   app.get("/api/shopping-list-items", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
+
+    const startDate = req.query.startDate
+      ? new Date(req.query.startDate as string)
+      : new Date();
+    const endDate = req.query.endDate
+      ? new Date(req.query.endDate as string)
+      : new Date();
+
     const items = await db.query.shoppingListItems.findMany({
-      where: eq(shoppingListItems.userId, req.user.id),
+      where: and(
+        eq(shoppingListItems.userId, req.user.id),
+        between(shoppingListItems.startDate, startDate, endDate)
+      ),
     });
     res.json(items);
   });
@@ -299,16 +323,28 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).send("Not authenticated");
     }
 
-    log(JSON.stringify(req.body));
-    const items = await db
+    const {
+      ingredientId,
+      startDate,
+      endDate,
+      quantity,
+      unit,
+      recipeIds,
+    } = req.body;
+
+    const item = await db
       .insert(shoppingListItems)
       .values({
-        ...req.body,
-        weekStart: new Date(req.body.weekStart),
         userId: req.user.id,
+        ingredientId,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        quantity,
+        unit,
+        recipeIds,
       })
       .returning();
-    res.json(items[0]);
+    res.json(item[0]);
   });
 
   app.put("/api/shopping-list-items/:id", async (req, res) => {
@@ -337,33 +373,6 @@ export function registerRoutes(app: Express): Server {
     res.json(updatedItem[0]);
   });
 
-  app.put("/api/shopping-lists/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-
-    const list = await db.query.shoppingLists.findFirst({
-      where: eq(shoppingLists.id, parseInt(req.params.id)),
-    });
-
-    if (!list) {
-      return res.status(404).send("Shopping list not found");
-    }
-
-    if (list.userId !== req.user.id) {
-      return res
-        .status(403)
-        .send("Not authorized to update this shopping list");
-    }
-
-    const updatedList = await db
-      .update(shoppingLists)
-      .set(req.body)
-      .where(eq(shoppingLists.id, parseInt(req.params.id)))
-      .returning();
-
-    res.json(updatedList[0]);
-  });
 
   // Recipe Image Analysis
   app.post("/api/recipes/analyze-image", async (req, res) => {
@@ -381,7 +390,7 @@ export function registerRoutes(app: Express): Server {
         .status(400)
         .send(
           "Invalid input: " +
-            result.error.issues.map((i) => i.message).join(", "),
+            result.error.issues.map((i) => i.message).join(", ")
         );
     }
 
