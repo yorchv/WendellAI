@@ -1,13 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { db } from "@db";
+import { db, verifyDatabaseConnection } from "@db";
 
 const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
-// Add request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -40,8 +39,9 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    // Verify database connection
-    await db.query.users.findMany();
+    // Verify database connection first
+    log("Verifying database connection...");
+    await verifyDatabaseConnection();
     log("Database connection verified successfully");
 
     const server = registerRoutes(app);
