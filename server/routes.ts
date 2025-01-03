@@ -71,6 +71,7 @@ const mealPlanSchema = z.object({
 });
 
 export function registerRoutes(app: Express): Server {
+  // Important: Setup auth before registering routes
   setupAuth(app);
 
   // Recipe Generation
@@ -105,17 +106,22 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).send("Not authenticated");
     }
 
-    const userRecipes = await db.query.recipes.findMany({
-      where: eq(recipes.userId, user.id),
-      with: {
-        ingredients: {
-          with: {
-            ingredient: true,
+    try {
+      const userRecipes = await db.query.recipes.findMany({
+        where: eq(recipes.userId, user.id),
+        with: {
+          ingredients: {
+            with: {
+              ingredient: true,
+            },
           },
         },
-      },
-    });
-    res.json(userRecipes);
+      });
+      res.json(userRecipes);
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+      res.status(500).send("Failed to fetch recipes");
+    }
   });
 
   app.get("/api/recipes/:id", async (req, res) => {
@@ -124,26 +130,31 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).send("Not authenticated");
     }
 
-    const recipe = await db.query.recipes.findFirst({
-      where: eq(recipes.id, parseInt(req.params.id)),
-      with: {
-        ingredients: {
-          with: {
-            ingredient: true,
+    try {
+      const recipe = await db.query.recipes.findFirst({
+        where: eq(recipes.id, parseInt(req.params.id)),
+        with: {
+          ingredients: {
+            with: {
+              ingredient: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    if (!recipe) {
-      return res.status(404).send("Recipe not found");
+      if (!recipe) {
+        return res.status(404).send("Recipe not found");
+      }
+
+      if (recipe.userId !== user.id) {
+        return res.status(403).send("Not authorized to view this recipe");
+      }
+
+      res.json(recipe);
+    } catch (error) {
+      console.error("Error fetching recipe:", error);
+      res.status(500).send("Failed to fetch recipe");
     }
-
-    if (recipe.userId !== user.id) {
-      return res.status(403).send("Not authorized to view this recipe");
-    }
-
-    res.json(recipe);
   });
 
   app.post("/api/recipes", async (req, res) => {
@@ -292,25 +303,30 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).send("Not authenticated");
     }
 
-    const item = await db.query.shoppingListItems.findFirst({
-      where: eq(shoppingListItems.id, parseInt(req.params.id)),
-    });
+    try {
+      const item = await db.query.shoppingListItems.findFirst({
+        where: eq(shoppingListItems.id, parseInt(req.params.id)),
+      });
 
-    if (!item) {
-      return res.status(404).send("Item not found");
+      if (!item) {
+        return res.status(404).send("Item not found");
+      }
+
+      if (item.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this item");
+      }
+
+      const updatedItem = await db
+        .update(shoppingListItems)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(shoppingListItems.id, parseInt(req.params.id)))
+        .returning();
+
+      res.json(updatedItem[0]);
+    } catch (error) {
+      console.error("Error updating shopping list item:", error);
+      res.status(500).send("Failed to update shopping list item");
     }
-
-    if (item.userId !== user.id) {
-      return res.status(403).send("Not authorized to update this item");
-    }
-
-    const updatedItem = await db
-      .update(shoppingListItems)
-      .set({ ...req.body, updatedAt: new Date() })
-      .where(eq(shoppingListItems.id, parseInt(req.params.id)))
-      .returning();
-
-    res.json(updatedItem[0]);
   });
 
   // Recipe Image Analysis

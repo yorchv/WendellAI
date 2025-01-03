@@ -5,7 +5,7 @@ import session from "express-session";
 import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { users, insertUserSchema, type User } from "@db/schema";
+import { users, type SelectUser } from "@db/schema";
 import { db } from "@db";
 import { eq } from "drizzle-orm";
 
@@ -31,7 +31,7 @@ const crypto = {
 // extend express user object with our schema
 declare global {
   namespace Express {
-    interface User extends User { }
+    interface User extends SelectUser {}
   }
 }
 
@@ -158,7 +158,7 @@ export function setupAuth(app: Express) {
         .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
     }
 
-    const cb = (err: any, user: Express.User, info: IVerifyOptions) => {
+    const cb = (err: any, user: Express.User | false, info: IVerifyOptions) => {
       if (err) {
         return next(err);
       }
