@@ -49,6 +49,11 @@ export async function formatRecipeResponse(text: string) {
 
 export async function analyzeRecipeImage(base64Image: string) {
   try {
+    // Ensure proper base64 image format with data URI prefix if not present
+    const formattedBase64 = base64Image.includes('base64,') 
+      ? base64Image.split('base64,')[1]
+      : base64Image;
+
     const response = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20241022",
       max_tokens: 1024,
@@ -65,7 +70,7 @@ export async function analyzeRecipeImage(base64Image: string) {
               source: {
                 type: "base64",
                 media_type: "image/jpeg",
-                data: base64Image
+                data: formattedBase64
               }
             }
           ]
