@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { log } from './vite'
 import { db } from "@db";
-import { recipes, mealPlans, pantryItems, shoppingLists } from "@db/schema";
+import { recipes, mealPlans, pantryItems, shoppingLists, shoppingListItems } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { generateRecipe } from "./perplexity";
 import { z } from "zod";
