@@ -21,6 +21,41 @@ export default function ShoppingList() {
   const { recipes } = useRecipes();
   const [searchTerm, setSearchTerm] = useState("");
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+  const queryClient = useQueryClient();
+
+  const { data: persistedItems } = useQuery({
+    queryKey: ['/api/shopping-list-items'],
+    queryFn: async () => {
+      const response = await fetch('/api/shopping-list-items');
+      if (!response.ok) throw new Error('Failed to fetch items');
+      return response.json();
+    }
+  });
+
+  const updateItem = useMutation({
+    mutationFn: async (item: ShoppingItem & { id?: number }) => {
+      if (!item.id) {
+        const response = await fetch('/api/shopping-list-items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item),
+        });
+        if (!response.ok) throw new Error('Failed to create item');
+        return response.json();
+      } else {
+        const response = await fetch(`/api/shopping-list-items/${item.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item),
+        });
+        if (!response.ok) throw new Error('Failed to update item');
+        return response.json();
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping-list-items'] });
+    }
+  });
 
   useEffect(() => {
     if (!mealPlans || !recipes) return;
@@ -66,11 +101,12 @@ export default function ShoppingList() {
   }, [mealPlans, recipes]);
 
   const toggleItem = (index: number) => {
-    setShoppingItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, checked: !item.checked } : item
-      )
-    );
+    const item = shoppingItems[index];
+    updateItem.mutate({
+      ...item,
+      checked: !item.checked,
+      weekStart: new Date(weekStart),
+    });
   };
 
   const filteredItems = shoppingItems.filter((item) =>

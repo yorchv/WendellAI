@@ -240,6 +240,55 @@ export function registerRoutes(app: Express): Server {
     res.json(list[0]);
   });
 
+  app.get("/api/shopping-list-items", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+    const items = await db.query.shoppingListItems.findMany({
+      where: eq(shoppingListItems.userId, req.user.id),
+    });
+    res.json(items);
+  });
+
+  app.post("/api/shopping-list-items", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+    const items = await db.insert(shoppingListItems)
+      .values({
+        ...req.body,
+        userId: req.user.id,
+      })
+      .returning();
+    res.json(items[0]);
+  });
+
+  app.put("/api/shopping-list-items/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+    
+    const item = await db.query.shoppingListItems.findFirst({
+      where: eq(shoppingListItems.id, parseInt(req.params.id)),
+    });
+
+    if (!item) {
+      return res.status(404).send("Item not found");
+    }
+
+    if (item.userId !== req.user.id) {
+      return res.status(403).send("Not authorized to update this item");
+    }
+
+    const updatedItem = await db
+      .update(shoppingListItems)
+      .set({ ...req.body, updatedAt: new Date() })
+      .where(eq(shoppingListItems.id, parseInt(req.params.id)))
+      .returning();
+
+    res.json(updatedItem[0]);
+  });
+
   app.put("/api/shopping-lists/:id", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");

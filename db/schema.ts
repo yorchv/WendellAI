@@ -74,7 +74,19 @@ export type User = typeof users.$inferSelect;
 export type Recipe = typeof recipes.$inferSelect;
 export type MealPlan = typeof mealPlans.$inferSelect;
 export type PantryItem = typeof pantryItems.$inferSelect;
+export const shoppingListItems = pgTable("shopping_list_items", {
+  id: serial("id").primaryKey(),
+  weekStart: timestamp("week_start").notNull(),
+  userId: integer("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  checked: boolean("checked").default(false),
+  recipes: jsonb("recipes").$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export type ShoppingList = typeof shoppingLists.$inferSelect;
+export type ShoppingListItem = typeof shoppingListItems.$inferSelect;
 
 // Schemas
 export const insertUserSchema = createInsertSchema(users);
