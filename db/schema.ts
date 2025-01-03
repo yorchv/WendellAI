@@ -128,6 +128,12 @@ export type InsertShoppingListItem = typeof shoppingListItems.$inferInsert;
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
 
+// User schema with validation
+export const insertUserSchema = createInsertSchema(users, {
+  username: (schema) => schema.username.min(3).max(50),
+  password: (schema) => schema.password.min(6).max(100),
+});
+
 export const insertRecipeSchema = createInsertSchema(recipes);
 export const selectRecipeSchema = createSelectSchema(recipes);
 
