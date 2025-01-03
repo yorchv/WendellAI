@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { log } from "./vite";
-import { db } from "@db";
+import { getDb } from "@db";
 import {
   recipes,
   mealPlans,
@@ -48,9 +48,12 @@ const mealPlanSchema = z.object({
   }
 );
 
-export function registerRoutes(app: Express): Server {
+export async function registerRoutes(app: Express): Promise<Server> {
   // Important: Setup auth before registering routes
   setupAuth(app);
+
+  // Initialize database connection
+  const db = await getDb();
 
   // Recipe Generation
   app.post("/api/recipes/generate", async (req, res) => {

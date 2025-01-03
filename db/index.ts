@@ -7,29 +7,29 @@ if (!process.env.DATABASE_URL) {
 }
 
 let client: Client | null = null;
-let db: ReturnType<typeof drizzle> | null = null;
+let dbInstance: ReturnType<typeof drizzle> | null = null;
 
 export async function getDb() {
-  if (!client || !db) {
-    client = new Client(process.env.DATABASE_URL);
+  if (!client || !dbInstance) {
+    client = new Client({
+      connectionString: process.env.DATABASE_URL
+    });
     await client.connect();
-    db = drizzle(client, { schema });
+    dbInstance = drizzle(client, { schema });
   }
-  return db;
+  return dbInstance;
 }
 
 export async function verifyDatabaseConnection() {
   try {
-    if (!client) {
-      await getDb();
-    }
-    await client!.query('SELECT 1');
-    return true;
+    const db = await getDb();
+    const result = await client!.query('SELECT 1');
+    return result.rowCount === 1;
   } catch (error) {
     console.error("Database connection verification failed:", error);
     throw error;
   }
 }
 
-// For backwards compatibility
-export const db = await getDb();
+// Export a simple drizzle instance for basic operations
+export const db = drizzle(process.env.DATABASE_URL, { schema });

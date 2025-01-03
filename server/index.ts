@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { verifyDatabaseConnection, getDb } from "@db";
+import { getDb, verifyDatabaseConnection } from "@db";
 
 const app = express();
 app.use(express.json({limit: '50mb'}));
@@ -49,7 +49,7 @@ app.use((req, res, next) => {
     await verifyDatabaseConnection();
     log("Database connection verified successfully");
 
-    const server = registerRoutes(app);
+    const server = await registerRoutes(app);
 
     // Global error handler
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
