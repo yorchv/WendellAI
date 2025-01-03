@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import RecipeView from "./pages/RecipeView";
 import RecipesPage from "./pages/RecipesPage";
 import MealPlanner from "./pages/MealPlanner";
+import ShoppingList from "./pages/ShoppingList";
 import Navigation from "./components/Navigation";
 import { useUser } from "./hooks/use-user";
 import { Loader2 } from "lucide-react";
@@ -37,6 +38,7 @@ function App() {
             return null;
           }} />
           <Route path="/meal-planner" component={MealPlanner} />
+          <Route path="/shopping-list" component={ShoppingList} />
           <Route>404 - Not Found</Route>
         </Switch>
       </main>

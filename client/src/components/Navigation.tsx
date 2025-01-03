@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User } from "@db/schema";
 import { useUser } from "@/hooks/use-user";
-import { CalendarDays, ChefHat, List, LogOut, User as UserIcon } from "lucide-react";
+import { CalendarDays, ChefHat, List, LogOut, User as UserIcon, ShoppingBasket } from "lucide-react";
 
 interface NavigationProps {
   user: User;
@@ -39,7 +39,7 @@ export default function Navigation({ user }: NavigationProps) {
             </Link>
             <Link href="/shopping-list">
               <Button variant="ghost" className="flex items-center gap-2">
-                <List className="h-4 w-4" />
+                <ShoppingBasket className="h-4 w-4" />
                 Shopping List
               </Button>
             </Link>
