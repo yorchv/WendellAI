@@ -59,7 +59,7 @@ export function useShoppingList() {
   });
 
   useEffect(() => {
-    if (!mealPlans || !recipes) return;
+    if (!mealPlans || !recipes || !persistedItems) return;
 
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -86,11 +86,17 @@ export function useShoppingList() {
       });
     });
 
-    const items: ShoppingItem[] = Array.from(ingredientMap.entries()).map(([name, recipeTitles]) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
-      checked: false,
-      recipes: Array.from(recipeTitles),
-    }));
+    const items: ShoppingItem[] = Array.from(ingredientMap.entries()).map(([name, recipeTitles]) => {
+      const persistedItem = persistedItems.find(
+        item => item.name.toLowerCase().trim() === name
+      );
+      return {
+        id: persistedItem?.id,
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        checked: persistedItem?.checked || false,
+        recipes: Array.from(recipeTitles),
+      };
+    });
 
     setShoppingItems(items);
   }, [mealPlans, recipes]);
