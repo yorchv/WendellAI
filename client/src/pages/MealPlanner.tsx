@@ -15,7 +15,7 @@ import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
 
 const MEALS = ["breakfast", "lunch", "dinner"] as const;
 type MealType = typeof MEALS[number];
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 type DayType = typeof DAYS[number];
 
 export default function MealPlanner() {
@@ -26,7 +26,7 @@ export default function MealPlanner() {
   const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
   const { toast } = useToast();
 
-  const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
+  const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 0 }), [selectedDate]);
   const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Partial<Record<MealType, number>>>>({
     Monday: {},
     Tuesday: {},
