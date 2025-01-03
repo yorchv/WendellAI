@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { db, verifyDatabaseConnection } from "@db";
+import { verifyDatabaseConnection, getDb } from "@db";
 
 const app = express();
 app.use(express.json({limit: '50mb'}));
@@ -39,7 +39,12 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    // Verify database connection first
+    // Initialize database connection
+    log("Initializing database connection...");
+    await getDb();
+    log("Database initialized successfully");
+
+    // Verify database connection
     log("Verifying database connection...");
     await verifyDatabaseConnection();
     log("Database connection verified successfully");
