@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { addDays, startOfDay, endOfDay } from "date-fns";
-import { Recipe, Ingredient } from "@db/schema";
+import { Recipe, Ingredient, RecipeIngredient } from "@db/schema";
 import { useToast } from "./use-toast";
 import { useMealPlans } from "./use-meal-plans";
 import { useRecipes } from "./use-recipes";
@@ -32,21 +32,21 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const queryClient = useQueryClient();
   const { mealPlans } = useMealPlans();
-  const { recipes } = useRecipes();
+  const { recipes: recipesData } = useRecipes();
 
   // Fetch ingredients
-  const { data: ingredients } = useQuery({
+  const { data: ingredients } = useQuery<Ingredient[]>({
     queryKey: ["/api/ingredients"],
-    queryFn: async () => {
-      const response = await fetch("/api/ingredients");
-      if (!response.ok) throw new Error("Failed to fetch ingredients");
-      return response.json();
-    },
+  });
+
+  // Fetch recipe ingredients
+  const { data: recipeIngredients } = useQuery<RecipeIngredient[]>({
+    queryKey: ["/api/recipe-ingredients"],
   });
 
   // Fetch shopping list items for date range
   const { data: persistedItems } = useQuery({
-    queryKey: ["/api/shopping-list-items", dateRange.startDate, dateRange.endDate],
+    queryKey: ["/api/shopping-list-items", dateRange.startDate.toISOString(), dateRange.endDate.toISOString()],
     queryFn: async () => {
       const params = new URLSearchParams({
         startDate: dateRange.startDate.toISOString(),
@@ -84,13 +84,13 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ["/api/shopping-list-items", dateRange.startDate, dateRange.endDate] 
+        queryKey: ["/api/shopping-list-items", dateRange.startDate.toISOString(), dateRange.endDate.toISOString()] 
       });
     },
   });
 
   useEffect(() => {
-    if (!mealPlans || !recipes || !ingredients || !persistedItems) return;
+    if (!mealPlans || !recipesData || !ingredients || !recipeIngredients || !persistedItems) return;
 
     const relevantMealPlans = mealPlans.filter(plan => {
       const planStart = new Date(plan.weekStart);
@@ -98,18 +98,17 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
       return planStart <= dateRange.endDate && planEnd >= dateRange.startDate;
     });
 
-    const recipeIds = new Set(
+    const recipeIds = new Set<number>(
       relevantMealPlans
-        .flatMap(plan => plan.meals || [])
-        .flatMap(meal => Object.values(meal.recipes || {}))
-        .filter(Boolean)
+        .flatMap(plan => (plan.meals || []))
+        .flatMap(meal => Object.values(meal.recipes))
+        .filter((id): id is number => id !== undefined)
     );
 
-    const relevantRecipes = recipes.filter(recipe => recipeIds.has(recipe.id));
     const ingredientMap = new Map<number, ShoppingItem>();
 
     // Process persisted items first
-    persistedItems.forEach(item => {
+    persistedItems.forEach((item: any) => {
       const ingredient = ingredients.find(ing => ing.id === item.ingredientId);
       if (ingredient) {
         ingredientMap.set(item.ingredientId, {
@@ -125,17 +124,27 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
     });
 
     // Add or update items from recipes
-    relevantRecipes.forEach(recipe => {
-      recipe.ingredients.forEach(ingredient => {
-        const existingItem = ingredientMap.get(ingredient.ingredientId);
+    recipesData.forEach(recipe => {
+      if (!recipeIds.has(recipe.id)) return;
+
+      const recipeIngredientsList = recipeIngredients.filter(ri => ri.recipeId === recipe.id);
+
+      recipeIngredientsList.forEach(recipeIngredient => {
+        const ingredient = ingredients.find(ing => ing.id === recipeIngredient.ingredientId);
+        if (!ingredient) return;
+
+        const existingItem = ingredientMap.get(recipeIngredient.ingredientId);
         if (existingItem) {
-          existingItem.recipeIds = [...new Set([...existingItem.recipeIds, recipe.id])];
+          existingItem.recipeIds = Array.from(new Set([...existingItem.recipeIds, recipe.id]));
+          if (recipeIngredient.quantity) {
+            existingItem.quantity = (existingItem.quantity || 0) + recipeIngredient.quantity;
+          }
         } else {
-          ingredientMap.set(ingredient.ingredientId, {
-            ingredientId: ingredient.ingredientId,
-            name: ingredients.find(ing => ing.id === ingredient.ingredientId)?.name || '',
-            quantity: ingredient.quantity,
-            unit: ingredient.unit,
+          ingredientMap.set(recipeIngredient.ingredientId, {
+            ingredientId: recipeIngredient.ingredientId,
+            name: ingredient.name,
+            quantity: recipeIngredient.quantity,
+            unit: recipeIngredient.unit,
             checked: false,
             recipeIds: [recipe.id],
           });
@@ -144,7 +153,7 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
     });
 
     setShoppingItems(Array.from(ingredientMap.values()));
-  }, [mealPlans, recipes, ingredients, persistedItems, dateRange]);
+  }, [mealPlans, recipesData, ingredients, recipeIngredients, persistedItems, dateRange]);
 
   const toggleItem = (index: number) => {
     const item = shoppingItems[index];
@@ -185,7 +194,7 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
     setSearchTerm,
     sortedItems,
     toggleItem,
-    isLoading: !mealPlans || !recipes || !ingredients,
+    isLoading: !mealPlans || !recipesData || !ingredients || !recipeIngredients,
     dateRange,
   };
 }

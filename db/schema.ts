@@ -27,8 +27,8 @@ export const ingredients = pgTable("ingredients", {
 
 export const recipeIngredients = pgTable("recipe_ingredients", {
   id: serial("id").primaryKey(),
-  recipeId: integer("recipe_id").references(() => recipes.id),
-  ingredientId: integer("ingredient_id").references(() => ingredients.id),
+  recipeId: integer("recipe_id").references(() => recipes.id).notNull(),
+  ingredientId: integer("ingredient_id").references(() => ingredients.id).notNull(),
   quantity: decimal("quantity"),
   unit: text("unit"),
   notes: text("notes"),
@@ -36,7 +36,7 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
 
 export const recipes = pgTable("recipes", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userId: integer("user_id").references(() => users.id).notNull(),
   title: text("title").notNull(),
   description: text("description"),
   instructions: jsonb("instructions").$type<string[]>().notNull(),
@@ -50,7 +50,7 @@ export const recipes = pgTable("recipes", {
 
 export const mealPlans = pgTable("meal_plans", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userId: integer("user_id").references(() => users.id).notNull(),
   weekStart: timestamp("week_start").notNull(),
   weekEnd: timestamp("week_end").notNull(),
   meals: jsonb("meals").$type<
@@ -64,7 +64,7 @@ export const mealPlans = pgTable("meal_plans", {
 
 export const pantryItems = pgTable("pantry_items", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userId: integer("user_id").references(() => users.id).notNull(),
   name: text("name").notNull(),
   quantity: integer("quantity").notNull(),
   unit: text("unit"),
@@ -74,8 +74,8 @@ export const pantryItems = pgTable("pantry_items", {
 
 export const shoppingListItems = pgTable("shopping_list_items", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  ingredientId: integer("ingredient_id").references(() => ingredients.id),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  ingredientId: integer("ingredient_id").references(() => ingredients.id).notNull(),
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   quantity: decimal("quantity"),
