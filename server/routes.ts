@@ -38,10 +38,6 @@ const mealPlanSchema = z.object({
   })).min(1, "At least one day's meals are required")
 });
 
-const pantryItemSchema = z.object({
-
-});
-
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
 
@@ -333,7 +329,6 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      log(result.data.image);
       const recipe = await analyzeRecipeImage(result.data.image);
       res.json(recipe);
     } catch (error) {
