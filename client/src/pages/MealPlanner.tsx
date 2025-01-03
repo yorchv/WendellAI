@@ -3,7 +3,7 @@ import { useMealPlans } from "@/hooks/use-meal-plans";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { format, addDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
+import { useRecipes } from "@/hooks/use-recipes";
 
 const MEALS = ["breakfast", "lunch", "dinner"] as const;
 type MealType = typeof MEALS[number];
@@ -23,18 +24,19 @@ export default function MealPlanner() {
   const [selectedMeal, setSelectedMeal] = useState<MealType>("breakfast");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { createMealPlan, updateMealPlan, mealPlans, deleteMealPlan } = useMealPlans();
+  const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
+  const { recipes } = useRecipes();
   const { toast } = useToast();
 
   const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
-  const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Record<MealType, number>>>({
-    Monday: {},
-    Tuesday: {},
-    Wednesday: {},
-    Thursday: {},
-    Friday: {},
-    Saturday: {},
-    Sunday: {},
+  const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Record<MealType, number[]>>>({
+    Monday: { breakfast: [], lunch: [], dinner: [] },
+    Tuesday: { breakfast: [], lunch: [], dinner: [] },
+    Wednesday: { breakfast: [], lunch: [], dinner: [] },
+    Thursday: { breakfast: [], lunch: [], dinner: [] },
+    Friday: { breakfast: [], lunch: [], dinner: [] },
+    Saturday: { breakfast: [], lunch: [], dinner: [] },
+    Sunday: { breakfast: [], lunch: [], dinner: [] },
   });
 
   // Load existing meal plan for the selected week
@@ -44,20 +46,32 @@ export default function MealPlanner() {
     );
 
     if (existingPlan) {
-      const meals = existingPlan.meals.reduce((acc, meal) => ({
+      const meals = existingPlan.meals?.reduce((acc, meal) => ({
         ...acc,
         [meal.day]: meal.recipes,
-      }), {} as Record<DayType, Record<MealType, number>>);
-      setSelectedMeals(meals);
+      }), {} as Record<DayType, Record<MealType, number[]>>);
+
+      // Ensure all days and meals exist with arrays
+      const completeSelectedMeals = DAYS.reduce((acc, day) => ({
+        ...acc,
+        [day]: {
+          breakfast: meals?.[day]?.breakfast || [],
+          lunch: meals?.[day]?.lunch || [],
+          dinner: meals?.[day]?.dinner || [],
+        },
+      }), {} as Record<DayType, Record<MealType, number[]>>);
+
+      setSelectedMeals(completeSelectedMeals);
     } else {
+      // Reset to empty arrays for all meals
       setSelectedMeals({
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-        Sunday: {},
+        Monday: { breakfast: [], lunch: [], dinner: [] },
+        Tuesday: { breakfast: [], lunch: [], dinner: [] },
+        Wednesday: { breakfast: [], lunch: [], dinner: [] },
+        Thursday: { breakfast: [], lunch: [], dinner: [] },
+        Friday: { breakfast: [], lunch: [], dinner: [] },
+        Saturday: { breakfast: [], lunch: [], dinner: [] },
+        Sunday: { breakfast: [], lunch: [], dinner: [] },
       });
     }
   }, [weekStart, mealPlans]);
@@ -67,7 +81,7 @@ export default function MealPlanner() {
       ...selectedMeals,
       [selectedDay]: {
         ...selectedMeals[selectedDay],
-        [selectedMeal]: recipeId,
+        [selectedMeal]: [...selectedMeals[selectedDay][selectedMeal], recipeId],
       },
     };
     setSelectedMeals(updatedMeals);
@@ -91,7 +105,10 @@ export default function MealPlanner() {
       };
 
       if (existingPlan) {
-        await updateMealPlan({ id: existingPlan.id, ...mealPlanData });
+        await updateMealPlan({
+          ...existingPlan,
+          ...mealPlanData,
+        });
       } else {
         await createMealPlan(mealPlanData);
       }
@@ -110,44 +127,44 @@ export default function MealPlanner() {
     }
   };
 
-  const handleDeleteMeal = async (day: DayType, meal: MealType) => {
+  const handleRemoveRecipe = async (day: DayType, meal: MealType, recipeId: number) => {
     try {
-      const existingPlan = mealPlans?.find(
-        (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
-      );
-
-      if (!existingPlan) return;
-
       const updatedMeals = {
         ...selectedMeals,
         [day]: {
           ...selectedMeals[day],
+          [meal]: selectedMeals[day][meal].filter(id => id !== recipeId),
         },
       };
-      delete updatedMeals[day][meal];
 
       const mealsData = DAYS.map((d) => ({
         day: d,
         recipes: updatedMeals[d],
       }));
 
-      await updateMealPlan({
-        id: existingPlan.id,
-        weekStart: weekStart,
-        weekEnd: addDays(weekStart, 6),
-        meals: mealsData,
-      });
+      const existingPlan = mealPlans?.find(
+        (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
+      );
+
+      if (existingPlan) {
+        await updateMealPlan({
+          ...existingPlan,
+          weekStart: weekStart,
+          weekEnd: addDays(weekStart, 6),
+          meals: mealsData,
+        });
+      }
 
       setSelectedMeals(updatedMeals);
       toast({
         title: "Success",
-        description: "Meal removed successfully",
+        description: "Recipe removed successfully",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to remove meal",
+        description: error instanceof Error ? error.message : "Failed to remove recipe",
       });
     }
   };
@@ -211,24 +228,34 @@ export default function MealPlanner() {
                         setIsSearchOpen(true);
                       }}
                     >
-                      <div className="truncate">
-                        {selectedMeals[day]?.[meal] ? (
-                          <div className="flex items-center justify-between">
-                            <span>Recipe Selected</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="opacity-0 group-hover:opacity-100 absolute right-1 -top-1"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteMeal(day, meal);
-                              }}
-                            >
-                              ×
-                            </Button>
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium capitalize">{meal}</div>
+                        {selectedMeals[day][meal].length > 0 ? (
+                          <div className="space-y-1">
+                            {selectedMeals[day][meal].map((recipeId) => {
+                              const recipe = recipes?.find((r) => r.id === recipeId);
+                              return recipe ? (
+                                <div key={recipeId} className="flex items-center justify-between text-xs">
+                                  <span className="truncate">{recipe.title}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-4 w-4 opacity-0 group-hover:opacity-100"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveRecipe(day, meal, recipeId);
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ) : null;
+                            })}
                           </div>
                         ) : (
-                          <Plus className="h-4 w-4 mx-auto text-muted-foreground" />
+                          <div className="flex justify-center">
+                            <Plus className="h-4 w-4 text-muted-foreground" />
+                          </div>
                         )}
                       </div>
                     </div>

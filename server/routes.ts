@@ -62,9 +62,9 @@ const mealPlanSchema = z.object({
         "Sunday",
       ]),
       recipes: z.object({
-        breakfast: z.number().optional(),
-        lunch: z.number().optional(),
-        dinner: z.number().optional(),
+        breakfast: z.array(z.number()).default([]),
+        lunch: z.array(z.number()).default([]),
+        dinner: z.array(z.number()).default([]),
       }),
     })
   ).min(1, "At least one day's meals are required"),
@@ -219,6 +219,98 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error creating recipe:", error);
       res.status(500).send("Failed to create recipe");
+    }
+  });
+
+  // Meal Plans
+  app.get("/api/meal-plans", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const userMealPlans = await db.query.mealPlans.findMany({
+        where: eq(mealPlans.userId, user.id),
+        orderBy: (mealPlans, { desc }) => [desc(mealPlans.weekStart)],
+      });
+      res.json(userMealPlans);
+    } catch (error) {
+      console.error("Error fetching meal plans:", error);
+      res.status(500).send("Failed to fetch meal plans");
+    }
+  });
+
+  app.post("/api/meal-plans", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    const result = mealPlanSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).send(
+        "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+      );
+    }
+
+    try {
+      const [mealPlan] = await db
+        .insert(mealPlans)
+        .values({
+          userId: user.id,
+          weekStart: result.data.weekStart,
+          weekEnd: result.data.weekEnd,
+          meals: result.data.meals,
+        })
+        .returning();
+      res.json(mealPlan);
+    } catch (error) {
+      console.error("Error creating meal plan:", error);
+      res.status(500).send("Failed to create meal plan");
+    }
+  });
+
+  app.put("/api/meal-plans/:id", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    const result = mealPlanSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).send(
+        "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+      );
+    }
+
+    try {
+      const mealPlan = await db.query.mealPlans.findFirst({
+        where: eq(mealPlans.id, parseInt(req.params.id)),
+      });
+
+      if (!mealPlan) {
+        return res.status(404).send("Meal plan not found");
+      }
+
+      if (mealPlan.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this meal plan");
+      }
+
+      const [updatedMealPlan] = await db
+        .update(mealPlans)
+        .set({
+          weekStart: result.data.weekStart,
+          weekEnd: result.data.weekEnd,
+          meals: result.data.meals,
+        })
+        .where(eq(mealPlans.id, parseInt(req.params.id)))
+        .returning();
+
+      res.json(updatedMealPlan);
+    } catch (error) {
+      console.error("Error updating meal plan:", error);
+      res.status(500).send("Failed to update meal plan");
     }
   });
 

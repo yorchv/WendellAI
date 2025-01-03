@@ -30,11 +30,11 @@ export function useMealPlans() {
   });
 
   const updateMealPlan = useMutation({
-    mutationFn: async ({ id, ...data }: MealPlan) => {
-      const response = await fetch(`/api/meal-plans/${id}`, {
+    mutationFn: async (mealPlan: MealPlan) => {
+      const response = await fetch(`/api/meal-plans/${mealPlan.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(mealPlan),
         credentials: "include",
       });
 

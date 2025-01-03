@@ -10,7 +10,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
+// Base tables
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").unique().notNull(),
@@ -54,6 +56,22 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
   notes: text("notes"),
 });
 
+// Meal plan types
+export type MealType = "breakfast" | "lunch" | "dinner";
+export type DayType = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+
+export interface MealPlanRecipes {
+  breakfast: number[];
+  lunch: number[];
+  dinner: number[];
+}
+
+export interface MealPlanDay {
+  day: DayType;
+  recipes: MealPlanRecipes;
+}
+
+// Meal plans table with strict typing
 export const mealPlans = pgTable("meal_plans", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
@@ -61,15 +79,11 @@ export const mealPlans = pgTable("meal_plans", {
     .notNull(),
   weekStart: timestamp("week_start").notNull(),
   weekEnd: timestamp("week_end").notNull(),
-  meals: jsonb("meals").$type<
-    {
-      day: string;
-      recipes: { breakfast?: number; lunch?: number; dinner?: number };
-    }[]
-  >(),
+  meals: jsonb("meals").$type<MealPlanDay[]>().notNull().default([]),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Shopping list items
 export const shoppingListItems = pgTable("shopping_list_items", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
@@ -108,19 +122,43 @@ export const ingredientRelations = relations(ingredients, ({ many }) => ({
   shoppingListItems: many(shoppingListItems),
 }));
 
-export const recipeIngredientRelations = relations(
-  recipeIngredients,
-  ({ one }) => ({
-    recipe: one(recipes, {
-      fields: [recipeIngredients.recipeId],
-      references: [recipes.id],
-    }),
-    ingredient: one(ingredients, {
-      fields: [recipeIngredients.ingredientId],
-      references: [ingredients.id],
-    }),
+export const recipeIngredientRelations = relations(recipeIngredients, ({ one }) => ({
+  recipe: one(recipes, {
+    fields: [recipeIngredients.recipeId],
+    references: [recipes.id],
   }),
-);
+  ingredient: one(ingredients, {
+    fields: [recipeIngredients.ingredientId],
+    references: [ingredients.id],
+  }),
+}));
+
+// Zod schemas for runtime validation
+const mealTypeEnum = z.enum(["breakfast", "lunch", "dinner"]);
+const dayTypeEnum = z.enum([
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+]);
+
+export const mealPlanDaySchema = z.object({
+  day: dayTypeEnum,
+  recipes: z.object({
+    breakfast: z.array(z.number()).default([]),
+    lunch: z.array(z.number()).default([]),
+    dinner: z.array(z.number()).default([]),
+  }),
+});
+
+export const insertMealPlanSchema = z.object({
+  weekStart: z.coerce.date(),
+  weekEnd: z.coerce.date(),
+  meals: z.array(mealPlanDaySchema).min(1, "At least one day's meals are required"),
+});
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -140,26 +178,3 @@ export type InsertMealPlan = typeof mealPlans.$inferInsert;
 
 export type ShoppingListItem = typeof shoppingListItems.$inferSelect;
 export type InsertShoppingListItem = typeof shoppingListItems.$inferInsert;
-
-// Zod Schemas
-export const insertUserSchema = createInsertSchema(users);
-export const selectUserSchema = createSelectSchema(users);
-
-export const insertRecipeSchema = createInsertSchema(recipes);
-export const selectRecipeSchema = createSelectSchema(recipes);
-
-export const insertIngredientSchema = createInsertSchema(ingredients);
-export const selectIngredientSchema = createSelectSchema(ingredients);
-
-export const insertRecipeIngredientSchema =
-  createInsertSchema(recipeIngredients);
-export const selectRecipeIngredientSchema =
-  createSelectSchema(recipeIngredients);
-
-export const insertMealPlanSchema = createInsertSchema(mealPlans);
-export const selectMealPlanSchema = createSelectSchema(mealPlans);
-
-export const insertShoppingListItemSchema =
-  createInsertSchema(shoppingListItems);
-export const selectShoppingListItemSchema =
-  createSelectSchema(shoppingListItems);
