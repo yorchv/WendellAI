@@ -304,6 +304,7 @@ export function registerRoutes(app: Express): Server {
       .insert(shoppingListItems)
       .values({
         ...req.body,
+        weekStart: new Date(req.body.weekStart),
         userId: req.user.id,
       })
       .returning();
