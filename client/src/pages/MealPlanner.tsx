@@ -15,7 +15,7 @@ import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
 
 const MEALS = ["breakfast", "lunch", "dinner"] as const;
 type MealType = typeof MEALS[number];
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
 type DayType = typeof DAYS[number];
 
 export default function MealPlanner() {
@@ -23,11 +23,11 @@ export default function MealPlanner() {
   const [selectedMeal, setSelectedMeal] = useState<MealType>("breakfast");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
+  const { createMealPlan, updateMealPlan, mealPlans, deleteMealPlan } = useMealPlans();
   const { toast } = useToast();
 
-  const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 0 }), [selectedDate]);
-  const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Partial<Record<MealType, number>>>>({
+  const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
+  const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Record<MealType, number>>>({
     Monday: {},
     Tuesday: {},
     Wednesday: {},
@@ -46,7 +46,7 @@ export default function MealPlanner() {
     if (existingPlan) {
       const meals = existingPlan.meals.reduce((acc, meal) => ({
         ...acc,
-        [meal.day]: meal.recipes
+        [meal.day]: meal.recipes,
       }), {} as Record<DayType, Record<MealType, number>>);
       setSelectedMeals(meals);
     } else {
@@ -72,27 +72,31 @@ export default function MealPlanner() {
     };
     setSelectedMeals(updatedMeals);
 
-    // Find existing plan or create new one
-    const existingPlan = mealPlans?.find(
-      (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
-    );
-
     try {
+      // Format meals data for API
+      const mealsData = DAYS.map((day) => ({
+        day,
+        recipes: updatedMeals[day],
+      }));
+
+      // Find existing plan or create new one
+      const existingPlan = mealPlans?.find(
+        (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
+      );
+
       const mealPlanData = {
-        weekStart: weekStart.toISOString(),
-        weekEnd: addDays(weekStart, 6).toISOString(),
-        meals: DAYS.map((day) => ({
-          day,
-          recipes: updatedMeals[day] as Record<MealType, number>,
-        })),
+        weekStart: weekStart,
+        weekEnd: addDays(weekStart, 6),
+        meals: mealsData,
       };
 
       if (existingPlan) {
-        await updateMealPlan({ ...existingPlan, ...mealPlanData });
+        await updateMealPlan({ id: existingPlan.id, ...mealPlanData });
       } else {
         await createMealPlan(mealPlanData);
       }
 
+      setIsSearchOpen(false);
       toast({
         title: "Success",
         description: "Meal plan updated successfully",
@@ -102,6 +106,48 @@ export default function MealPlanner() {
         variant: "destructive",
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update meal plan",
+      });
+    }
+  };
+
+  const handleDeleteMeal = async (day: DayType, meal: MealType) => {
+    try {
+      const existingPlan = mealPlans?.find(
+        (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
+      );
+
+      if (!existingPlan) return;
+
+      const updatedMeals = {
+        ...selectedMeals,
+        [day]: {
+          ...selectedMeals[day],
+        },
+      };
+      delete updatedMeals[day][meal];
+
+      const mealsData = DAYS.map((d) => ({
+        day: d,
+        recipes: updatedMeals[d],
+      }));
+
+      await updateMealPlan({
+        id: existingPlan.id,
+        weekStart: weekStart,
+        weekEnd: addDays(weekStart, 6),
+        meals: mealsData,
+      });
+
+      setSelectedMeals(updatedMeals);
+      toast({
+        title: "Success",
+        description: "Meal removed successfully",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to remove meal",
       });
     }
   };
@@ -151,32 +197,42 @@ export default function MealPlanner() {
                   <div>{day}</div>
                 </div>
                 <div className="space-y-2">
-                  {MEALS.map((meal) => {
-                    const recipeId = selectedMeals[day]?.[meal];
-                    return (
-                      <div
-                        key={meal}
-                        className={`p-2 rounded-md cursor-pointer ${
-                          selectedDay === day && selectedMeal === meal
-                            ? "bg-primary/10 ring-2 ring-primary"
-                            : "bg-muted hover:bg-muted/80"
-                        }`}
-                        onClick={() => {
-                          setSelectedDay(day);
-                          setSelectedMeal(meal);
-                          setIsSearchOpen(true);
-                        }}
-                      >
-                        <div className="truncate">
-                          {recipeId ? (
-                            "Recipe Selected"
-                          ) : (
-                            <Plus className="h-4 w-4 mx-auto text-muted-foreground" />
-                          )}
-                        </div>
+                  {MEALS.map((meal) => (
+                    <div
+                      key={meal}
+                      className={`relative p-2 rounded-md cursor-pointer group ${
+                        selectedDay === day && selectedMeal === meal
+                          ? "bg-primary/10 ring-2 ring-primary"
+                          : "bg-muted hover:bg-muted/80"
+                      }`}
+                      onClick={() => {
+                        setSelectedDay(day);
+                        setSelectedMeal(meal);
+                        setIsSearchOpen(true);
+                      }}
+                    >
+                      <div className="truncate">
+                        {selectedMeals[day]?.[meal] ? (
+                          <div className="flex items-center justify-between">
+                            <span>Recipe Selected</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 absolute right-1 -top-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteMeal(day, meal);
+                              }}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ) : (
+                          <Plus className="h-4 w-4 mx-auto text-muted-foreground" />
+                        )}
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
