@@ -1,9 +1,15 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
-import { log } from './vite'
+import { log } from "./vite";
 import { db } from "@db";
-import { recipes, mealPlans, pantryItems, shoppingLists, shoppingListItems } from "@db/schema";
+import {
+  recipes,
+  mealPlans,
+  pantryItems,
+  shoppingLists,
+  shoppingListItems,
+} from "@db/schema";
 import { eq } from "drizzle-orm";
 import { generateRecipe } from "./perplexity";
 import { z } from "zod";
@@ -16,8 +22,12 @@ const generateRecipeSchema = z.object({
 const recipeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  ingredients: z.array(z.string()).min(1, "At least one ingredient is required"),
-  instructions: z.array(z.string()).min(1, "At least one instruction is required"),
+  ingredients: z
+    .array(z.string())
+    .min(1, "At least one ingredient is required"),
+  instructions: z
+    .array(z.string())
+    .min(1, "At least one instruction is required"),
   prepTime: z.number().optional(),
   cookTime: z.number().optional(),
   servings: z.number().optional(),
@@ -26,16 +36,34 @@ const recipeSchema = z.object({
 });
 
 const mealPlanSchema = z.object({
-  weekStart: z.string().or(z.date()).transform(val => new Date(val)),
-  weekEnd: z.string().or(z.date()).transform(val => new Date(val)),
-  meals: z.array(z.object({
-    day: z.enum(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]),
-    recipes: z.object({
-      breakfast: z.number().optional(),
-      lunch: z.number().optional(),
-      dinner: z.number().optional()
-    })
-  })).min(1, "At least one day's meals are required")
+  weekStart: z
+    .string()
+    .or(z.date())
+    .transform((val) => new Date(val)),
+  weekEnd: z
+    .string()
+    .or(z.date())
+    .transform((val) => new Date(val)),
+  meals: z
+    .array(
+      z.object({
+        day: z.enum([
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ]),
+        recipes: z.object({
+          breakfast: z.number().optional(),
+          lunch: z.number().optional(),
+          dinner: z.number().optional(),
+        }),
+      }),
+    )
+    .min(1, "At least one day's meals are required"),
 });
 
 export function registerRoutes(app: Express): Server {
@@ -51,14 +79,18 @@ export function registerRoutes(app: Express): Server {
     if (!result.success) {
       return res
         .status(400)
-        .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+        .send(
+          "Invalid input: " +
+            result.error.issues.map((i) => i.message).join(", "),
+        );
     }
 
     try {
       const preview = await generateRecipe(result.data.prompt);
       res.json(preview);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to generate recipe";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to generate recipe";
       console.error("Recipe generation error:", errorMessage);
       res.status(500).send(errorMessage);
     }
@@ -101,12 +133,17 @@ export function registerRoutes(app: Express): Server {
     }
     const result = recipeSchema.safeParse(req.body);
     if (!result.success) {
-      return res.status(400).send(result.error.errors.map(err => err.message).join(', '))
+      return res
+        .status(400)
+        .send(result.error.errors.map((err) => err.message).join(", "));
     }
-    const recipe = await db.insert(recipes).values({
-      ...result.data,
-      userId: req.user.id,
-    }).returning();
+    const recipe = await db
+      .insert(recipes)
+      .values({
+        ...result.data,
+        userId: req.user.id,
+      })
+      .returning();
     res.json(recipe[0]);
   });
 
@@ -129,7 +166,9 @@ export function registerRoutes(app: Express): Server {
 
     const result = recipeSchema.safeParse(req.body);
     if (!result.success) {
-      return res.status(400).send(result.error.errors.map(err => err.message).join(', '))
+      return res
+        .status(400)
+        .send(result.error.errors.map((err) => err.message).join(", "));
     }
 
     const updatedRecipe = await db
@@ -158,9 +197,7 @@ export function registerRoutes(app: Express): Server {
       return res.status(403).send("Not authorized to delete this recipe");
     }
 
-    await db
-      .delete(recipes)
-      .where(eq(recipes.id, parseInt(req.params.id)));
+    await db.delete(recipes).where(eq(recipes.id, parseInt(req.params.id)));
 
     res.status(204).end();
   });
@@ -182,13 +219,18 @@ export function registerRoutes(app: Express): Server {
     }
     const result = mealPlanSchema.safeParse(req.body);
     if (!result.success) {
-      return res.status(400).send(result.error.errors.map(err => err.message).join(', '))
+      return res
+        .status(400)
+        .send(result.error.errors.map((err) => err.message).join(", "));
     }
     log(req.body);
-    const mealPlan = await db.insert(mealPlans).values({
-      ...result.data,
-      userId: req.user.id,
-    }).returning();
+    const mealPlan = await db
+      .insert(mealPlans)
+      .values({
+        ...result.data,
+        userId: req.user.id,
+      })
+      .returning();
     res.json(mealPlan[0]);
   });
 
@@ -207,10 +249,13 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
-    const item = await db.insert(pantryItems).values({
-      ...req.body,
-      userId: req.user.id,
-    }).returning();
+    const item = await db
+      .insert(pantryItems)
+      .values({
+        ...req.body,
+        userId: req.user.id,
+      })
+      .returning();
     res.json(item[0]);
   });
 
@@ -229,10 +274,13 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
-    const list = await db.insert(shoppingLists).values({
-      ...req.body,
-      userId: req.user.id,
-    }).returning();
+    const list = await db
+      .insert(shoppingLists)
+      .values({
+        ...req.body,
+        userId: req.user.id,
+      })
+      .returning();
     res.json(list[0]);
   });
 
@@ -250,7 +298,10 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
-    const items = await db.insert(shoppingListItems)
+
+    log(JSON.stringify(req.body));
+    const items = await db
+      .insert(shoppingListItems)
       .values({
         ...req.body,
         userId: req.user.id,
@@ -263,7 +314,7 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
-    
+
     const item = await db.query.shoppingListItems.findFirst({
       where: eq(shoppingListItems.id, parseInt(req.params.id)),
     });
@@ -289,7 +340,7 @@ export function registerRoutes(app: Express): Server {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
-    
+
     const list = await db.query.shoppingLists.findFirst({
       where: eq(shoppingLists.id, parseInt(req.params.id)),
     });
@@ -299,7 +350,9 @@ export function registerRoutes(app: Express): Server {
     }
 
     if (list.userId !== req.user.id) {
-      return res.status(403).send("Not authorized to update this shopping list");
+      return res
+        .status(403)
+        .send("Not authorized to update this shopping list");
     }
 
     const updatedList = await db
@@ -325,14 +378,20 @@ export function registerRoutes(app: Express): Server {
     if (!result.success) {
       return res
         .status(400)
-        .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+        .send(
+          "Invalid input: " +
+            result.error.issues.map((i) => i.message).join(", "),
+        );
     }
 
     try {
       const recipe = await analyzeRecipeImage(result.data.image);
       res.json(recipe);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to analyze recipe image";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to analyze recipe image";
       console.error("Recipe image analysis error:", errorMessage);
       res.status(500).send(errorMessage);
     }
