@@ -1,4 +1,12 @@
-import { pgTable, text, serial, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  timestamp,
+  jsonb,
+  boolean,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
@@ -29,10 +37,12 @@ export const mealPlans = pgTable("meal_plans", {
   userId: integer("user_id").references(() => users.id),
   weekStart: timestamp("week_start").notNull(),
   weekEnd: timestamp("week_end").notNull(),
-  meals: jsonb("meals").$type<{
-    day: string;
-    recipes: { breakfast: number; lunch: number; dinner: number };
-  }[]>(),
+  meals: jsonb("meals").$type<
+    {
+      day: string;
+      recipes: { breakfast: number; lunch: number; dinner: number };
+    }[]
+  >(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -50,7 +60,10 @@ export const shoppingLists = pgTable("shopping_lists", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   name: text("name").notNull(),
-  items: jsonb("items").$type<{ name: string; quantity: number; unit: string; checked: boolean }[]>(),
+  items:
+    jsonb("items").$type<
+      { name: string; quantity: number; unit: string; checked: boolean }[]
+    >(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
