@@ -36,7 +36,10 @@ export function useShoppingList() {
         const response = await fetch('/api/shopping-list-items', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(item),
+          body: JSON.stringify({
+            ...item,
+            weekStart: startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString(),
+          }),
         });
         if (!response.ok) throw new Error('Failed to create item');
         return response.json();
