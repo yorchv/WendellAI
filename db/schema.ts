@@ -12,6 +12,34 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Meal plan types and validation schemas
+export const mealTypeEnum = z.enum(["breakfast", "lunch", "dinner"]);
+export type MealType = z.infer<typeof mealTypeEnum>;
+
+export const dayTypeEnum = z.enum([
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+]);
+export type DayType = z.infer<typeof dayTypeEnum>;
+
+// Each meal type can have multiple recipes
+export const mealRecipesSchema = z.record(
+  mealTypeEnum,
+  z.array(z.number()).default([])
+);
+export type MealRecipes = z.infer<typeof mealRecipesSchema>;
+
+export const mealPlanDaySchema = z.object({
+  day: dayTypeEnum,
+  recipes: mealRecipesSchema,
+});
+export type MealPlanDay = z.infer<typeof mealPlanDaySchema>;
+
 // Base tables
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -56,35 +84,6 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
   notes: text("notes"),
 });
 
-// Meal plan types and validation schemas
-export const mealTypeEnum = z.enum(["breakfast", "lunch", "dinner"]);
-export type MealType = z.infer<typeof mealTypeEnum>;
-
-export const dayTypeEnum = z.enum([
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-]);
-export type DayType = z.infer<typeof dayTypeEnum>;
-
-// Each meal type (breakfast, lunch, dinner) can have multiple recipes
-export const mealRecipesSchema = z.record(
-  mealTypeEnum,
-  z.array(z.number()).default([])
-);
-export type MealRecipes = z.infer<typeof mealRecipesSchema>;
-
-export const mealPlanDaySchema = z.object({
-  day: dayTypeEnum,
-  recipes: mealRecipesSchema,
-});
-export type MealPlanDay = z.infer<typeof mealPlanDaySchema>;
-
-// Meal plans table
 export const mealPlans = pgTable("meal_plans", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
@@ -96,7 +95,6 @@ export const mealPlans = pgTable("meal_plans", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Shopping list items
 export const shoppingListItems = pgTable("shopping_list_items", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")

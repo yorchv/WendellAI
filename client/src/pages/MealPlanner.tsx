@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/popover";
 import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
 import { useRecipes } from "@/hooks/use-recipes";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const MEALS = ["breakfast", "lunch", "dinner"] as const;
 type MealType = typeof MEALS[number];
@@ -214,52 +215,70 @@ export default function MealPlanner() {
                   <div>{day}</div>
                 </div>
                 <div className="space-y-2">
-                  {MEALS.map((meal) => (
-                    <div
-                      key={meal}
-                      className={`relative p-2 rounded-md cursor-pointer group ${
-                        selectedDay === day && selectedMeal === meal
-                          ? "bg-primary/10 ring-2 ring-primary"
-                          : "bg-muted hover:bg-muted/80"
-                      }`}
-                      onClick={() => {
-                        setSelectedDay(day);
-                        setSelectedMeal(meal);
-                        setIsSearchOpen(true);
-                      }}
-                    >
-                      <div className="space-y-1">
-                        <div className="text-xs font-medium capitalize">{meal}</div>
-                        {selectedMeals[day][meal].length > 0 ? (
-                          <div className="space-y-1">
-                            {selectedMeals[day][meal].map((recipeId) => {
-                              const recipe = recipes?.find((r) => r.id === recipeId);
-                              return recipe ? (
-                                <div key={recipeId} className="flex items-center justify-between text-xs">
-                                  <span className="truncate">{recipe.title}</span>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-4 w-4 opacity-0 group-hover:opacity-100"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleRemoveRecipe(day, meal, recipeId);
-                                    }}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              ) : null;
-                            })}
-                          </div>
-                        ) : (
-                          <div className="flex justify-center">
-                            <Plus className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                        )}
+                  {MEALS.map((meal) => {
+                    const mealRecipes = selectedMeals[day][meal];
+                    return (
+                      <div
+                        key={meal}
+                        className={`relative p-2 rounded-md cursor-pointer group ${
+                          selectedDay === day && selectedMeal === meal
+                            ? "bg-primary/10 ring-2 ring-primary"
+                            : "bg-muted hover:bg-muted/80"
+                        }`}
+                        onClick={() => {
+                          setSelectedDay(day);
+                          setSelectedMeal(meal);
+                          setIsSearchOpen(true);
+                        }}
+                      >
+                        <div className="space-y-1">
+                          <div className="text-xs font-medium capitalize">{meal}</div>
+                          {mealRecipes.length > 0 ? (
+                            <ScrollArea className="h-[100px]">
+                              <div className="space-y-1">
+                                {mealRecipes.map((recipeId) => {
+                                  const recipe = recipes?.find((r) => r.id === recipeId);
+                                  return recipe ? (
+                                    <div key={recipeId} className="flex items-center justify-between text-xs p-1 hover:bg-accent rounded">
+                                      <span className="truncate mr-2">{recipe.title}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-4 w-4 opacity-0 group-hover:opacity-100"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRemoveRecipe(day, meal, recipeId);
+                                        }}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  ) : null;
+                                })}
+                              </div>
+                            </ScrollArea>
+                          ) : (
+                            <div className="flex justify-center py-2">
+                              <Plus className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full mt-1 h-6 text-xs opacity-0 group-hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedDay(day);
+                              setSelectedMeal(meal);
+                              setIsSearchOpen(true);
+                            }}
+                          >
+                            Add Recipe
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

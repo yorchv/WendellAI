@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { MealPlan } from "@db/schema";
 import { format } from "date-fns";
 import { useRecipes } from "@/hooks/use-recipes";
@@ -32,42 +33,56 @@ export function MealPlanCard({ mealPlan, onClick }: MealPlanCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          {mealPlan.meals?.map((meal) => {
-            const breakfastCount = getMealCounts(meal.recipes.breakfast);
-            const lunchCount = getMealCounts(meal.recipes.lunch);
-            const dinnerCount = getMealCounts(meal.recipes.dinner);
+        <ScrollArea className="h-[300px]">
+          <div className="space-y-4">
+            {mealPlan.meals?.map((meal) => {
+              const breakfastCount = getMealCounts(meal.recipes.breakfast);
+              const lunchCount = getMealCounts(meal.recipes.lunch);
+              const dinnerCount = getMealCounts(meal.recipes.dinner);
 
-            return (
-              <div key={meal.day} className="space-y-1">
-                <div className="font-medium">{meal.day}</div>
-                <div className="pl-4 text-sm space-y-1">
-                  {breakfastCount > 0 && (
-                    <div>
-                      <span className="font-medium">Breakfast:</span>{" "}
-                      {getRecipeNames(meal.recipes.breakfast).join(", ")}
-                    </div>
-                  )}
-                  {lunchCount > 0 && (
-                    <div>
-                      <span className="font-medium">Lunch:</span>{" "}
-                      {getRecipeNames(meal.recipes.lunch).join(", ")}
-                    </div>
-                  )}
-                  {dinnerCount > 0 && (
-                    <div>
-                      <span className="font-medium">Dinner:</span>{" "}
-                      {getRecipeNames(meal.recipes.dinner).join(", ")}
-                    </div>
-                  )}
-                  {breakfastCount === 0 && lunchCount === 0 && dinnerCount === 0 && (
-                    <div className="text-muted-foreground">No meals planned</div>
-                  )}
+              return (
+                <div key={meal.day} className="space-y-2">
+                  <div className="font-medium border-b pb-1">{meal.day}</div>
+                  <div className="pl-4 text-sm space-y-2">
+                    {breakfastCount > 0 && (
+                      <div>
+                        <div className="font-medium text-primary">Breakfast ({breakfastCount})</div>
+                        <ul className="list-disc list-inside pl-2">
+                          {getRecipeNames(meal.recipes.breakfast).map((name, idx) => (
+                            <li key={idx} className="text-muted-foreground">{name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {lunchCount > 0 && (
+                      <div>
+                        <div className="font-medium text-primary">Lunch ({lunchCount})</div>
+                        <ul className="list-disc list-inside pl-2">
+                          {getRecipeNames(meal.recipes.lunch).map((name, idx) => (
+                            <li key={idx} className="text-muted-foreground">{name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {dinnerCount > 0 && (
+                      <div>
+                        <div className="font-medium text-primary">Dinner ({dinnerCount})</div>
+                        <ul className="list-disc list-inside pl-2">
+                          {getRecipeNames(meal.recipes.dinner).map((name, idx) => (
+                            <li key={idx} className="text-muted-foreground">{name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {breakfastCount === 0 && lunchCount === 0 && dinnerCount === 0 && (
+                      <div className="text-muted-foreground italic">No meals planned</div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
