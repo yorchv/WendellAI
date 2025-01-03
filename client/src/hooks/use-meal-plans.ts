@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MealPlan } from "@db/schema";
+import { MealPlan, MealPlanDay, DayType } from "@db/schema";
 import { format, startOfDay } from "date-fns";
 
 export function useMealPlans() {
@@ -69,13 +69,21 @@ export function useMealPlans() {
     if (!mealPlans) return null;
 
     const today = startOfDay(new Date());
-    return mealPlans.find(
+    const currentDayPlan = mealPlans.find(
       (plan) => {
         const start = new Date(plan.weekStart);
         const end = new Date(plan.weekEnd);
         return today >= start && today <= end;
       }
     );
+
+    if (!currentDayPlan) return null;
+
+    const currentDay = format(today, 'EEEE') as DayType;
+    return {
+      ...currentDayPlan,
+      currentDayMeals: currentDayPlan.meals.find(meal => meal.day === currentDay),
+    };
   };
 
   return {

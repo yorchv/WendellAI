@@ -48,39 +48,6 @@ const mealPlanSchema = z.object({
   }
 );
 
-// Validate date range for shopping list
-const dateRangeSchema = z.object({
-  startDate: z.string().transform(val => new Date(val)),
-  endDate: z.string().transform(val => new Date(val)),
-}).refine(data => {
-  const daysDiff = (data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24);
-  return daysDiff <= 30 && daysDiff >= 0;
-}, "Date range must be between 0 and 30 days");
-
-const generateRecipeSchema = z.object({
-  prompt: z.string().min(1, "Prompt is required"),
-});
-
-const recipeIngredientSchema = z.object({
-  name: z.string().min(1, "Ingredient name is required"),
-  quantity: z.number().optional(),
-  unit: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-const recipeSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  ingredients: z.array(recipeIngredientSchema).min(1, "At least one ingredient is required"),
-  instructions: z.array(z.string()).min(1, "At least one instruction is required"),
-  prepTime: z.number().optional(),
-  cookTime: z.number().optional(),
-  servings: z.number().optional(),
-  image: z.string().optional(),
-  sources: z.array(z.string()).optional(),
-});
-
-
 export function registerRoutes(app: Express): Server {
   // Important: Setup auth before registering routes
   setupAuth(app);
@@ -333,30 +300,6 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).send("Not authorized to update this meal plan");
       }
 
-      // Verify all recipe IDs exist
-      const allRecipeIds = new Set<number>();
-      result.data.meals.forEach((meal) => {
-        Object.values(meal.recipes).forEach((mealRecipes) => {
-          mealRecipes.forEach((id) => allRecipeIds.add(id));
-        });
-      });
-
-      const existingRecipes = await db.query.recipes.findMany({
-        where: eq(recipes.userId, user.id),
-        columns: { id: true },
-      });
-
-      const existingRecipeIds = new Set(existingRecipes.map((r) => r.id));
-      const invalidRecipeIds = Array.from(allRecipeIds).filter(
-        (id) => !existingRecipeIds.has(id)
-      );
-
-      if (invalidRecipeIds.length > 0) {
-        return res.status(400).send(
-          `Invalid recipe IDs: ${invalidRecipeIds.join(", ")}`
-        );
-      }
-
       const [updatedMealPlan] = await db
         .update(mealPlans)
         .set({
@@ -518,3 +461,35 @@ export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
   return httpServer;
 }
+
+const generateRecipeSchema = z.object({
+  prompt: z.string().min(1, "Prompt is required"),
+});
+
+const recipeIngredientSchema = z.object({
+  name: z.string().min(1, "Ingredient name is required"),
+  quantity: z.number().optional(),
+  unit: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const recipeSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  ingredients: z.array(recipeIngredientSchema).min(1, "At least one ingredient is required"),
+  instructions: z.array(z.string()).min(1, "At least one instruction is required"),
+  prepTime: z.number().optional(),
+  cookTime: z.number().optional(),
+  servings: z.number().optional(),
+  image: z.string().optional(),
+  sources: z.array(z.string()).optional(),
+});
+
+// Validate date range for shopping list
+const dateRangeSchema = z.object({
+  startDate: z.string().transform(val => new Date(val)),
+  endDate: z.string().transform(val => new Date(val)),
+}).refine(data => {
+  const daysDiff = (data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24);
+  return daysDiff <= 30 && daysDiff >= 0;
+}, "Date range must be between 0 and 30 days");

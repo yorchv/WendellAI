@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MealPlan } from "@db/schema";
+import { MealPlan, MealType } from "@db/schema";
 import { format } from "date-fns";
 import { useRecipes } from "@/hooks/use-recipes";
 
@@ -12,14 +12,16 @@ interface MealPlanCardProps {
 export function MealPlanCard({ mealPlan, onClick }: MealPlanCardProps) {
   const { recipes } = useRecipes();
 
-  const getMealCounts = (mealRecipes: number[]) => {
-    if (!mealRecipes || !recipes) return 0;
+  const getMealCounts = (mealRecipes: number[] = []) => {
+    if (!recipes) return 0;
     return mealRecipes.length;
   };
 
-  const getRecipeNames = (recipeIds: number[]) => {
-    if (!recipeIds || !recipes) return [];
-    return recipeIds.map(id => recipes.find(r => r.id === id)?.title).filter(Boolean);
+  const getRecipeNames = (recipeIds: number[] = []) => {
+    if (!recipes) return [];
+    return recipeIds
+      .map(id => recipes.find(r => r.id === id)?.title)
+      .filter((title): title is string => title !== undefined);
   };
 
   return (

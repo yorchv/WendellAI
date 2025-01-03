@@ -12,9 +12,8 @@ export default function Home() {
   const { mealPlans, getCurrentDayMealPlan, isLoading: mealPlansLoading } = useMealPlans();
   const [, navigate] = useLocation();
 
-  const todayMealPlan = getCurrentDayMealPlan();
-  const todayDay = format(new Date(), "EEEE") as "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
-  const todayMeals = todayMealPlan?.meals?.find(meal => meal.day === todayDay)?.recipes;
+  const todayPlan = getCurrentDayMealPlan();
+  const todayMeals = todayPlan?.currentDayMeals?.recipes;
 
   const getRecipesByIds = (recipeIds: number[] = []) => {
     return recipeIds
@@ -24,7 +23,7 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
-      {todayMealPlan && todayMeals && (
+      {todayPlan && todayMeals && (
         <section>
           <h2 className="text-3xl font-bold tracking-tight mb-6">Today's Meals</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

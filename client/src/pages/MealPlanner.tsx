@@ -14,11 +14,10 @@ import {
 import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
 import { useRecipes } from "@/hooks/use-recipes";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DayType, MealType } from "@db/schema";
 
 const MEALS = ["breakfast", "lunch", "dinner"] as const;
-type MealType = typeof MEALS[number];
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
-type DayType = typeof DAYS[number];
+const DAYS: DayType[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function MealPlanner() {
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
@@ -30,6 +29,8 @@ export default function MealPlanner() {
   const { toast } = useToast();
 
   const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
+
+  // Initialize with empty arrays for all meals
   const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Record<MealType, number[]>>>({
     Monday: { breakfast: [], lunch: [], dinner: [] },
     Tuesday: { breakfast: [], lunch: [], dinner: [] },
