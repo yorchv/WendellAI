@@ -1,11 +1,8 @@
-
-import { useToast } from "@/components/ui/use-toast";
-
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, startOfWeek } from "date-fns";
 import { Recipe } from "@db/schema";
+import { useToast } from "./use-toast";
 import { useMealPlans } from "./use-meal-plans";
 import { useRecipes } from "./use-recipes";
 
@@ -26,40 +23,42 @@ export function useShoppingList() {
   const { recipes } = useRecipes();
 
   const { data: persistedItems } = useQuery({
-    queryKey: ['/api/shopping-list-items'],
+    queryKey: ["/api/shopping-list-items"],
     queryFn: async () => {
-      const response = await fetch('/api/shopping-list-items');
-      if (!response.ok) throw new Error('Failed to fetch items');
+      const response = await fetch("/api/shopping-list-items");
+      if (!response.ok) throw new Error("Failed to fetch items");
       return response.json();
-    }
+    },
   });
 
   const updateItem = useMutation({
     mutationFn: async (item: ShoppingItem) => {
       if (!item.id) {
-        const response = await fetch('/api/shopping-list-items', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/shopping-list-items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...item,
-            weekStart: startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString(),
+            weekStart: startOfWeek(new Date(), {
+              weekStartsOn: 1,
+            }).toISOString(),
           }),
         });
-        if (!response.ok) throw new Error('Failed to create item');
+        if (!response.ok) throw new Error("Failed to create item");
         return response.json();
       } else {
         const response = await fetch(`/api/shopping-list-items/${item.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(item),
         });
-        if (!response.ok) throw new Error('Failed to update item');
+        if (!response.ok) throw new Error("Failed to update item");
         return response.json();
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/shopping-list-items'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ["/api/shopping-list-items"] });
+    },
   });
 
   useEffect(() => {
@@ -68,17 +67,21 @@ export function useShoppingList() {
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 1 });
     const currentWeekPlan = mealPlans.find(
-      (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
+      (plan) =>
+        format(new Date(plan.weekStart), "yyyy-MM-dd") ===
+        format(weekStart, "yyyy-MM-dd"),
     );
 
     if (!currentWeekPlan?.meals) return;
 
-    const recipeIds = currentWeekPlan.meals.flatMap((meal) => 
-      Object.values(meal.recipes || {})
-    ).filter(Boolean);
+    const recipeIds = currentWeekPlan.meals
+      .flatMap((meal) => Object.values(meal.recipes || {}))
+      .filter(Boolean);
 
     const uniqueRecipeIds = Array.from(new Set(recipeIds));
-    const weekRecipes = recipes.filter((recipe) => uniqueRecipeIds.includes(recipe.id));
+    const weekRecipes = recipes.filter((recipe) =>
+      uniqueRecipeIds.includes(recipe.id),
+    );
     const ingredientMap = new Map<string, Set<string>>();
 
     weekRecipes.forEach((recipe) => {
@@ -90,17 +93,19 @@ export function useShoppingList() {
       });
     });
 
-    const items: ShoppingItem[] = Array.from(ingredientMap.entries()).map(([name, recipeTitles]) => {
-      const persistedItem = persistedItems.find(
-        item => item.name.toLowerCase().trim() === name
-      );
-      return {
-        id: persistedItem?.id,
-        name: name.charAt(0).toUpperCase() + name.slice(1),
-        checked: persistedItem?.checked || false,
-        recipes: Array.from(recipeTitles),
-      };
-    });
+    const items: ShoppingItem[] = Array.from(ingredientMap.entries()).map(
+      ([name, recipeTitles]) => {
+        const persistedItem = persistedItems.find(
+          (item) => item.name.toLowerCase().trim() === name,
+        );
+        return {
+          id: persistedItem?.id,
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          checked: persistedItem?.checked || false,
+          recipes: Array.from(recipeTitles),
+        };
+      },
+    );
 
     setShoppingItems(items);
   }, [mealPlans, recipes]);
@@ -130,12 +135,12 @@ export function useShoppingList() {
           updatedItems[index] = updatedItem;
           setShoppingItems(updatedItems);
         },
-      }
+      },
     );
   };
 
   const filteredItems = shoppingItems.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const sortedItems = [...filteredItems].sort((a, b) => {
