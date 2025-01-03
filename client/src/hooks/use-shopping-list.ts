@@ -1,20 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { addDays, startOfDay, endOfDay } from "date-fns";
-import { Recipe, Ingredient, RecipeIngredient } from "@db/schema";
 import { useToast } from "./use-toast";
 import { useMealPlans } from "./use-meal-plans";
 import { useRecipes } from "./use-recipes";
+import type { Ingredient } from "@db/schema";
 
-export type ShoppingItem = {
-  id?: number;
+export interface ShoppingListItemFromDB {
+  id: number;
+  ingredientId: number;
+  userId: number;
+  quantity?: number;
+  unit?: string;
+  checked: boolean;
+  recipeIds: number[];
+  startDate: string;
+  endDate: string;
+  ingredient: Ingredient;
+}
+
+export interface ShoppingItem {
+  id: number;
   ingredientId: number;
   name: string;
   quantity?: number;
   unit?: string;
   checked: boolean;
   recipeIds: number[];
-};
+  startDate: Date;
+  endDate: Date;
+}
 
 export type DateRange = {
   startDate: Date;
@@ -26,26 +41,14 @@ const DEFAULT_DATE_RANGE = {
   endDate: endOfDay(addDays(new Date(), 6)),
 };
 
-export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
+export function useShoppingList(initialDateRange: DateRange = DEFAULT_DATE_RANGE) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange>(initialDateRange);
   const queryClient = useQueryClient();
-  const { mealPlans } = useMealPlans();
-  const { recipes: recipesData } = useRecipes();
-
-  // Fetch ingredients
-  const { data: ingredients } = useQuery<Ingredient[]>({
-    queryKey: ["/api/ingredients"],
-  });
-
-  // Fetch recipe ingredients
-  const { data: recipeIngredients } = useQuery<RecipeIngredient[]>({
-    queryKey: ["/api/recipe-ingredients"],
-  });
 
   // Fetch shopping list items for date range
-  const { data: persistedItems } = useQuery({
+  const { data: items = [], isLoading } = useQuery({
     queryKey: ["/api/shopping-list-items", dateRange.startDate.toISOString(), dateRange.endDate.toISOString()],
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -54,7 +57,20 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
       });
       const response = await fetch(`/api/shopping-list-items?${params}`);
       if (!response.ok) throw new Error("Failed to fetch items");
-      return response.json();
+      const dbItems: ShoppingListItemFromDB[] = await response.json();
+
+      // Transform DB items to ShoppingItem format
+      return dbItems.map((item): ShoppingItem => ({
+        id: item.id,
+        ingredientId: item.ingredientId,
+        name: item.ingredient.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        checked: item.checked,
+        recipeIds: item.recipeIds || [],
+        startDate: new Date(item.startDate),
+        endDate: new Date(item.endDate),
+      }));
     },
   });
 
@@ -66,9 +82,10 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...item,
-            startDate: dateRange.startDate.toISOString(),
-            endDate: dateRange.endDate.toISOString(),
+            startDate: item.startDate.toISOString(),
+            endDate: item.endDate.toISOString(),
           }),
+          credentials: "include",
         });
         if (!response.ok) throw new Error("Failed to create item");
         return response.json();
@@ -76,7 +93,12 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
         const response = await fetch(`/api/shopping-list-items/${item.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(item),
+          body: JSON.stringify({
+            ...item,
+            startDate: item.startDate.toISOString(),
+            endDate: item.endDate.toISOString(),
+          }),
+          credentials: "include",
         });
         if (!response.ok) throw new Error("Failed to update item");
         return response.json();
@@ -87,98 +109,38 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
         queryKey: ["/api/shopping-list-items", dateRange.startDate.toISOString(), dateRange.endDate.toISOString()] 
       });
     },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update item",
+        variant: "destructive",
+      });
+    },
   });
 
-  useEffect(() => {
-    if (!mealPlans || !recipesData || !ingredients || !recipeIngredients || !persistedItems) return;
+  const toggleItem = useCallback((index: number) => {
+    const item = items[index];
+    if (!item) return;
 
-    const relevantMealPlans = mealPlans.filter(plan => {
-      const planStart = new Date(plan.weekStart);
-      const planEnd = new Date(plan.weekEnd);
-      return planStart <= dateRange.endDate && planEnd >= dateRange.startDate;
-    });
+    const newItem = { ...item, checked: !item.checked };
+    updateItem.mutate(newItem);
+  }, [items, updateItem]);
 
-    const recipeIds = new Set<number>(
-      relevantMealPlans
-        .flatMap(plan => (plan.meals || []))
-        .flatMap(meal => Object.values(meal.recipes))
-        .filter((id): id is number => id !== undefined)
-    );
-
-    const ingredientMap = new Map<number, ShoppingItem>();
-
-    // Process persisted items first
-    persistedItems.forEach((item: any) => {
-      const ingredient = ingredients.find(ing => ing.id === item.ingredientId);
-      if (ingredient) {
-        ingredientMap.set(item.ingredientId, {
-          id: item.id,
-          ingredientId: item.ingredientId,
-          name: ingredient.name,
-          quantity: item.quantity,
-          unit: item.unit,
-          checked: item.checked,
-          recipeIds: item.recipeIds || [],
-        });
-      }
-    });
-
-    // Add or update items from recipes
-    recipesData.forEach(recipe => {
-      if (!recipeIds.has(recipe.id)) return;
-
-      const recipeIngredientsList = recipeIngredients.filter(ri => ri.recipeId === recipe.id);
-
-      recipeIngredientsList.forEach(recipeIngredient => {
-        const ingredient = ingredients.find(ing => ing.id === recipeIngredient.ingredientId);
-        if (!ingredient) return;
-
-        const existingItem = ingredientMap.get(recipeIngredient.ingredientId);
-        if (existingItem) {
-          existingItem.recipeIds = Array.from(new Set([...existingItem.recipeIds, recipe.id]));
-          if (recipeIngredient.quantity) {
-            existingItem.quantity = (existingItem.quantity || 0) + recipeIngredient.quantity;
-          }
-        } else {
-          ingredientMap.set(recipeIngredient.ingredientId, {
-            ingredientId: recipeIngredient.ingredientId,
-            name: ingredient.name,
-            quantity: recipeIngredient.quantity,
-            unit: recipeIngredient.unit,
-            checked: false,
-            recipeIds: [recipe.id],
-          });
-        }
+  const updateDateRange = useCallback((newRange: DateRange) => {
+    // Validate date range (0-30 days)
+    const daysDiff = (newRange.endDate.getTime() - newRange.startDate.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysDiff > 30 || daysDiff < 0) {
+      toast({
+        title: "Invalid Date Range",
+        description: "Please select a date range between 0 and 30 days",
+        variant: "destructive",
       });
-    });
+      return;
+    }
+    setDateRange(newRange);
+  }, [toast]);
 
-    setShoppingItems(Array.from(ingredientMap.values()));
-  }, [mealPlans, recipesData, ingredients, recipeIngredients, persistedItems, dateRange]);
-
-  const toggleItem = (index: number) => {
-    const item = shoppingItems[index];
-    const newItems = [...shoppingItems];
-    newItems[index] = { ...item, checked: !item.checked };
-    setShoppingItems(newItems);
-
-    updateItem.mutate(
-      { ...item, checked: !item.checked },
-      {
-        onError: () => {
-          const revertedItems = [...shoppingItems];
-          revertedItems[index] = item;
-          setShoppingItems(revertedItems);
-          toast({
-            title: "Error",
-            description: "Failed to update item. Please try again.",
-            variant: "destructive",
-          });
-        },
-      },
-    );
-  };
-
-  const filteredItems = shoppingItems.filter((item) =>
+  const filteredItems = items.filter((item: ShoppingItem) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
@@ -194,7 +156,8 @@ export function useShoppingList(dateRange: DateRange = DEFAULT_DATE_RANGE) {
     setSearchTerm,
     sortedItems,
     toggleItem,
-    isLoading: !mealPlans || !recipesData || !ingredients || !recipeIngredients,
+    isLoading,
     dateRange,
+    updateDateRange,
   };
 }
