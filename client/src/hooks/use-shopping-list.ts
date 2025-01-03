@@ -1,4 +1,7 @@
 
+import { useToast } from "@/components/ui/use-toast";
+
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, startOfWeek } from "date-fns";
@@ -15,6 +18,7 @@ export type ShoppingItem = {
 };
 
 export function useShoppingList() {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const queryClient = useQueryClient();
@@ -103,10 +107,31 @@ export function useShoppingList() {
 
   const toggleItem = (index: number) => {
     const item = shoppingItems[index];
-    updateItem.mutate({
-      ...item,
-      checked: !item.checked,
-    });
+    const newItems = [...shoppingItems];
+    newItems[index] = { ...item, checked: !item.checked };
+    setShoppingItems(newItems);
+
+    updateItem.mutate(
+      { ...item, checked: !item.checked },
+      {
+        onError: () => {
+          // Revert on error
+          const revertedItems = [...shoppingItems];
+          revertedItems[index] = item;
+          setShoppingItems(revertedItems);
+          toast({
+            title: "Error",
+            description: "Failed to update item. Please try again.",
+            variant: "destructive",
+          });
+        },
+        onSuccess: (updatedItem) => {
+          const updatedItems = [...shoppingItems];
+          updatedItems[index] = updatedItem;
+          setShoppingItems(updatedItems);
+        },
+      }
+    );
   };
 
   const filteredItems = shoppingItems.filter((item) =>
