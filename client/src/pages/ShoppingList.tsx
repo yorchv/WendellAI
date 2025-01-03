@@ -13,6 +13,7 @@ type ShoppingItem = {
   name: string;
   checked: boolean;
   recipes: string[];
+  quantity?: number;
 };
 
 export default function ShoppingList() {
@@ -30,32 +31,35 @@ export default function ShoppingList() {
       (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
     );
 
-    if (!currentWeekPlan) return;
+    if (!currentWeekPlan?.meals) return;
 
     // Get all recipe IDs from the meal plan
     const recipeIds = currentWeekPlan.meals.flatMap((meal) => 
-      Object.values(meal.recipes)
-    );
+      Object.values(meal.recipes || {})
+    ).filter(Boolean);
 
     // Get unique recipe IDs
-    const uniqueRecipeIds = [...new Set(recipeIds)];
+    const uniqueRecipeIds = Array.from(new Set(recipeIds));
 
     // Get the actual recipes
     const weekRecipes = recipes.filter((recipe) => uniqueRecipeIds.includes(recipe.id));
 
-    // Create shopping items from ingredients
-    const ingredientMap = new Map<string, string[]>();
+    // Create shopping items from ingredients with combination
+    const ingredientMap = new Map<string, Set<string>>();
     weekRecipes.forEach((recipe) => {
       recipe.ingredients.forEach((ingredient) => {
-        const existing = ingredientMap.get(ingredient) || [];
-        ingredientMap.set(ingredient, [...existing, recipe.title]);
+        // Normalize ingredient name by trimming and converting to lowercase
+        const normalizedName = ingredient.toLowerCase().trim();
+        const existing = ingredientMap.get(normalizedName) || new Set<string>();
+        existing.add(recipe.title);
+        ingredientMap.set(normalizedName, existing);
       });
     });
 
-    const items: ShoppingItem[] = Array.from(ingredientMap.entries()).map(([name, recipes]) => ({
-      name,
+    const items: ShoppingItem[] = Array.from(ingredientMap.entries()).map(([name, recipeTitles]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1), // Capitalize first letter
       checked: false,
-      recipes,
+      recipes: Array.from(recipeTitles),
     }));
 
     setShoppingItems(items);
@@ -115,7 +119,7 @@ export default function ShoppingList() {
                   className="mt-1"
                 />
                 <div className="flex-1 space-y-1">
-                  <p className={item.checked ? "line-through text-muted-foreground" : ""}>
+                  <p className={`${item.checked ? "line-through text-muted-foreground" : ""}`}>
                     {item.name}
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -124,6 +128,12 @@ export default function ShoppingList() {
                 </div>
               </div>
             ))}
+
+            {sortedItems.length === 0 && (
+              <p className="text-center text-muted-foreground py-4">
+                {searchTerm ? "No matching ingredients found" : "No ingredients in your shopping list"}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
