@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMealPlans } from "@/hooks/use-meal-plans";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export default function MealPlanner() {
   const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
   const { toast } = useToast();
 
-  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+  const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
   const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Partial<Record<MealType, number>>>>({
     Monday: {},
     Tuesday: {},
