@@ -3,7 +3,7 @@ import { useMealPlans } from "@/hooks/use-meal-plans";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { format, addDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -12,33 +12,29 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
-import { useRecipes } from "@/hooks/use-recipes";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { DayType, MealType } from "@db/schema";
 
 const MEALS = ["breakfast", "lunch", "dinner"] as const;
-const DAYS: DayType[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+type MealType = typeof MEALS[number];
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+type DayType = typeof DAYS[number];
 
 export default function MealPlanner() {
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
   const [selectedMeal, setSelectedMeal] = useState<MealType>("breakfast");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
-  const { recipes } = useRecipes();
+  const { createMealPlan, updateMealPlan, mealPlans, deleteMealPlan } = useMealPlans();
   const { toast } = useToast();
 
   const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
-
-  // Initialize with empty arrays for all meals
-  const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Record<MealType, number[]>>>({
-    Monday: { breakfast: [], lunch: [], dinner: [] },
-    Tuesday: { breakfast: [], lunch: [], dinner: [] },
-    Wednesday: { breakfast: [], lunch: [], dinner: [] },
-    Thursday: { breakfast: [], lunch: [], dinner: [] },
-    Friday: { breakfast: [], lunch: [], dinner: [] },
-    Saturday: { breakfast: [], lunch: [], dinner: [] },
-    Sunday: { breakfast: [], lunch: [], dinner: [] },
+  const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Record<MealType, number>>>({
+    Monday: {},
+    Tuesday: {},
+    Wednesday: {},
+    Thursday: {},
+    Friday: {},
+    Saturday: {},
+    Sunday: {},
   });
 
   // Load existing meal plan for the selected week
@@ -48,32 +44,20 @@ export default function MealPlanner() {
     );
 
     if (existingPlan) {
-      const meals = existingPlan.meals?.reduce((acc, meal) => ({
+      const meals = existingPlan.meals.reduce((acc, meal) => ({
         ...acc,
         [meal.day]: meal.recipes,
-      }), {} as Record<DayType, Record<MealType, number[]>>);
-
-      // Ensure all days and meals exist with arrays
-      const completeSelectedMeals = DAYS.reduce((acc, day) => ({
-        ...acc,
-        [day]: {
-          breakfast: meals?.[day]?.breakfast || [],
-          lunch: meals?.[day]?.lunch || [],
-          dinner: meals?.[day]?.dinner || [],
-        },
-      }), {} as Record<DayType, Record<MealType, number[]>>);
-
-      setSelectedMeals(completeSelectedMeals);
+      }), {} as Record<DayType, Record<MealType, number>>);
+      setSelectedMeals(meals);
     } else {
-      // Reset to empty arrays for all meals
       setSelectedMeals({
-        Monday: { breakfast: [], lunch: [], dinner: [] },
-        Tuesday: { breakfast: [], lunch: [], dinner: [] },
-        Wednesday: { breakfast: [], lunch: [], dinner: [] },
-        Thursday: { breakfast: [], lunch: [], dinner: [] },
-        Friday: { breakfast: [], lunch: [], dinner: [] },
-        Saturday: { breakfast: [], lunch: [], dinner: [] },
-        Sunday: { breakfast: [], lunch: [], dinner: [] },
+        Monday: {},
+        Tuesday: {},
+        Wednesday: {},
+        Thursday: {},
+        Friday: {},
+        Saturday: {},
+        Sunday: {},
       });
     }
   }, [weekStart, mealPlans]);
@@ -83,7 +67,7 @@ export default function MealPlanner() {
       ...selectedMeals,
       [selectedDay]: {
         ...selectedMeals[selectedDay],
-        [selectedMeal]: [...selectedMeals[selectedDay][selectedMeal], recipeId],
+        [selectedMeal]: recipeId,
       },
     };
     setSelectedMeals(updatedMeals);
@@ -107,10 +91,7 @@ export default function MealPlanner() {
       };
 
       if (existingPlan) {
-        await updateMealPlan({
-          ...existingPlan,
-          ...mealPlanData,
-        });
+        await updateMealPlan({ id: existingPlan.id, ...mealPlanData });
       } else {
         await createMealPlan(mealPlanData);
       }
@@ -129,44 +110,44 @@ export default function MealPlanner() {
     }
   };
 
-  const handleRemoveRecipe = async (day: DayType, meal: MealType, recipeId: number) => {
+  const handleDeleteMeal = async (day: DayType, meal: MealType) => {
     try {
+      const existingPlan = mealPlans?.find(
+        (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
+      );
+
+      if (!existingPlan) return;
+
       const updatedMeals = {
         ...selectedMeals,
         [day]: {
           ...selectedMeals[day],
-          [meal]: selectedMeals[day][meal].filter(id => id !== recipeId),
         },
       };
+      delete updatedMeals[day][meal];
 
       const mealsData = DAYS.map((d) => ({
         day: d,
         recipes: updatedMeals[d],
       }));
 
-      const existingPlan = mealPlans?.find(
-        (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
-      );
-
-      if (existingPlan) {
-        await updateMealPlan({
-          ...existingPlan,
-          weekStart: weekStart,
-          weekEnd: addDays(weekStart, 6),
-          meals: mealsData,
-        });
-      }
+      await updateMealPlan({
+        id: existingPlan.id,
+        weekStart: weekStart,
+        weekEnd: addDays(weekStart, 6),
+        meals: mealsData,
+      });
 
       setSelectedMeals(updatedMeals);
       toast({
         title: "Success",
-        description: "Recipe removed successfully",
+        description: "Meal removed successfully",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to remove recipe",
+        description: error instanceof Error ? error.message : "Failed to remove meal",
       });
     }
   };
@@ -216,70 +197,42 @@ export default function MealPlanner() {
                   <div>{day}</div>
                 </div>
                 <div className="space-y-2">
-                  {MEALS.map((meal) => {
-                    const mealRecipes = selectedMeals[day][meal];
-                    return (
-                      <div
-                        key={meal}
-                        className={`relative p-2 rounded-md cursor-pointer group ${
-                          selectedDay === day && selectedMeal === meal
-                            ? "bg-primary/10 ring-2 ring-primary"
-                            : "bg-muted hover:bg-muted/80"
-                        }`}
-                        onClick={() => {
-                          setSelectedDay(day);
-                          setSelectedMeal(meal);
-                          setIsSearchOpen(true);
-                        }}
-                      >
-                        <div className="space-y-1">
-                          <div className="text-xs font-medium capitalize">{meal}</div>
-                          {mealRecipes.length > 0 ? (
-                            <ScrollArea className="h-[100px]">
-                              <div className="space-y-1">
-                                {mealRecipes.map((recipeId) => {
-                                  const recipe = recipes?.find((r) => r.id === recipeId);
-                                  return recipe ? (
-                                    <div key={recipeId} className="flex items-center justify-between text-xs p-1 hover:bg-accent rounded">
-                                      <span className="truncate mr-2">{recipe.title}</span>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-4 w-4 opacity-0 group-hover:opacity-100"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleRemoveRecipe(day, meal, recipeId);
-                                        }}
-                                      >
-                                        <X className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  ) : null;
-                                })}
-                              </div>
-                            </ScrollArea>
-                          ) : (
-                            <div className="flex justify-center py-2">
-                              <Plus className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full mt-1 h-6 text-xs opacity-0 group-hover:opacity-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedDay(day);
-                              setSelectedMeal(meal);
-                              setIsSearchOpen(true);
-                            }}
-                          >
-                            Add Recipe
-                          </Button>
-                        </div>
+                  {MEALS.map((meal) => (
+                    <div
+                      key={meal}
+                      className={`relative p-2 rounded-md cursor-pointer group ${
+                        selectedDay === day && selectedMeal === meal
+                          ? "bg-primary/10 ring-2 ring-primary"
+                          : "bg-muted hover:bg-muted/80"
+                      }`}
+                      onClick={() => {
+                        setSelectedDay(day);
+                        setSelectedMeal(meal);
+                        setIsSearchOpen(true);
+                      }}
+                    >
+                      <div className="truncate">
+                        {selectedMeals[day]?.[meal] ? (
+                          <div className="flex items-center justify-between">
+                            <span>Recipe Selected</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 absolute right-1 -top-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteMeal(day, meal);
+                              }}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ) : (
+                          <Plus className="h-4 w-4 mx-auto text-muted-foreground" />
+                        )}
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
