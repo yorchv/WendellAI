@@ -13,8 +13,15 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").unique().notNull(),
-  password: text("password").notNull(),
+  email: text("email").unique(),
+  password: text("password"),
+  emailVerified: boolean("email_verified").default(false),
+  verificationToken: text("verification_token"),
+  googleId: text("google_id").unique(),
+  facebookId: text("facebook_id").unique(),
+  instagramId: text("instagram_id").unique(),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const recipes = pgTable("recipes", {
@@ -67,7 +74,18 @@ export const shoppingLists = pgTable("shopping_lists", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Relations
+export const shoppingListItems = pgTable("shopping_list_items", {
+  id: serial("id").primaryKey(),
+  weekStart: timestamp("week_start").notNull(),
+  userId: integer("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  checked: boolean("checked").default(false),
+  recipes: jsonb("recipes").$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
 export const userRelations = relations(users, ({ many }) => ({
   recipes: many(recipes),
   mealPlans: many(mealPlans),
@@ -82,25 +100,13 @@ export const recipeRelations = relations(recipes, ({ one }) => ({
   }),
 }));
 
-// Types
 export type User = typeof users.$inferSelect;
 export type Recipe = typeof recipes.$inferSelect;
 export type MealPlan = typeof mealPlans.$inferSelect;
 export type PantryItem = typeof pantryItems.$inferSelect;
-export const shoppingListItems = pgTable("shopping_list_items", {
-  id: serial("id").primaryKey(),
-  weekStart: timestamp("week_start").notNull(),
-  userId: integer("user_id").references(() => users.id),
-  name: text("name").notNull(),
-  checked: boolean("checked").default(false),
-  recipes: jsonb("recipes").$type<string[]>(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 export type ShoppingList = typeof shoppingLists.$inferSelect;
 export type ShoppingListItem = typeof shoppingListItems.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
 
-// Schemas
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
