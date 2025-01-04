@@ -7,7 +7,6 @@ import {
   recipes,
   mealPlans,
   pantryItems,
-  shoppingLists,
   shoppingListItems,
 } from "@db/schema";
 import { eq } from "drizzle-orm";
@@ -268,20 +267,6 @@ export function registerRoutes(app: Express): Server {
       where: eq(shoppingLists.userId, req.user.id),
     });
     res.json(lists);
-  });
-
-  app.post("/api/shopping-lists", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    const list = await db
-      .insert(shoppingLists)
-      .values({
-        ...req.body,
-        userId: req.user.id,
-      })
-      .returning();
-    res.json(list[0]);
   });
 
   app.get("/api/shopping-list-items", async (req, res) => {
