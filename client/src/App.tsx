@@ -6,6 +6,7 @@ import RecipeView from "./pages/RecipeView";
 import RecipesPage from "./pages/RecipesPage";
 import MealPlanner from "./pages/MealPlanner";
 import ShoppingList from "./pages/ShoppingList";
+import CookingMode from "./pages/CookingMode";
 import Navigation from "./components/Navigation";
 import { useUser } from "./hooks/use-user";
 import { Loader2 } from "lucide-react";
@@ -33,6 +34,7 @@ function App() {
           <Route path="/" component={Home} />
           <Route path="/recipes" component={RecipesPage} />
           <Route path="/recipes/:id" component={RecipeView} />
+          <Route path="/recipes/:id/cooking" component={CookingMode} />
           <Route path="/recipes/new" component={() => {
             window.location.href = "/meal-planner";
             return null;

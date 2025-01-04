@@ -3,7 +3,7 @@ import { useRoute, useLocation } from "wouter";
 import { Recipe } from "@db/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Users, ChefHat, ArrowLeft } from "lucide-react";
+import { Clock, Users, ChefHat, ArrowLeft, PlayCircle } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { RecipeManager } from "@/components/RecipeManager";
 
@@ -46,7 +46,17 @@ export default function RecipeView() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to recipes
         </Button>
-        <RecipeManager recipe={recipe} mode="edit" onClose={() => navigate("/")} />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="default"
+            onClick={() => navigate(`/recipes/${recipeId}/cooking`)}
+            className="flex items-center gap-2"
+          >
+            <PlayCircle className="h-4 w-4" />
+            Start Cooking Mode
+          </Button>
+          <RecipeManager recipe={recipe} mode="edit" onClose={() => navigate("/")} />
+        </div>
       </div>
 
       <div className="space-y-8">
