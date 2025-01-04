@@ -14,7 +14,6 @@ const anthropic = new Anthropic({
 
 export async function formatRecipeResponse(text: string) {
   try {
-    // Include the schema instructions in the user message instead of system message
     const systemInstructions =
       "You are a helpful assistant that converts recipe text into properly formatted JSON. Extract recipe details and return a JSON object with the following structure: { title: string, description: string, ingredients: string[], instructions: string[], prepTime: number, cookTime: number, servings: number }";
 
@@ -39,16 +38,22 @@ export async function formatRecipeResponse(text: string) {
     const result = recipePreviewSchema.safeParse(parsed);
 
     if (!result.success) {
-      throw new Error("Invalid recipe format after Claude processing");
+      const errorMessage = result.error.errors.map(err => err.message).join(", ");
+      throw new Error(`Invalid recipe format: ${errorMessage}`);
     }
 
     return result.data;
   } catch (error) {
-    log(
-      "Error formatting recipe with Claude:",
-      error instanceof Error ? error.message : "Unknown error",
-    );
-    throw new Error("Failed to format recipe data");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    log("Error formatting recipe with Claude:", errorMessage);
+    
+    if (error instanceof Anthropic.APIError) {
+      throw new Error(`Claude API error: ${error.message} (Status: ${error.status})`);
+    } else if (error instanceof SyntaxError) {
+      throw new Error(`Invalid JSON response from Claude: ${errorMessage}`);
+    }
+    
+    throw new Error(`Recipe formatting failed: ${errorMessage}`);
   }
 }
 
