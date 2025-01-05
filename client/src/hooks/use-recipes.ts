@@ -8,6 +8,23 @@ interface RecipeWithIngredients extends Recipe {
   })[];
 }
 
+interface CreateRecipePayload {
+  title: string;
+  description: string | null;
+  instructions: string[];
+  prepTime: number | null;
+  cookTime: number | null;
+  servings: number | null;
+  image: string | null;
+  sources: string[] | null;
+  ingredients: {
+    name: string;
+    quantity?: number | null;
+    unit?: string | null;
+    notes?: string | null;
+  }[];
+}
+
 export function useRecipes() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -17,14 +34,7 @@ export function useRecipes() {
   });
 
   const createRecipe = useMutation({
-    mutationFn: async (recipe: Omit<Recipe, "id" | "userId" | "createdAt"> & {
-      ingredients: {
-        name: string;
-        quantity?: number | null;
-        unit?: string | null;
-        notes?: string | null;
-      }[];
-    }) => {
+    mutationFn: async (recipe: CreateRecipePayload) => {
       const response = await fetch("/api/recipes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -46,14 +56,7 @@ export function useRecipes() {
   const updateRecipe = useMutation({
     mutationFn: async (params: { 
       id: number;
-      recipe: Partial<Recipe> & {
-        ingredients?: {
-          name: string;
-          quantity?: number | null;
-          unit?: string | null;
-          notes?: string | null;
-        }[];
-      }
+      recipe: Partial<CreateRecipePayload>;
     }) => {
       const response = await fetch(`/api/recipes/${params.id}`, {
         method: "PUT",

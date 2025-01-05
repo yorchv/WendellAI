@@ -195,7 +195,7 @@ export default function CookingMode() {
                     <span className="flex-1">
                       {ingredient.quantity && (
                         <span className="font-medium">
-                          {ingredient.quantity} {ingredient.unit || ''}{' '}
+                          {ingredient.quantity} {ingredient.unit ?? ''}{' '}
                         </span>
                       )}
                       {ingredient.ingredient.name}

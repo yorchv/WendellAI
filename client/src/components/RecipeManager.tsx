@@ -12,9 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 import { useRecipes } from "@/hooks/use-recipes";
 import { useToast } from "@/hooks/use-toast";
-import { ManualRecipeForm, RecipeFormData } from "./ManualRecipeForm";
+import { ManualRecipeForm } from "./ManualRecipeForm";
 import { AIRecipeGenerator } from "./AIRecipeGenerator";
 import { ImageUploadRecipe } from "./ImageUploadRecipe";
+import type { RecipeFormData } from "./ManualRecipeForm";
 
 interface RecipeManagerProps {
   recipe?: Recipe & {
@@ -33,27 +34,23 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
 
   const handleSubmit = async (data: RecipeFormData) => {
     try {
+      const payload = {
+        ...data,
+        ingredients: data.ingredients.map(ing => ({
+          ...ing,
+          quantity: ing.quantity ? Number(ing.quantity) : null,
+        })),
+      };
+
       if (mode === "create") {
-        await createRecipe({
-          ...data,
-          ingredients: data.ingredients.map(ing => ({
-            ...ing,
-            quantity: ing.quantity ? Number(ing.quantity) : undefined,
-          })),
-        });
+        await createRecipe(payload);
         toast({
           title: "Success",
           description: "Recipe created successfully",
         });
       } else {
         if (!recipe) return;
-        await updateRecipe(recipe.id, {
-          ...data,
-          ingredients: data.ingredients.map(ing => ({
-            ...ing,
-            quantity: ing.quantity ? Number(ing.quantity) : undefined,
-          })),
-        });
+        await updateRecipe(recipe.id, payload);
         toast({
           title: "Success",
           description: "Recipe updated successfully",

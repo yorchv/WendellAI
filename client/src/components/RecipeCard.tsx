@@ -46,6 +46,9 @@ export function RecipeCard({ recipe, onClick }: RecipeCardProps) {
             </div>
           )}
         </div>
+        <div className="mt-2 text-sm text-muted-foreground">
+          {recipe.ingredients.length} ingredients
+        </div>
       </CardContent>
     </Card>
   );
