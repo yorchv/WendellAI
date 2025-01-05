@@ -15,7 +15,7 @@ const anthropic = new Anthropic({
 export async function formatRecipeResponse(text: string) {
   try {
     const systemInstructions =
-      "You are a helpful assistant that converts recipe text into properly formatted JSON. Extract recipe details and return a JSON object with the following structure: { title: string, description: string, ingredients: string[], instructions: string[], prepTime: number, cookTime: number, servings: number }";
+      "You are a helpful assistant that converts recipe text into properly formatted JSON. Extract recipe details and return a JSON object with the following structure: { title: string, description: string, ingredients: { name: string, quantity?: number, unit?: string, notes?: string }[], instructions: string[], prepTime?: number, cookTime?: number, servings?: number, sources?: string[] }";
 
     const response = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20241022",
