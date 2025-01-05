@@ -19,7 +19,7 @@ export async function formatRecipeResponse(text: string) {
 
     const response = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20241022",
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [
         {
           role: "user",
@@ -38,21 +38,26 @@ export async function formatRecipeResponse(text: string) {
     const result = recipePreviewSchema.safeParse(parsed);
 
     if (!result.success) {
-      const errorMessage = result.error.errors.map(err => err.message).join(", ");
+      const errorMessage = result.error.errors
+        .map((err) => err.message)
+        .join(", ");
       throw new Error(`Invalid recipe format: ${errorMessage}`);
     }
 
     return result.data;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     log("Error formatting recipe with Claude:", errorMessage);
-    
+
     if (error instanceof Anthropic.APIError) {
-      throw new Error(`Claude API error: ${error.message} (Status: ${error.status})`);
+      throw new Error(
+        `Claude API error: ${error.message} (Status: ${error.status})`,
+      );
     } else if (error instanceof SyntaxError) {
       throw new Error(`Invalid JSON response from Claude: ${errorMessage}`);
     }
-    
+
     throw new Error(`Recipe formatting failed: ${errorMessage}`);
   }
 }

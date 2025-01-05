@@ -70,7 +70,7 @@ interface ManualRecipeFormProps {
 export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRecipeFormProps) {
   const [ingredients, setIngredients] = useState<FormIngredient[]>(
     recipe?.ingredients.map(i => ({
-      name: i.ingredient.name,
+      name: i.name,
       quantity: i.quantity?.toString() ?? "",
       unit: i.unit ?? "",
       notes: i.notes ?? "",

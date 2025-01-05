@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 import { formatRecipeResponse } from "./claude";
 
@@ -50,7 +49,8 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
       messages: [
         {
           role: "system",
-          content: "You are a helpful cooking assistant. Generate detailed recipes based on user requests. Include structured ingredient information with quantities, units, and optional notes."
+          content:
+            "You are a helpful cooking assistant. Generate detailed recipes based on user requests. Include structured ingredient information with quantities, units, and optional notes. Make it concise.",
         },
         {
           role: "user",
@@ -67,7 +67,9 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
   }
 
   const data: PerplexityResponse = await response.json();
-  const formattedRecipe = await formatRecipeResponse(data.choices[0].message.content);
+  const formattedRecipe = await formatRecipeResponse(
+    data.choices[0].message.content,
+  );
 
   return {
     ...formattedRecipe,
