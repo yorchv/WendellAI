@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 import { formatRecipeResponse } from "./claude";
 
@@ -12,14 +13,22 @@ interface PerplexityResponse {
   citations: string[];
 }
 
+export const recipeIngredientSchema = z.object({
+  name: z.string(),
+  quantity: z.number().optional(),
+  unit: z.string().optional(),
+  notes: z.string().optional(),
+});
+
 export const recipePreviewSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
-  ingredients: z.array(z.string()),
+  ingredients: z.array(recipeIngredientSchema),
   instructions: z.array(z.string()),
   prepTime: z.number().optional(),
   cookTime: z.number().optional(),
   servings: z.number().optional(),
+  image: z.string().optional(),
   sources: z.array(z.string()).optional(),
 });
 
@@ -41,7 +50,7 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
       messages: [
         {
           role: "system",
-          content: "You are a helpful cooking assistant. Generate detailed recipes based on user requests."
+          content: "You are a helpful cooking assistant. Generate detailed recipes based on user requests. Include structured ingredient information with quantities, units, and optional notes."
         },
         {
           role: "user",
@@ -58,8 +67,6 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
   }
 
   const data: PerplexityResponse = await response.json();
-
-  // Use Claude to format the response
   const formattedRecipe = await formatRecipeResponse(data.choices[0].message.content);
 
   return {
