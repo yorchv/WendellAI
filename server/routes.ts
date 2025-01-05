@@ -6,27 +6,40 @@ import { db } from "@db";
 import {
   recipes,
   mealPlans,
-  pantryItems,
   shoppingListItems,
+  ingredients,
+  recipeIngredients,
 } from "@db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, between } from "drizzle-orm";
 import { generateRecipe } from "./perplexity";
 import { z } from "zod";
 import { analyzeRecipeImage } from "./claude";
+
+// Validate date range for shopping list
+const dateRangeSchema = z.object({
+  startDate: z.string().transform(val => new Date(val)),
+  endDate: z.string().transform(val => new Date(val)),
+}).refine(data => {
+  const daysDiff = (data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24);
+  return daysDiff <= 30 && daysDiff >= 0;
+}, "Date range must be between 0 and 30 days");
 
 const generateRecipeSchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
 });
 
+const recipeIngredientSchema = z.object({
+  name: z.string().min(1, "Ingredient name is required"),
+  quantity: z.number().optional(),
+  unit: z.string().optional(),
+  notes: z.string().optional(),
+});
+
 const recipeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  ingredients: z
-    .array(z.string())
-    .min(1, "At least one ingredient is required"),
-  instructions: z
-    .array(z.string())
-    .min(1, "At least one instruction is required"),
+  ingredients: z.array(recipeIngredientSchema).min(1, "At least one ingredient is required"),
+  instructions: z.array(z.string()).min(1, "At least one instruction is required"),
   prepTime: z.number().optional(),
   cookTime: z.number().optional(),
   servings: z.number().optional(),
@@ -35,53 +48,44 @@ const recipeSchema = z.object({
 });
 
 const mealPlanSchema = z.object({
-  weekStart: z
-    .string()
-    .or(z.date())
-    .transform((val) => new Date(val)),
-  weekEnd: z
-    .string()
-    .or(z.date())
-    .transform((val) => new Date(val)),
-  meals: z
-    .array(
-      z.object({
-        day: z.enum([
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday",
-        ]),
-        recipes: z.object({
-          breakfast: z.number().optional(),
-          lunch: z.number().optional(),
-          dinner: z.number().optional(),
-        }),
+  weekStart: z.string().or(z.date()).transform((val) => new Date(val)),
+  weekEnd: z.string().or(z.date()).transform((val) => new Date(val)),
+  meals: z.array(
+    z.object({
+      day: z.enum([
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ]),
+      recipes: z.object({
+        breakfast: z.number().optional(),
+        lunch: z.number().optional(),
+        dinner: z.number().optional(),
       }),
-    )
-    .min(1, "At least one day's meals are required"),
+    })
+  ).min(1, "At least one day's meals are required"),
 });
 
 export function registerRoutes(app: Express): Server {
+  // Important: Setup auth before registering routes
   setupAuth(app);
 
   // Recipe Generation
   app.post("/api/recipes/generate", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
       return res.status(401).send("Not authenticated");
     }
 
     const result = generateRecipeSchema.safeParse(req.body);
     if (!result.success) {
-      return res
-        .status(400)
-        .send(
-          "Invalid input: " +
-            result.error.issues.map((i) => i.message).join(", "),
-        );
+      return res.status(400).send(
+        "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+      );
     }
 
     try {
@@ -95,263 +99,240 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Recipes
+  // Recipes with ingredients
   app.get("/api/recipes", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
       return res.status(401).send("Not authenticated");
     }
-    const userRecipes = await db.query.recipes.findMany({
-      where: eq(recipes.userId, req.user.id),
-    });
-    res.json(userRecipes);
+
+    try {
+      const userRecipes = await db.query.recipes.findMany({
+        where: eq(recipes.userId, user.id),
+        with: {
+          ingredients: {
+            with: {
+              ingredient: true,
+            },
+          },
+        },
+      });
+      res.json(userRecipes);
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+      res.status(500).send("Failed to fetch recipes");
+    }
   });
 
   app.get("/api/recipes/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
       return res.status(401).send("Not authenticated");
     }
 
-    const recipe = await db.query.recipes.findFirst({
-      where: eq(recipes.id, parseInt(req.params.id)),
-    });
+    try {
+      const recipe = await db.query.recipes.findFirst({
+        where: eq(recipes.id, parseInt(req.params.id)),
+        with: {
+          ingredients: {
+            with: {
+              ingredient: true,
+            },
+          },
+        },
+      });
 
-    if (!recipe) {
-      return res.status(404).send("Recipe not found");
+      if (!recipe) {
+        return res.status(404).send("Recipe not found");
+      }
+
+      if (recipe.userId !== user.id) {
+        return res.status(403).send("Not authorized to view this recipe");
+      }
+
+      res.json(recipe);
+    } catch (error) {
+      console.error("Error fetching recipe:", error);
+      res.status(500).send("Failed to fetch recipe");
     }
-
-    if (recipe.userId !== req.user.id) {
-      return res.status(403).send("Not authorized to view this recipe");
-    }
-
-    res.json(recipe);
   });
 
   app.post("/api/recipes", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    const result = recipeSchema.safeParse(req.body);
-    if (!result.success) {
-      return res
-        .status(400)
-        .send(result.error.errors.map((err) => err.message).join(", "));
-    }
-    const recipe = await db
-      .insert(recipes)
-      .values({
-        ...result.data,
-        userId: req.user.id,
-      })
-      .returning();
-    res.json(recipe[0]);
-  });
-
-  app.put("/api/recipes/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
       return res.status(401).send("Not authenticated");
     }
 
-    const recipe = await db.query.recipes.findFirst({
-      where: eq(recipes.id, parseInt(req.params.id)),
-    });
+    const { ingredients: recipeIngredientsList, ...recipeData } = req.body;
 
-    if (!recipe) {
-      return res.status(404).send("Recipe not found");
+    try {
+      const result = await db.transaction(async (tx) => {
+        // Create the recipe first
+        const [recipe] = await tx
+          .insert(recipes)
+          .values({
+            ...recipeData,
+            userId: user.id,
+          })
+          .returning();
+
+        // Process ingredients
+        for (const ingredient of recipeIngredientsList) {
+          // Find or create ingredient
+          let [ingredientRecord] = await tx
+            .insert(ingredients)
+            .values({
+              name: ingredient.name.toLowerCase().trim(),
+            })
+            .onConflictDoUpdate({
+              target: ingredients.name,
+              set: { updatedAt: new Date() },
+            })
+            .returning();
+
+          // Create recipe-ingredient relationship
+          await tx.insert(recipeIngredients).values({
+            recipeId: recipe.id,
+            ingredientId: ingredientRecord.id,
+            quantity: ingredient.quantity,
+            unit: ingredient.unit,
+            notes: ingredient.notes,
+          });
+        }
+
+        return recipe;
+      });
+
+      // Fetch the complete recipe with ingredients
+      const completeRecipe = await db.query.recipes.findFirst({
+        where: eq(recipes.id, result.id),
+        with: {
+          ingredients: {
+            with: {
+              ingredient: true,
+            },
+          },
+        },
+      });
+
+      res.json(completeRecipe);
+    } catch (error) {
+      console.error("Error creating recipe:", error);
+      res.status(500).send("Failed to create recipe");
     }
-
-    if (recipe.userId !== req.user.id) {
-      return res.status(403).send("Not authorized to update this recipe");
-    }
-
-    const result = recipeSchema.safeParse(req.body);
-    if (!result.success) {
-      return res
-        .status(400)
-        .send(result.error.errors.map((err) => err.message).join(", "));
-    }
-
-    const updatedRecipe = await db
-      .update(recipes)
-      .set(result.data)
-      .where(eq(recipes.id, parseInt(req.params.id)))
-      .returning();
-
-    res.json(updatedRecipe[0]);
   });
 
-  app.delete("/api/recipes/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-
-    const recipe = await db.query.recipes.findFirst({
-      where: eq(recipes.id, parseInt(req.params.id)),
-    });
-
-    if (!recipe) {
-      return res.status(404).send("Recipe not found");
-    }
-
-    if (recipe.userId !== req.user.id) {
-      return res.status(403).send("Not authorized to delete this recipe");
-    }
-
-    await db.delete(recipes).where(eq(recipes.id, parseInt(req.params.id)));
-
-    res.status(204).end();
-  });
-
-  // Meal Plans
-  app.get("/api/meal-plans", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    const userMealPlans = await db.query.mealPlans.findMany({
-      where: eq(mealPlans.userId, req.user.id),
-    });
-    res.json(userMealPlans);
-  });
-
-  app.post("/api/meal-plans", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    const result = mealPlanSchema.safeParse(req.body);
-    if (!result.success) {
-      return res
-        .status(400)
-        .send(result.error.errors.map((err) => err.message).join(", "));
-    }
-    log(req.body);
-    const mealPlan = await db
-      .insert(mealPlans)
-      .values({
-        ...result.data,
-        userId: req.user.id,
-      })
-      .returning();
-    res.json(mealPlan[0]);
-  });
-
-  // Pantry Items
-  app.get("/api/pantry", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    const items = await db.query.pantryItems.findMany({
-      where: eq(pantryItems.userId, req.user.id),
-    });
-    res.json(items);
-  });
-
-  app.post("/api/pantry", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    const item = await db
-      .insert(pantryItems)
-      .values({
-        ...req.body,
-        userId: req.user.id,
-      })
-      .returning();
-    res.json(item[0]);
-  });
-
-  // Shopping Lists
-  app.get("/api/shopping-lists", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-    const lists = await db.query.shoppingLists.findMany({
-      where: eq(shoppingLists.userId, req.user.id),
-    });
-    res.json(lists);
-  });
-
+  // Shopping List Items with date range
   app.get("/api/shopping-list-items", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
       return res.status(401).send("Not authenticated");
     }
-    const items = await db.query.shoppingListItems.findMany({
-      where: eq(shoppingListItems.userId, req.user.id),
+
+    const dateRangeResult = dateRangeSchema.safeParse({
+      startDate: req.query.startDate || new Date().toISOString(),
+      endDate: req.query.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     });
-    res.json(items);
+
+    if (!dateRangeResult.success) {
+      return res.status(400).send(dateRangeResult.error.errors.map(err => err.message).join(", "));
+    }
+
+    const { startDate, endDate } = dateRangeResult.data;
+
+    try {
+      const items = await db.query.shoppingListItems.findMany({
+        where: and(
+          eq(shoppingListItems.userId, user.id),
+          between(shoppingListItems.startDate, startDate, endDate)
+        ),
+        with: {
+          ingredient: true,
+        },
+      });
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching shopping list items:", error);
+      res.status(500).send("Failed to fetch shopping list items");
+    }
   });
 
   app.post("/api/shopping-list-items", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
       return res.status(401).send("Not authenticated");
     }
 
-    log(JSON.stringify(req.body));
-    const items = await db
-      .insert(shoppingListItems)
-      .values({
-        ...req.body,
-        userId: req.user.id,
-      })
-      .returning();
-    res.json(items[0]);
+    const {
+      ingredientId,
+      startDate,
+      endDate,
+      quantity,
+      unit,
+      recipeIds,
+    } = req.body;
+
+    try {
+      const dateRangeResult = dateRangeSchema.safeParse({ startDate, endDate });
+      if (!dateRangeResult.success) {
+        return res.status(400).send(dateRangeResult.error.errors.map(err => err.message).join(", "));
+      }
+
+      const item = await db
+        .insert(shoppingListItems)
+        .values({
+          userId: user.id,
+          ingredientId,
+          startDate: dateRangeResult.data.startDate,
+          endDate: dateRangeResult.data.endDate,
+          quantity,
+          unit,
+          recipeIds,
+        })
+        .returning();
+      res.json(item[0]);
+    } catch (error) {
+      console.error("Error creating shopping list item:", error);
+      res.status(500).send("Failed to create shopping list item");
+    }
   });
 
   app.put("/api/shopping-list-items/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
       return res.status(401).send("Not authenticated");
     }
 
-    const item = await db.query.shoppingListItems.findFirst({
-      where: eq(shoppingListItems.id, parseInt(req.params.id)),
-    });
+    try {
+      const item = await db.query.shoppingListItems.findFirst({
+        where: eq(shoppingListItems.id, parseInt(req.params.id)),
+      });
 
-    if (!item) {
-      return res.status(404).send("Item not found");
+      if (!item) {
+        return res.status(404).send("Item not found");
+      }
+
+      if (item.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this item");
+      }
+
+      const updatedItem = await db
+        .update(shoppingListItems)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(shoppingListItems.id, parseInt(req.params.id)))
+        .returning();
+
+      res.json(updatedItem[0]);
+    } catch (error) {
+      console.error("Error updating shopping list item:", error);
+      res.status(500).send("Failed to update shopping list item");
     }
-
-    if (item.userId !== req.user.id) {
-      return res.status(403).send("Not authorized to update this item");
-    }
-
-    const updatedItem = await db
-      .update(shoppingListItems)
-      .set({ ...req.body, updatedAt: new Date() })
-      .where(eq(shoppingListItems.id, parseInt(req.params.id)))
-      .returning();
-
-    res.json(updatedItem[0]);
-  });
-
-  app.put("/api/shopping-lists/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-
-    const list = await db.query.shoppingLists.findFirst({
-      where: eq(shoppingLists.id, parseInt(req.params.id)),
-    });
-
-    if (!list) {
-      return res.status(404).send("Shopping list not found");
-    }
-
-    if (list.userId !== req.user.id) {
-      return res
-        .status(403)
-        .send("Not authorized to update this shopping list");
-    }
-
-    const updatedList = await db
-      .update(shoppingLists)
-      .set(req.body)
-      .where(eq(shoppingLists.id, parseInt(req.params.id)))
-      .returning();
-
-    res.json(updatedList[0]);
   });
 
   // Recipe Image Analysis
   app.post("/api/recipes/analyze-image", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
       return res.status(401).send("Not authenticated");
     }
 
@@ -365,7 +346,7 @@ export function registerRoutes(app: Express): Server {
         .status(400)
         .send(
           "Invalid input: " +
-            result.error.issues.map((i) => i.message).join(", "),
+            result.error.issues.map((i) => i.message).join(", ")
         );
     }
 

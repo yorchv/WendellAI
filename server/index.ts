@@ -4,27 +4,30 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
-app.use(express.json({limit: '50mb'}));
-app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 
 // Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: "Too many requests from this IP, please try again later",
-  statusCode: 429
+  statusCode: 429,
+  validate: {
+    xForwardedForHeader: false,
+  },
 });
 
 // Apply rate limiting to all API routes
-app.use("/api", limiter);
+// app.use("/api", limiter);
 
 // Handle 404 errors for API routes
-app.use("/api/*", (req, res) => {
-  res.status(404).json({ 
-    status: 404,
-    message: "API endpoint not found"
-  });
-});
+// app.use("/api/*", (req, res) => {
+//   res.status(404).json({
+//     status: 404,
+//     message: "API endpoint not found",
+//   });
+// });
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -62,13 +65,13 @@ app.use((req, res, next) => {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-    
+
     // Log error but don't expose internal details to client
     console.error(err);
-    
-    res.status(status).json({ 
+
+    res.status(status).json({
       status,
-      message: status === 500 ? "Internal Server Error" : message
+      message: status === 500 ? "Internal Server Error" : message,
     });
   });
 
