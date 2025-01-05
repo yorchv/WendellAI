@@ -37,8 +37,10 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
       const payload = {
         ...data,
         ingredients: data.ingredients.map(ing => ({
-          ...ing,
-          quantity: ing.quantity ? Number(ing.quantity) : null,
+          name: ing.name,
+          quantity: ing.quantity,
+          unit: ing.unit,
+          notes: ing.notes,
         })),
       };
 

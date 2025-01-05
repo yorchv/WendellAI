@@ -19,9 +19,9 @@ interface CreateRecipePayload {
   sources: string[] | null;
   ingredients: {
     name: string;
-    quantity?: number | null;
-    unit?: string | null;
-    notes?: string | null;
+    quantity: number | null;
+    unit: string | null;
+    notes: string | null;
   }[];
 }
 

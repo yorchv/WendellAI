@@ -19,8 +19,8 @@ import { Trash } from "lucide-react";
 const ingredientSchema = z.object({
   name: z.string().min(1, "Ingredient name is required"),
   quantity: z.preprocess(
-    (val) => (val === "" ? null : Number(val)),
-    z.number().nullable()
+    (val) => (val === "" || val === null || val === undefined ? null : Number(val)),
+    z.number().nullable(),
   ),
   unit: z.string().nullable(),
   notes: z.string().nullable(),
@@ -32,22 +32,29 @@ const recipeSchema = z.object({
   ingredients: z.array(ingredientSchema).min(1, "At least one ingredient is required"),
   instructions: z.array(z.string()).min(1, "At least one instruction step is required"),
   prepTime: z.preprocess(
-    (val) => (val === "" ? null : Number(val)),
-    z.number().nullable()
+    (val) => (val === "" || val === null || val === undefined ? null : Number(val)),
+    z.number().nullable(),
   ),
   cookTime: z.preprocess(
-    (val) => (val === "" ? null : Number(val)),
-    z.number().nullable()
+    (val) => (val === "" || val === null || val === undefined ? null : Number(val)),
+    z.number().nullable(),
   ),
   servings: z.preprocess(
-    (val) => (val === "" ? null : Number(val)),
-    z.number().nullable()
+    (val) => (val === "" || val === null || val === undefined ? null : Number(val)),
+    z.number().nullable(),
   ),
   image: z.string().url().nullable().or(z.literal("")),
   sources: z.array(z.string()).nullable(),
 });
 
 export type RecipeFormData = z.infer<typeof recipeSchema>;
+
+interface FormIngredient {
+  name: string;
+  quantity: string;
+  unit: string;
+  notes: string;
+}
 
 interface ManualRecipeFormProps {
   recipe?: Recipe & {
@@ -61,34 +68,33 @@ interface ManualRecipeFormProps {
 }
 
 export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRecipeFormProps) {
-  const [ingredients, setIngredients] = useState<Array<{
-    name: string;
-    quantity: string;
-    unit: string;
-    notes: string;
-  }>>(
+  const [ingredients, setIngredients] = useState<FormIngredient[]>(
     recipe?.ingredients.map(i => ({
       name: i.ingredient.name,
       quantity: i.quantity?.toString() ?? "",
       unit: i.unit ?? "",
       notes: i.notes ?? "",
-    })) || [{ name: "", quantity: "", unit: "", notes: "" }]
+    })) ?? [{ name: "", quantity: "", unit: "", notes: "" }]
   );
 
-  const [instructions, setInstructions] = useState<string[]>(recipe?.instructions || [""]);
+  const [instructions, setInstructions] = useState<string[]>(
+    recipe?.instructions ?? [""]
+  );
+
+  const transformIngredientToFormData = (ing: FormIngredient): z.infer<typeof ingredientSchema> => ({
+    name: ing.name,
+    quantity: ing.quantity === "" ? null : Number(ing.quantity),
+    unit: ing.unit || null,
+    notes: ing.notes || null,
+  });
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeSchema),
     defaultValues: {
       title: recipe?.title ?? "",
       description: recipe?.description ?? null,
-      ingredients: recipe?.ingredients.map(i => ({
-        name: i.ingredient.name,
-        quantity: i.quantity,
-        unit: i.unit,
-        notes: i.notes,
-      })) || [{ name: "", quantity: null, unit: null, notes: null }],
-      instructions: recipe?.instructions || [""],
+      ingredients: ingredients.map(transformIngredientToFormData),
+      instructions: recipe?.instructions ?? [""],
       prepTime: recipe?.prepTime ?? null,
       cookTime: recipe?.cookTime ?? null,
       servings: recipe?.servings ?? null,
@@ -96,6 +102,13 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
       sources: recipe?.sources ?? null,
     },
   });
+
+  const updateIngredients = (newIngredients: FormIngredient[]) => {
+    setIngredients(newIngredients);
+    form.setValue("ingredients", newIngredients.map(transformIngredientToFormData), {
+      shouldValidate: true,
+    });
+  };
 
   return (
     <Form {...form}>
@@ -143,13 +156,7 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
                     onChange={(e) => {
                       const newIngredients = [...ingredients];
                       newIngredients[index] = { ...ingredient, name: e.target.value };
-                      setIngredients(newIngredients);
-                      form.setValue("ingredients", newIngredients.map(ing => ({
-                        name: ing.name,
-                        quantity: ing.quantity === "" ? null : Number(ing.quantity),
-                        unit: ing.unit || null,
-                        notes: ing.notes || null,
-                      })));
+                      updateIngredients(newIngredients);
                     }}
                     placeholder="Ingredient name"
                   />
@@ -161,13 +168,7 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
                     onChange={(e) => {
                       const newIngredients = [...ingredients];
                       newIngredients[index] = { ...ingredient, quantity: e.target.value };
-                      setIngredients(newIngredients);
-                      form.setValue("ingredients", newIngredients.map(ing => ({
-                        name: ing.name,
-                        quantity: ing.quantity === "" ? null : Number(ing.quantity),
-                        unit: ing.unit || null,
-                        notes: ing.notes || null,
-                      })));
+                      updateIngredients(newIngredients);
                     }}
                     placeholder="Amount"
                   />
@@ -178,13 +179,7 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
                     onChange={(e) => {
                       const newIngredients = [...ingredients];
                       newIngredients[index] = { ...ingredient, unit: e.target.value };
-                      setIngredients(newIngredients);
-                      form.setValue("ingredients", newIngredients.map(ing => ({
-                        name: ing.name,
-                        quantity: ing.quantity === "" ? null : Number(ing.quantity),
-                        unit: ing.unit || null,
-                        notes: ing.notes || null,
-                      })));
+                      updateIngredients(newIngredients);
                     }}
                     placeholder="Unit"
                   />
@@ -196,13 +191,7 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
                     size="icon"
                     onClick={() => {
                       const newIngredients = ingredients.filter((_, i) => i !== index);
-                      setIngredients(newIngredients);
-                      form.setValue("ingredients", newIngredients.map(ing => ({
-                        name: ing.name,
-                        quantity: ing.quantity === "" ? null : Number(ing.quantity),
-                        unit: ing.unit || null,
-                        notes: ing.notes || null,
-                      })));
+                      updateIngredients(newIngredients);
                     }}
                   >
                     <Trash className="h-4 w-4" />
@@ -214,13 +203,7 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
                 onChange={(e) => {
                   const newIngredients = [...ingredients];
                   newIngredients[index] = { ...ingredient, notes: e.target.value };
-                  setIngredients(newIngredients);
-                  form.setValue("ingredients", newIngredients.map(ing => ({
-                    name: ing.name,
-                    quantity: ing.quantity === "" ? null : Number(ing.quantity),
-                    unit: ing.unit || null,
-                    notes: ing.notes || null,
-                  })));
+                  updateIngredients(newIngredients);
                 }}
                 placeholder="Additional notes (optional)"
               />
@@ -230,12 +213,10 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
             type="button"
             variant="outline"
             onClick={() => {
-              setIngredients([...ingredients, { 
-                name: "", 
-                quantity: "", 
-                unit: "", 
-                notes: "" 
-              }]);
+              updateIngredients([
+                ...ingredients,
+                { name: "", quantity: "", unit: "", notes: "" }
+              ]);
             }}
           >
             Add Ingredient
@@ -252,7 +233,9 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
                   const newInstructions = [...instructions];
                   newInstructions[index] = e.target.value;
                   setInstructions(newInstructions);
-                  form.setValue("instructions", newInstructions);
+                  form.setValue("instructions", newInstructions, {
+                    shouldValidate: true,
+                  });
                 }}
                 placeholder={`Step ${index + 1}`}
               />
@@ -264,7 +247,9 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
                   onClick={() => {
                     const newInstructions = instructions.filter((_, i) => i !== index);
                     setInstructions(newInstructions);
-                    form.setValue("instructions", newInstructions);
+                    form.setValue("instructions", newInstructions, {
+                      shouldValidate: true,
+                    });
                   }}
                 >
                   <Trash className="h-4 w-4" />
@@ -276,7 +261,11 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
             type="button"
             variant="outline"
             onClick={() => {
-              setInstructions([...instructions, ""]);
+              const newInstructions = [...instructions, ""];
+              setInstructions(newInstructions);
+              form.setValue("instructions", newInstructions, {
+                shouldValidate: true,
+              });
             }}
           >
             Add Step
