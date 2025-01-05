@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Recipe } from "@db/schema";
+import { Recipe, RecipeIngredient, Ingredient } from "@db/schema";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,7 +17,11 @@ import { AIRecipeGenerator } from "./AIRecipeGenerator";
 import { ImageUploadRecipe } from "./ImageUploadRecipe";
 
 interface RecipeManagerProps {
-  recipe?: Recipe;
+  recipe?: Recipe & {
+    ingredients: (RecipeIngredient & {
+      ingredient: Ingredient;
+    })[];
+  };
   mode: "create" | "edit";
   onClose?: () => void;
 }
@@ -30,18 +34,50 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
   const handleSubmit = async (data: RecipeFormData) => {
     try {
       if (mode === "create") {
-        await createRecipe(data);
+        await createRecipe({
+          ...data,
+          ingredients: data.ingredients.map(ing => ({
+            ...ing,
+            quantity: ing.quantity ? Number(ing.quantity) : undefined,
+          })),
+        });
         toast({
           title: "Success",
           description: "Recipe created successfully",
         });
       } else {
-        await updateRecipe(recipe!.id, data);
+        if (!recipe) return;
+        await updateRecipe(recipe.id, {
+          ...data,
+          ingredients: data.ingredients.map(ing => ({
+            ...ing,
+            quantity: ing.quantity ? Number(ing.quantity) : undefined,
+          })),
+        });
         toast({
           title: "Success",
           description: "Recipe updated successfully",
         });
       }
+      setOpen(false);
+      onClose?.();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Something went wrong",
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!recipe) return;
+    try {
+      await deleteRecipe(recipe.id);
+      toast({
+        title: "Success",
+        description: "Recipe deleted successfully",
+      });
       setOpen(false);
       onClose?.();
     } catch (error) {
@@ -99,24 +135,7 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
             recipe={recipe}
             mode={mode}
             onSubmit={handleSubmit}
-            onDelete={async () => {
-              if (!recipe) return;
-              try {
-                await deleteRecipe(recipe.id);
-                toast({
-                  title: "Success",
-                  description: "Recipe deleted successfully",
-                });
-                setOpen(false);
-                onClose?.();
-              } catch (error) {
-                toast({
-                  variant: "destructive",
-                  title: "Error",
-                  description: error instanceof Error ? error.message : "Something went wrong",
-                });
-              }
-            }}
+            onDelete={handleDelete}
           />
         )}
       </DialogContent>

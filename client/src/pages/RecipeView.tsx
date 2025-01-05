@@ -1,18 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
-import { Recipe } from "@db/schema";
+import { Recipe, RecipeIngredient, Ingredient } from "@db/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Users, ChefHat, ArrowLeft, PlayCircle } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { RecipeManager } from "@/components/RecipeManager";
 
+interface RecipeWithIngredients extends Recipe {
+  ingredients: (RecipeIngredient & {
+    ingredient: Ingredient;
+  })[];
+}
+
 export default function RecipeView() {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/recipes/:id");
   const recipeId = params?.id;
 
-  const { data: recipe, isLoading } = useQuery<Recipe>({
+  const { data: recipe, isLoading } = useQuery<RecipeWithIngredients>({
     queryKey: [`/api/recipes/${recipeId}`],
     enabled: !!recipeId,
   });
@@ -106,7 +112,19 @@ export default function RecipeView() {
                 {recipe.ingredients.map((ingredient, index) => (
                   <li key={index} className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-primary" />
-                    {ingredient}
+                    <span className="flex-1">
+                      {ingredient.quantity && (
+                        <span className="font-medium">
+                          {ingredient.quantity} {ingredient.unit || ''}{' '}
+                        </span>
+                      )}
+                      {ingredient.ingredient.name}
+                      {ingredient.notes && (
+                        <span className="text-sm text-muted-foreground ml-2">
+                          ({ingredient.notes})
+                        </span>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>

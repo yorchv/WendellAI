@@ -16,10 +16,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash } from "lucide-react";
 
+const ingredientSchema = z.object({
+  name: z.string().min(1, "Ingredient name is required"),
+  quantity: z.number().optional(),
+  unit: z.string().optional(),
+  notes: z.string().optional(),
+});
+
 const recipeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  ingredients: z.array(z.string()).min(1, "At least one ingredient is required"),
+  ingredients: z.array(ingredientSchema).min(1, "At least one ingredient is required"),
   instructions: z.array(z.string()).min(1, "At least one instruction step is required"),
   prepTime: z.number().min(0).optional(),
   cookTime: z.number().min(0).optional(),
@@ -31,14 +38,33 @@ const recipeSchema = z.object({
 export type RecipeFormData = z.infer<typeof recipeSchema>;
 
 interface ManualRecipeFormProps {
-  recipe?: Recipe;
+  recipe?: Recipe & {
+    ingredients: {
+      ingredient: { name: string };
+      quantity?: number;
+      unit?: string;
+      notes?: string;
+    }[];
+  };
   onSubmit: (data: RecipeFormData) => Promise<void>;
   onDelete?: () => Promise<void>;
   mode: "create" | "edit";
 }
 
 export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRecipeFormProps) {
-  const [ingredients, setIngredients] = useState<string[]>(recipe?.ingredients || [""]);
+  const [ingredients, setIngredients] = useState<Array<{
+    name: string;
+    quantity?: number;
+    unit?: string;
+    notes?: string;
+  }>>(
+    recipe?.ingredients.map(i => ({
+      name: i.ingredient.name,
+      quantity: i.quantity || undefined,
+      unit: i.unit || undefined,
+      notes: i.notes || undefined,
+    })) || [{ name: "", quantity: undefined, unit: undefined, notes: undefined }]
+  );
   const [instructions, setInstructions] = useState<string[]>(recipe?.instructions || [""]);
 
   const form = useForm<RecipeFormData>({
@@ -46,7 +72,12 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
     defaultValues: {
       title: recipe?.title || "",
       description: recipe?.description || "",
-      ingredients: recipe?.ingredients || [""],
+      ingredients: recipe?.ingredients.map(i => ({
+        name: i.ingredient.name,
+        quantity: i.quantity || undefined,
+        unit: i.unit || undefined,
+        notes: i.notes || undefined,
+      })) || [{ name: "", quantity: undefined, unit: undefined, notes: undefined }],
       instructions: recipe?.instructions || [""],
       prepTime: recipe?.prepTime || 0,
       cookTime: recipe?.cookTime || 0,
@@ -93,38 +124,85 @@ export function ManualRecipeForm({ recipe, onSubmit, onDelete, mode }: ManualRec
         <div className="space-y-2">
           <FormLabel>Ingredients</FormLabel>
           {ingredients.map((ingredient, index) => (
-            <div key={index} className="flex gap-2">
+            <div key={index} className="space-y-2 p-4 border rounded-lg">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    value={ingredient.name}
+                    onChange={(e) => {
+                      const newIngredients = [...ingredients];
+                      newIngredients[index] = { ...ingredient, name: e.target.value };
+                      setIngredients(newIngredients);
+                      form.setValue("ingredients", newIngredients);
+                    }}
+                    placeholder="Ingredient name"
+                  />
+                </div>
+                <div className="w-24">
+                  <Input
+                    type="number"
+                    value={ingredient.quantity || ""}
+                    onChange={(e) => {
+                      const newIngredients = [...ingredients];
+                      newIngredients[index] = { 
+                        ...ingredient, 
+                        quantity: e.target.value ? Number(e.target.value) : undefined 
+                      };
+                      setIngredients(newIngredients);
+                      form.setValue("ingredients", newIngredients);
+                    }}
+                    placeholder="Amount"
+                  />
+                </div>
+                <div className="w-24">
+                  <Input
+                    value={ingredient.unit || ""}
+                    onChange={(e) => {
+                      const newIngredients = [...ingredients];
+                      newIngredients[index] = { ...ingredient, unit: e.target.value };
+                      setIngredients(newIngredients);
+                      form.setValue("ingredients", newIngredients);
+                    }}
+                    placeholder="Unit"
+                  />
+                </div>
+                {ingredients.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const newIngredients = ingredients.filter((_, i) => i !== index);
+                      setIngredients(newIngredients);
+                      form.setValue("ingredients", newIngredients);
+                    }}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               <Input
-                value={ingredient}
+                value={ingredient.notes || ""}
                 onChange={(e) => {
                   const newIngredients = [...ingredients];
-                  newIngredients[index] = e.target.value;
+                  newIngredients[index] = { ...ingredient, notes: e.target.value };
                   setIngredients(newIngredients);
                   form.setValue("ingredients", newIngredients);
                 }}
-                placeholder={`Ingredient ${index + 1}`}
+                placeholder="Additional notes (optional)"
               />
-              {ingredients.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    const newIngredients = ingredients.filter((_, i) => i !== index);
-                    setIngredients(newIngredients);
-                    form.setValue("ingredients", newIngredients);
-                  }}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              )}
             </div>
           ))}
           <Button
             type="button"
             variant="outline"
             onClick={() => {
-              setIngredients([...ingredients, ""]);
+              setIngredients([...ingredients, { 
+                name: "", 
+                quantity: undefined, 
+                unit: undefined, 
+                notes: undefined 
+              }]);
             }}
           >
             Add Ingredient

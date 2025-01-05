@@ -1,9 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Recipe } from "@db/schema";
+import { Recipe, RecipeIngredient, Ingredient } from "@db/schema";
 import { Clock, Users } from "lucide-react";
 
+interface RecipeWithIngredients extends Recipe {
+  ingredients: (RecipeIngredient & {
+    ingredient: Ingredient;
+  })[];
+}
+
 interface RecipeCardProps {
-  recipe: Recipe;
+  recipe: RecipeWithIngredients;
   onClick?: () => void;
 }
 
@@ -27,14 +33,18 @@ export function RecipeCard({ recipe, onClick }: RecipeCardProps) {
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {recipe.prepTime + recipe.cookTime} min
-          </div>
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            {recipe.servings} servings
-          </div>
+          {(recipe.prepTime || recipe.cookTime) && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
+            </div>
+          )}
+          {recipe.servings && (
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              {recipe.servings} servings
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
