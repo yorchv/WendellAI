@@ -38,9 +38,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run migrate"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
