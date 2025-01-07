@@ -11,42 +11,10 @@ import {
   recipeIngredients,
 } from "@db/schema";
 import { eq, and, between } from "drizzle-orm";
-import { generateRecipe } from "./perplexity";
 import { z } from "zod";
-import { analyzeRecipeImage } from "./claude";
+import { generateRecipe } from "./perplexity";
 
-// Validate date range for shopping list
-const dateRangeSchema = z.object({
-  startDate: z.string().transform(val => new Date(val)),
-  endDate: z.string().transform(val => new Date(val)),
-}).refine(data => {
-  const daysDiff = (data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24);
-  return daysDiff <= 30 && daysDiff >= 0;
-}, "Date range must be between 0 and 30 days");
-
-const generateRecipeSchema = z.object({
-  prompt: z.string().min(1, "Prompt is required"),
-});
-
-const recipeIngredientSchema = z.object({
-  name: z.string().min(1, "Ingredient name is required"),
-  quantity: z.number().optional(),
-  unit: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-const recipeSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  ingredients: z.array(recipeIngredientSchema).min(1, "At least one ingredient is required"),
-  instructions: z.array(z.string()).min(1, "At least one instruction is required"),
-  prepTime: z.number().optional(),
-  cookTime: z.number().optional(),
-  servings: z.number().optional(),
-  image: z.string().optional(),
-  sources: z.array(z.string()).optional(),
-});
-
+// Schema for meal plan operations
 const mealPlanSchema = z.object({
   weekStart: z.string().or(z.date()).transform((val) => new Date(val)),
   weekEnd: z.string().or(z.date()).transform((val) => new Date(val)),
@@ -73,6 +41,126 @@ const mealPlanSchema = z.object({
 export function registerRoutes(app: Express): Server {
   // Important: Setup auth before registering routes
   setupAuth(app);
+
+  // Meal Plans
+  app.get("/api/meal-plans", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const userMealPlans = await db.query.mealPlans.findMany({
+        where: eq(mealPlans.userId, user.id),
+        orderBy: (mealPlans, { desc }) => [desc(mealPlans.weekStart)],
+      });
+      res.json(userMealPlans);
+    } catch (error) {
+      console.error("Error fetching meal plans:", error);
+      res.status(500).send("Failed to fetch meal plans");
+    }
+  });
+
+  app.post("/api/meal-plans", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const result = mealPlanSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const [mealPlan] = await db
+        .insert(mealPlans)
+        .values({
+          userId: user.id,
+          weekStart: result.data.weekStart,
+          weekEnd: result.data.weekEnd,
+          meals: result.data.meals,
+        })
+        .returning();
+
+      res.json(mealPlan);
+    } catch (error) {
+      console.error("Error creating meal plan:", error);
+      res.status(500).send("Failed to create meal plan");
+    }
+  });
+
+  app.put("/api/meal-plans/:id", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const result = mealPlanSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const mealPlan = await db.query.mealPlans.findFirst({
+        where: eq(mealPlans.id, parseInt(req.params.id)),
+      });
+
+      if (!mealPlan) {
+        return res.status(404).send("Meal plan not found");
+      }
+
+      if (mealPlan.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this meal plan");
+      }
+
+      const [updatedMealPlan] = await db
+        .update(mealPlans)
+        .set({
+          weekStart: result.data.weekStart,
+          weekEnd: result.data.weekEnd,
+          meals: result.data.meals,
+        })
+        .where(eq(mealPlans.id, parseInt(req.params.id)))
+        .returning();
+
+      res.json(updatedMealPlan);
+    } catch (error) {
+      console.error("Error updating meal plan:", error);
+      res.status(500).send("Failed to update meal plan");
+    }
+  });
+
+  app.delete("/api/meal-plans/:id", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const mealPlan = await db.query.mealPlans.findFirst({
+        where: eq(mealPlans.id, parseInt(req.params.id)),
+      });
+
+      if (!mealPlan) {
+        return res.status(404).send("Meal plan not found");
+      }
+
+      if (mealPlan.userId !== user.id) {
+        return res.status(403).send("Not authorized to delete this meal plan");
+      }
+
+      await db.delete(mealPlans).where(eq(mealPlans.id, parseInt(req.params.id)));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting meal plan:", error);
+      res.status(500).send("Failed to delete meal plan");
+    }
+  });
 
   // Recipe Generation
   app.post("/api/recipes/generate", async (req, res) => {
@@ -329,40 +417,37 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Recipe Image Analysis
-  app.post("/api/recipes/analyze-image", async (req, res) => {
-    const user = req.user as { id: number } | undefined;
-    if (!user?.id) {
-      return res.status(401).send("Not authenticated");
-    }
-
-    const imageSchema = z.object({
-      image: z.string().min(1, "Image data is required"),
-    });
-
-    const result = imageSchema.safeParse(req.body);
-    if (!result.success) {
-      return res
-        .status(400)
-        .send(
-          "Invalid input: " +
-            result.error.issues.map((i) => i.message).join(", ")
-        );
-    }
-
-    try {
-      const recipe = await analyzeRecipeImage(result.data.image);
-      res.json(recipe);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to analyze recipe image";
-      console.error("Recipe image analysis error:", errorMessage);
-      res.status(500).send(errorMessage);
-    }
-  });
-
   const httpServer = createServer(app);
   return httpServer;
 }
+
+const dateRangeSchema = z.object({
+  startDate: z.string().transform(val => new Date(val)),
+  endDate: z.string().transform(val => new Date(val)),
+}).refine(data => {
+  const daysDiff = (data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24);
+  return daysDiff <= 30 && daysDiff >= 0;
+}, "Date range must be between 0 and 30 days");
+
+const generateRecipeSchema = z.object({
+  prompt: z.string().min(1, "Prompt is required"),
+});
+
+const recipeIngredientSchema = z.object({
+  name: z.string().min(1, "Ingredient name is required"),
+  quantity: z.number().optional(),
+  unit: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const recipeSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  ingredients: z.array(recipeIngredientSchema).min(1, "At least one ingredient is required"),
+  instructions: z.array(z.string()).min(1, "At least one instruction is required"),
+  prepTime: z.number().optional(),
+  cookTime: z.number().optional(),
+  servings: z.number().optional(),
+  image: z.string().optional(),
+  sources: z.array(z.string()).optional(),
+});

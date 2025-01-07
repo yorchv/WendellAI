@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { formatRecipeResponse } from "./claude";
 
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
@@ -67,12 +66,14 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
   }
 
   const data: PerplexityResponse = await response.json();
-  const formattedRecipe = await formatRecipeResponse(
-    data.choices[0].message.content,
-  );
+  const content = data.choices[0].message.content;
 
+  // For now, return a stub recipe until we integrate with Claude for proper formatting
   return {
-    ...formattedRecipe,
+    title: "Sample Recipe",
+    description: content,
+    ingredients: [],
+    instructions: [content],
     sources: data.citations,
   };
 }

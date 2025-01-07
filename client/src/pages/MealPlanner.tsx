@@ -18,6 +18,24 @@ type MealType = typeof MEALS[number];
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
 type DayType = typeof DAYS[number];
 
+type DayMeals = {
+  [key in MealType]?: number;
+};
+
+type WeekMeals = {
+  [key in DayType]: DayMeals;
+};
+
+const EMPTY_WEEK_MEALS: WeekMeals = {
+  Monday: {},
+  Tuesday: {},
+  Wednesday: {},
+  Thursday: {},
+  Friday: {},
+  Saturday: {},
+  Sunday: {},
+};
+
 export default function MealPlanner() {
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
   const [selectedMeal, setSelectedMeal] = useState<MealType>("breakfast");
@@ -27,15 +45,7 @@ export default function MealPlanner() {
   const { toast } = useToast();
 
   const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
-  const [selectedMeals, setSelectedMeals] = useState<Record<DayType, Record<MealType, number>>>({
-    Monday: {},
-    Tuesday: {},
-    Wednesday: {},
-    Thursday: {},
-    Friday: {},
-    Saturday: {},
-    Sunday: {},
-  });
+  const [selectedMeals, setSelectedMeals] = useState<WeekMeals>(EMPTY_WEEK_MEALS);
 
   // Load existing meal plan for the selected week
   useEffect(() => {
@@ -43,22 +53,14 @@ export default function MealPlanner() {
       (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
     );
 
-    if (existingPlan) {
+    if (existingPlan && existingPlan.meals) {
       const meals = existingPlan.meals.reduce((acc, meal) => ({
         ...acc,
-        [meal.day]: meal.recipes,
-      }), {} as Record<DayType, Record<MealType, number>>);
+        [meal.day]: meal.recipes || {},
+      }), {...EMPTY_WEEK_MEALS});
       setSelectedMeals(meals);
     } else {
-      setSelectedMeals({
-        Monday: {},
-        Tuesday: {},
-        Wednesday: {},
-        Thursday: {},
-        Friday: {},
-        Saturday: {},
-        Sunday: {},
-      });
+      setSelectedMeals(EMPTY_WEEK_MEALS);
     }
   }, [weekStart, mealPlans]);
 
@@ -91,7 +93,10 @@ export default function MealPlanner() {
       };
 
       if (existingPlan) {
-        await updateMealPlan({ id: existingPlan.id, ...mealPlanData });
+        await updateMealPlan({
+          ...existingPlan,
+          ...mealPlanData,
+        });
       } else {
         await createMealPlan(mealPlanData);
       }
@@ -132,7 +137,7 @@ export default function MealPlanner() {
       }));
 
       await updateMealPlan({
-        id: existingPlan.id,
+        ...existingPlan,
         weekStart: weekStart,
         weekEnd: addDays(weekStart, 6),
         meals: mealsData,
