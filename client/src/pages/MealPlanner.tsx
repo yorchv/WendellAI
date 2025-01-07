@@ -70,11 +70,6 @@ export default function MealPlanner() {
     }
   }, [weekStart, mealPlans]);
 
-  const handleAddMeal = (day: DayType) => {
-    setSelectedDay(day);
-    setIsSearchOpen(true);
-  };
-
   const handleSelectRecipe = async (recipeId: number) => {
     const updatedMeals = {
       ...selectedMeals,
@@ -218,8 +213,8 @@ export default function MealPlanner() {
                     return (
                       <div
                         key={meal}
-                        className={`relative p-2 rounded-md cursor-pointer group hover:bg-muted/80 ${
-                          hasRecipe ? "bg-primary/10" : "bg-muted"
+                        className={`relative p-2 rounded-md cursor-pointer group transition-all ${
+                          hasRecipe ? "bg-primary/10 hover:bg-primary/20" : "bg-muted hover:bg-muted/80"
                         }`}
                         onClick={() => {
                           setSelectedDay(day);
@@ -233,7 +228,7 @@ export default function MealPlanner() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="opacity-0 group-hover:opacity-100 absolute right-1 -top-1"
+                              className="opacity-0 group-hover:opacity-100 absolute right-1 -top-1 transition-opacity"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteMeal(day, meal);
@@ -248,31 +243,6 @@ export default function MealPlanner() {
                       </div>
                     );
                   })}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full text-muted-foreground"
-                      >
-                        Add Meal
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {MEALS.map((meal) => (
-                        <DropdownMenuItem
-                          key={meal}
-                          onClick={() => {
-                            setSelectedDay(day);
-                            setSelectedMeal(meal);
-                            handleAddMeal(day);
-                          }}
-                        >
-                          Add {meal}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </div>
             ))}
