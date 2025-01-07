@@ -8,6 +8,14 @@ import {
   Pill,
   Plus,
 } from "lucide-react";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -37,9 +45,16 @@ const getIconForPreference = (type: string, name: string) => {
 };
 
 export default function FamilyDashboard() {
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const years = Array.from({length: 50}, (_, i) => new Date().getFullYear() - i);
+  
   const { data: familyMembers, isLoading } = useQuery({
     queryKey: ["/api/family-members"],
   });
+
+  const handleYearChange = (value: string) => {
+    setSelectedYear(parseInt(value));
+  };
 
   if (isLoading) {
     return (
@@ -52,7 +67,21 @@ export default function FamilyDashboard() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Family Dashboard</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold">Family Dashboard</h1>
+          <Select onValueChange={handleYearChange} defaultValue={selectedYear.toString()}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Dialog>
           <DialogTrigger asChild>
             <Button>
