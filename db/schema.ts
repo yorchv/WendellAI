@@ -7,6 +7,7 @@ import {
   jsonb,
   boolean,
   decimal,
+  date,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -15,6 +16,37 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").unique().notNull(),
   password: text("password").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const familyMembers = pgTable("family_members", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => users.id)
+    .notNull(),
+  name: text("name").notNull(),
+  birthDate: date("birth_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const dietaryPreferences = pgTable("dietary_preferences", {
+  id: serial("id").primaryKey(),
+  name: text("name").unique().notNull(),
+  type: text("type").notNull(), // 'ALLERGY', 'DIET', 'SUPPLEMENTATION'
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const familyMemberDietaryPreferences = pgTable("family_member_dietary_preferences", {
+  id: serial("id").primaryKey(),
+  familyMemberId: integer("family_member_id")
+    .references(() => familyMembers.id)
+    .notNull(),
+  dietaryPreferenceId: integer("dietary_preference_id")
+    .references(() => dietaryPreferences.id)
+    .notNull(),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -95,6 +127,7 @@ export const userRelations = relations(users, ({ many }) => ({
   recipes: many(recipes),
   mealPlans: many(mealPlans),
   shoppingListItems: many(shoppingListItems),
+  familyMembers: many(familyMembers),
 }));
 
 export const recipeRelations = relations(recipes, ({ one, many }) => ({
@@ -118,6 +151,29 @@ export const recipeIngredientRelations = relations(recipeIngredients, ({ one }) 
   ingredient: one(ingredients, {
     fields: [recipeIngredients.ingredientId],
     references: [ingredients.id],
+  }),
+}));
+
+export const familyMemberRelations = relations(familyMembers, ({ one, many }) => ({
+  user: one(users, {
+    fields: [familyMembers.userId],
+    references: [users.id],
+  }),
+  dietaryPreferences: many(familyMemberDietaryPreferences),
+}));
+
+export const dietaryPreferenceRelations = relations(dietaryPreferences, ({ many }) => ({
+  familyMembers: many(familyMemberDietaryPreferences),
+}));
+
+export const familyMemberDietaryPreferenceRelations = relations(familyMemberDietaryPreferences, ({ one }) => ({
+  familyMember: one(familyMembers, {
+    fields: [familyMemberDietaryPreferences.familyMemberId],
+    references: [familyMembers.id],
+  }),
+  dietaryPreference: one(dietaryPreferences, {
+    fields: [familyMemberDietaryPreferences.dietaryPreferenceId],
+    references: [dietaryPreferences.id],
   }),
 }));
 
@@ -161,6 +217,16 @@ export type SelectUser = User;
 export type ShoppingListItem = typeof shoppingListItems.$inferSelect;
 export type InsertShoppingListItem = typeof shoppingListItems.$inferInsert;
 
+export type FamilyMember = typeof familyMembers.$inferSelect;
+export type InsertFamilyMember = typeof familyMembers.$inferInsert;
+
+export type DietaryPreference = typeof dietaryPreferences.$inferSelect;
+export type InsertDietaryPreference = typeof dietaryPreferences.$inferInsert;
+
+export type FamilyMemberDietaryPreference = typeof familyMemberDietaryPreferences.$inferSelect;
+export type InsertFamilyMemberDietaryPreference = typeof familyMemberDietaryPreferences.$inferInsert;
+
+
 // Schemas
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
@@ -179,3 +245,12 @@ export const selectMealPlanSchema = createSelectSchema(mealPlans);
 
 export const insertShoppingListItemSchema = createInsertSchema(shoppingListItems);
 export const selectShoppingListItemSchema = createSelectSchema(shoppingListItems);
+
+export const insertFamilyMemberSchema = createInsertSchema(familyMembers);
+export const selectFamilyMemberSchema = createSelectSchema(familyMembers);
+
+export const insertDietaryPreferenceSchema = createInsertSchema(dietaryPreferences);
+export const selectDietaryPreferenceSchema = createSelectSchema(dietaryPreferences);
+
+export const insertFamilyMemberDietaryPreferenceSchema = createInsertSchema(familyMemberDietaryPreferences);
+export const selectFamilyMemberDietaryPreferenceSchema = createSelectSchema(familyMemberDietaryPreferences);

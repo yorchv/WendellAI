@@ -9,6 +9,12 @@ import {
   shoppingListItems,
   ingredients,
   recipeIngredients,
+  familyMembers,
+  dietaryPreferences,
+  familyMemberDietaryPreferences,
+  insertFamilyMemberSchema,
+  insertDietaryPreferenceSchema,
+  insertFamilyMemberDietaryPreferenceSchema,
 } from "@db/schema";
 import { eq, and, between } from "drizzle-orm";
 import { z } from "zod";
@@ -33,13 +39,16 @@ const mealPlanSchema = z.object({
         breakfast: z.number().optional(),
         lunch: z.number().optional(),
         dinner: z.number().optional(),
-      }).refine((data) => 
-        Object.keys(data).length > 0, 
+      }).refine(
+        (data) => Object.keys(data).length > 0,
         "At least one meal type must be specified"
       ),
     })
   ).min(1, "At least one day's meals are required"),
 });
+
+// New schema for dietary preference type validation
+const dietaryPreferenceTypeSchema = z.enum(['ALLERGY', 'DIET', 'SUPPLEMENTATION']);
 
 export function registerRoutes(app: Express): Server {
   // Important: Setup auth before registering routes
@@ -326,7 +335,7 @@ export function registerRoutes(app: Express): Server {
     });
 
     if (!dateRangeResult.success) {
-      return res.status(400).send(dateRangeResult.error.errors.map(err => err.message).join(", "));
+      return res.status(400).send(dateRangeResult.error.errors.map((err) => err.message).join(", "));
     }
 
     const { startDate, endDate } = dateRangeResult.data;
@@ -366,7 +375,7 @@ export function registerRoutes(app: Express): Server {
     try {
       const dateRangeResult = dateRangeSchema.safeParse({ startDate, endDate });
       if (!dateRangeResult.success) {
-        return res.status(400).send(dateRangeResult.error.errors.map(err => err.message).join(", "));
+        return res.status(400).send(dateRangeResult.error.errors.map((err) => err.message).join(", "));
       }
 
       const item = await db
@@ -420,17 +429,245 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Family Members endpoints
+  app.get("/api/family-members", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const userFamilyMembers = await db.query.familyMembers.findMany({
+        where: eq(familyMembers.userId, user.id),
+        with: {
+          dietaryPreferences: {
+            with: {
+              dietaryPreference: true,
+            },
+          },
+        },
+      });
+      res.json(userFamilyMembers);
+    } catch (error) {
+      console.error("Error fetching family members:", error);
+      res.status(500).send("Failed to fetch family members");
+    }
+  });
+
+  app.post("/api/family-members", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const result = insertFamilyMemberSchema.safeParse({
+        ...req.body,
+        userId: user.id,
+      });
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const [familyMember] = await db
+        .insert(familyMembers)
+        .values(result.data)
+        .returning();
+
+      res.json(familyMember);
+    } catch (error) {
+      console.error("Error creating family member:", error);
+      res.status(500).send("Failed to create family member");
+    }
+  });
+
+  app.put("/api/family-members/:id", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.id)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this family member");
+      }
+
+      const result = insertFamilyMemberSchema.partial().safeParse({
+        ...req.body,
+        userId: user.id,
+      });
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const [updatedFamilyMember] = await db
+        .update(familyMembers)
+        .set({ ...result.data, updatedAt: new Date() })
+        .where(eq(familyMembers.id, parseInt(req.params.id)))
+        .returning();
+
+      res.json(updatedFamilyMember);
+    } catch (error) {
+      console.error("Error updating family member:", error);
+      res.status(500).send("Failed to update family member");
+    }
+  });
+
+  // Dietary Preferences endpoints
+  app.get("/api/dietary-preferences", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const allDietaryPreferences = await db.query.dietaryPreferences.findMany();
+      res.json(allDietaryPreferences);
+    } catch (error) {
+      console.error("Error fetching dietary preferences:", error);
+      res.status(500).send("Failed to fetch dietary preferences");
+    }
+  });
+
+  app.post("/api/dietary-preferences", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const result = insertDietaryPreferenceSchema.safeParse(req.body);
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      // Validate the type field
+      const typeResult = dietaryPreferenceTypeSchema.safeParse(result.data.type);
+      if (!typeResult.success) {
+        return res.status(400).send("Invalid dietary preference type");
+      }
+
+      const [dietaryPreference] = await db
+        .insert(dietaryPreferences)
+        .values(result.data)
+        .returning();
+
+      res.json(dietaryPreference);
+    } catch (error) {
+      console.error("Error creating dietary preference:", error);
+      res.status(500).send("Failed to create dietary preference");
+    }
+  });
+
+  // Family Member Dietary Preferences endpoints
+  app.post("/api/family-members/:familyMemberId/dietary-preferences", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.familyMemberId)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this family member's preferences");
+      }
+
+      const result = insertFamilyMemberDietaryPreferenceSchema.safeParse({
+        ...req.body,
+        familyMemberId: parseInt(req.params.familyMemberId),
+      });
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const [preference] = await db
+        .insert(familyMemberDietaryPreferences)
+        .values(result.data)
+        .returning();
+
+      res.json(preference);
+    } catch (error) {
+      console.error("Error adding dietary preference to family member:", error);
+      res.status(500).send("Failed to add dietary preference to family member");
+    }
+  });
+
+  app.delete("/api/family-members/:familyMemberId/dietary-preferences/:preferenceId", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.familyMemberId)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this family member's preferences");
+      }
+
+      await db
+        .delete(familyMemberDietaryPreferences)
+        .where(
+          and(
+            eq(familyMemberDietaryPreferences.familyMemberId, parseInt(req.params.familyMemberId)),
+            eq(familyMemberDietaryPreferences.dietaryPreferenceId, parseInt(req.params.preferenceId))
+          )
+        );
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing dietary preference from family member:", error);
+      res.status(500).send("Failed to remove dietary preference from family member");
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
 
 const dateRangeSchema = z.object({
-  startDate: z.string().transform(val => new Date(val)),
-  endDate: z.string().transform(val => new Date(val)),
-}).refine(data => {
-  const daysDiff = (data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24);
-  return daysDiff <= 30 && daysDiff >= 0;
-}, "Date range must be between 0 and 30 days");
+  startDate: z.string().transform((val) => new Date(val)),
+  endDate: z.string().transform((val) => new Date(val)),
+}).refine(
+  (data) => {
+    const daysDiff = (data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24);
+    return daysDiff <= 30 && daysDiff >= 0;
+  },
+  "Date range must be between 0 and 30 days"
+);
 
 const generateRecipeSchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
