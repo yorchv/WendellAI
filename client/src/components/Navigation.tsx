@@ -5,10 +5,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { User } from "@db/schema";
 import { useUser } from "@/hooks/use-user";
-import { CalendarDays, ChefHat, List, LogOut, User as UserIcon, ShoppingBasket } from "lucide-react";
+import { CalendarDays, ChefHat, List, LogOut, User as UserIcon, ShoppingBasket, Users } from "lucide-react";
 
 interface NavigationProps {
   user: User;
@@ -54,6 +55,13 @@ export default function Navigation({ user }: NavigationProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <Link href="/family">
+              <DropdownMenuItem className="cursor-pointer">
+                <Users className="h-4 w-4 mr-2" />
+                Family Dashboard
+              </DropdownMenuItem>
+            </Link>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => logout()}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
