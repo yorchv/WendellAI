@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import AddFamilyMemberForm from "@/components/family/AddFamilyMemberForm";
 import FamilyMemberCard from "@/components/family/FamilyMemberCard";
+import { Calendar } from 'react-calendar'; // Added import for Calendar component
 
 const getIconForPreference = (type: string, name: string) => {
   switch (type) {
@@ -74,6 +75,16 @@ export default function FamilyDashboard() {
             getIconForPreference={getIconForPreference}
           />
         ))}
+      </div>
+      <div>
+        <Calendar 
+            mode="single"
+            selected={new Date()}
+            fromYear={1990}
+            toYear={2024}
+            captionLayout="dropdown-buttons"
+            className="rounded-md border"
+          /> {/* Added Calendar component for year navigation */}
       </div>
     </div>
   );
