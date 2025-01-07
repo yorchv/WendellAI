@@ -3,7 +3,7 @@ import { useMealPlans } from "@/hooks/use-meal-plans";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { format, addDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -11,6 +11,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
 
 const MEALS = ["breakfast", "lunch", "dinner"] as const;
@@ -63,6 +69,11 @@ export default function MealPlanner() {
       setSelectedMeals(EMPTY_WEEK_MEALS);
     }
   }, [weekStart, mealPlans]);
+
+  const handleAddMeal = (day: DayType) => {
+    setSelectedDay(day);
+    setIsSearchOpen(true);
+  };
 
   const handleSelectRecipe = async (recipeId: number) => {
     const updatedMeals = {
@@ -202,24 +213,23 @@ export default function MealPlanner() {
                   <div>{day}</div>
                 </div>
                 <div className="space-y-2">
-                  {MEALS.map((meal) => (
-                    <div
-                      key={meal}
-                      className={`relative p-2 rounded-md cursor-pointer group ${
-                        selectedDay === day && selectedMeal === meal
-                          ? "bg-primary/10 ring-2 ring-primary"
-                          : "bg-muted hover:bg-muted/80"
-                      }`}
-                      onClick={() => {
-                        setSelectedDay(day);
-                        setSelectedMeal(meal);
-                        setIsSearchOpen(true);
-                      }}
-                    >
-                      <div className="truncate">
-                        {selectedMeals[day]?.[meal] ? (
-                          <div className="flex items-center justify-between">
-                            <span>Recipe Selected</span>
+                  {MEALS.map((meal) => {
+                    const hasRecipe = selectedMeals[day]?.[meal] !== undefined;
+                    return (
+                      <div
+                        key={meal}
+                        className={`relative p-2 rounded-md cursor-pointer group hover:bg-muted/80 ${
+                          hasRecipe ? "bg-primary/10" : "bg-muted"
+                        }`}
+                        onClick={() => {
+                          setSelectedDay(day);
+                          setSelectedMeal(meal);
+                          setIsSearchOpen(true);
+                        }}
+                      >
+                        <div className="truncate flex items-center justify-between">
+                          <span className="capitalize">{meal}</span>
+                          {hasRecipe ? (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -229,15 +239,40 @@ export default function MealPlanner() {
                                 handleDeleteMeal(day, meal);
                               }}
                             >
-                              ×
+                              <X className="h-4 w-4" />
                             </Button>
-                          </div>
-                        ) : (
-                          <Plus className="h-4 w-4 mx-auto text-muted-foreground" />
-                        )}
+                          ) : (
+                            <Plus className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full text-muted-foreground"
+                      >
+                        Add Meal
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {MEALS.map((meal) => (
+                        <DropdownMenuItem
+                          key={meal}
+                          onClick={() => {
+                            setSelectedDay(day);
+                            setSelectedMeal(meal);
+                            handleAddMeal(day);
+                          }}
+                        >
+                          Add {meal}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             ))}

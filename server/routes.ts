@@ -33,7 +33,10 @@ const mealPlanSchema = z.object({
         breakfast: z.number().optional(),
         lunch: z.number().optional(),
         dinner: z.number().optional(),
-      }),
+      }).refine((data) => 
+        Object.keys(data).length > 0, 
+        "At least one meal type must be specified"
+      ),
     })
   ).min(1, "At least one day's meals are required"),
 });

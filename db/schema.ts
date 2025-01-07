@@ -61,12 +61,14 @@ export const mealPlans = pgTable("meal_plans", {
     .notNull(),
   weekStart: timestamp("week_start").notNull(),
   weekEnd: timestamp("week_end").notNull(),
-  meals: jsonb("meals").$type<
-    {
-      day: string;
-      recipes: { breakfast?: number; lunch?: number; dinner?: number };
-    }[]
-  >(),
+  meals: jsonb("meals").$type<{
+    day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+    recipes: {
+      breakfast?: number;
+      lunch?: number;
+      dinner?: number;
+    };
+  }[]>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -108,23 +110,40 @@ export const ingredientRelations = relations(ingredients, ({ many }) => ({
   shoppingListItems: many(shoppingListItems),
 }));
 
-export const recipeIngredientRelations = relations(
-  recipeIngredients,
-  ({ one }) => ({
-    recipe: one(recipes, {
-      fields: [recipeIngredients.recipeId],
-      references: [recipes.id],
-    }),
-    ingredient: one(ingredients, {
-      fields: [recipeIngredients.ingredientId],
-      references: [ingredients.id],
-    }),
+export const recipeIngredientRelations = relations(recipeIngredients, ({ one }) => ({
+  recipe: one(recipes, {
+    fields: [recipeIngredients.recipeId],
+    references: [recipes.id],
   }),
-);
+  ingredient: one(ingredients, {
+    fields: [recipeIngredients.ingredientId],
+    references: [ingredients.id],
+  }),
+}));
 
 // Types
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
+export const mealTypeEnum = ["breakfast", "lunch", "dinner"] as const;
+export type MealType = typeof mealTypeEnum[number];
+
+export const dayEnum = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
+export type DayType = typeof dayEnum[number];
+
+export type MealPlan = typeof mealPlans.$inferSelect & {
+  meals?: Array<{
+    day: DayType;
+    recipes: {
+      [key in MealType]?: number;
+    };
+  }>;
+};
 
 export type Recipe = typeof recipes.$inferSelect;
 export type InsertRecipe = typeof recipes.$inferInsert;
@@ -135,13 +154,14 @@ export type InsertIngredient = typeof ingredients.$inferInsert;
 export type RecipeIngredient = typeof recipeIngredients.$inferSelect;
 export type InsertRecipeIngredient = typeof recipeIngredients.$inferInsert;
 
-export type MealPlan = typeof mealPlans.$inferSelect;
-export type InsertMealPlan = typeof mealPlans.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type SelectUser = User;
 
 export type ShoppingListItem = typeof shoppingListItems.$inferSelect;
 export type InsertShoppingListItem = typeof shoppingListItems.$inferInsert;
 
-// Zod Schemas
+// Schemas
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
 
@@ -151,15 +171,11 @@ export const selectRecipeSchema = createSelectSchema(recipes);
 export const insertIngredientSchema = createInsertSchema(ingredients);
 export const selectIngredientSchema = createSelectSchema(ingredients);
 
-export const insertRecipeIngredientSchema =
-  createInsertSchema(recipeIngredients);
-export const selectRecipeIngredientSchema =
-  createSelectSchema(recipeIngredients);
+export const insertRecipeIngredientSchema = createInsertSchema(recipeIngredients);
+export const selectRecipeIngredientSchema = createSelectSchema(recipeIngredients);
 
 export const insertMealPlanSchema = createInsertSchema(mealPlans);
 export const selectMealPlanSchema = createSelectSchema(mealPlans);
 
-export const insertShoppingListItemSchema =
-  createInsertSchema(shoppingListItems);
-export const selectShoppingListItemSchema =
-  createSelectSchema(shoppingListItems);
+export const insertShoppingListItemSchema = createInsertSchema(shoppingListItems);
+export const selectShoppingListItemSchema = createSelectSchema(shoppingListItems);
