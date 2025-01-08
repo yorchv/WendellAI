@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import UpdateFamilyMemberForm from "./UpdateFamilyMemberForm";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import ManageDietaryPreferences from "./ManageDietaryPreferences";
 
 interface FamilyMemberCardProps {
   member: {
@@ -80,6 +81,13 @@ export default function FamilyMemberCard({ member, getIconForPreference }: Famil
     },
   });
 
+  const groupedPreferences = member.dietaryPreferences.reduce((acc, curr) => {
+    const type = curr.dietaryPreference.type;
+    acc[type] = acc[type] || [];
+    acc[type].push(curr);
+    return acc;
+  }, {});
+
   return (
     <Card className="h-full">
       <CardHeader>
@@ -128,13 +136,12 @@ export default function FamilyMemberCard({ member, getIconForPreference }: Famil
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {["ALLERGY", "DIET", "SUPPLEMENTATION"].map((type) => {
-            const preferences = member.dietaryPreferences.filter(
-              (p) => p.dietaryPreference.type === type
-            );
-            
-            if (preferences.length === 0) return null;
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-medium">Dietary Preferences</h3>
+            <ManageDietaryPreferences memberId={member.id} />
+          </div>
 
+          {Object.entries(groupedPreferences).map(([type, preferences]) => {
             return (
               <div key={type} className="space-y-2">
                 <h4 className="text-sm font-medium">
@@ -149,6 +156,29 @@ export default function FamilyMemberCard({ member, getIconForPreference }: Famil
                     >
                       {getIconForPreference(type, pref.dietaryPreference.name)}
                       <span>{pref.dietaryPreference.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          try {
+                            await fetch(`/api/family-members/${member.id}/dietary-preferences/${pref.dietaryPreference.id}`, {
+                              method: 'DELETE'
+                            });
+                            queryClient.invalidateQueries({ queryKey: ["/api/family-members"] });
+                            toast({ title: "Success", description: "Preference removed" });
+                          } catch (error) {
+                            toast({
+                              title: "Error",
+                              description: "Failed to remove preference",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        ×
+                      </Button>
                     </Badge>
                   ))}
                 </div>
