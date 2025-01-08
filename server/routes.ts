@@ -527,6 +527,42 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.delete("/api/family-members/:id", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.id)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to delete this family member");
+      }
+
+      // First delete any dietary preferences
+      await db
+        .delete(familyMemberDietaryPreferences)
+        .where(eq(familyMemberDietaryPreferences.familyMemberId, parseInt(req.params.id)));
+
+      // Then delete the family member
+      await db
+        .delete(familyMembers)
+        .where(eq(familyMembers.id, parseInt(req.params.id)));
+
+      res.status(200).send();
+    } catch (error) {
+      console.error("Error deleting family member:", error);
+      res.status(500).send("Failed to delete family member");
+    }
+  });
+
   // Dietary Preferences endpoints
   app.get("/api/dietary-preferences", async (req, res) => {
     const user = req.user as { id: number } | undefined;
