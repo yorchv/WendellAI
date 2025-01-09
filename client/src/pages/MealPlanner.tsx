@@ -89,7 +89,9 @@ export default function MealPlanner() {
       const mealsData = DAYS.map((day) => ({
         day,
         recipes: {
-          [selectedMeal]: updatedMeals[day][selectedMeal] || [],
+          breakfast: updatedMeals[day].breakfast || [],
+          lunch: updatedMeals[day].lunch || [],
+          dinner: updatedMeals[day].dinner || [],
         },
       })).filter(meal => Object.values(meal.recipes).some(arr => arr.length > 0));
 
