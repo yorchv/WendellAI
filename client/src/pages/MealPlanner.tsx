@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useMealPlans } from "@/hooks/use-meal-plans";
+import { useRecipes } from "@/hooks/use-recipes";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
