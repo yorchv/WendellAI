@@ -77,7 +77,9 @@ export default function MealPlanner() {
       ...selectedMeals,
       [selectedDay]: {
         ...selectedMeals[selectedDay],
-        [selectedMeal]: recipeId,
+        [selectedMeal]: selectedMeals[selectedDay]?.[selectedMeal] 
+          ? [...selectedMeals[selectedDay][selectedMeal], recipeId]
+          : [recipeId],
       },
     };
     setSelectedMeals(updatedMeals);
@@ -87,7 +89,7 @@ export default function MealPlanner() {
       const mealsData = DAYS.map((day) => ({
         day,
         recipes: {
-          [selectedMeal]: updatedMeals[day][selectedMeal] ? [updatedMeals[day][selectedMeal]] : [],
+          [selectedMeal]: updatedMeals[day][selectedMeal] || [],
         },
       })).filter(meal => Object.values(meal.recipes).some(arr => arr.length > 0));
 
