@@ -96,9 +96,9 @@ export const mealPlans = pgTable("meal_plans", {
   meals: jsonb("meals").$type<{
     day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
     recipes: {
-      breakfast?: number[];
-      lunch?: number[];
-      dinner?: number[];
+      breakfast?: number;
+      lunch?: number;
+      dinner?: number;
     };
   }[]>(),
   createdAt: timestamp("created_at").defaultNow(),
