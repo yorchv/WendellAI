@@ -247,7 +247,10 @@ export default function MealPlanner() {
                           </div>
                           {hasRecipe && (
                             <span className="text-xs text-muted-foreground truncate">
-                              {recipes?.find(r => r.id === selectedMeals[day][meal])?.title || 'Loading...'}
+                              {recipes
+                                ?.filter(r => selectedMeals[day][meal]?.includes(r.id))
+                                .map(r => r.title)
+                                .join(', ') || 'Loading...'}
                             </span>
                           )}
                         </div>
