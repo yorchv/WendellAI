@@ -48,6 +48,7 @@ export default function MealPlanner() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { createMealPlan, updateMealPlan, mealPlans, deleteMealPlan } = useMealPlans();
+  const { recipes } = useRecipes();
   const { toast } = useToast();
 
   const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
@@ -224,22 +225,29 @@ export default function MealPlanner() {
                           setIsSearchOpen(true);
                         }}
                       >
-                        <div className="truncate flex items-center justify-between">
-                          <span className="capitalize">{meal}</span>
-                          {hasRecipe ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="opacity-0 group-hover:opacity-100 absolute right-1 -top-1 transition-opacity"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteMeal(day, meal);
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <Plus className="h-4 w-4 text-muted-foreground" />
+                        <div className="truncate flex flex-col">
+                          <div className="flex items-center justify-between">
+                            <span className="capitalize">{meal}</span>
+                            {hasRecipe ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="opacity-0 group-hover:opacity-100 absolute right-1 -top-1 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteMeal(day, meal);
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Plus className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          {hasRecipe && (
+                            <span className="text-xs text-muted-foreground truncate">
+                              {recipes?.find(r => r.id === selectedMeals[day][meal])?.title || 'Loading...'}
+                            </span>
                           )}
                         </div>
                       </div>
