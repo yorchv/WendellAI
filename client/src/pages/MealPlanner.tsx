@@ -144,8 +144,12 @@ export default function MealPlanner() {
 
       const mealsData = DAYS.map((d) => ({
         day: d,
-        recipes: Object.values(updatedMeals[d]).flat(),
-      }));
+        recipes: {
+          breakfast: updatedMeals[d].breakfast || [],
+          lunch: updatedMeals[d].lunch || [],
+          dinner: updatedMeals[d].dinner || [],
+        }
+      })).filter(meal => Object.values(meal.recipes).some(arr => arr.length > 0));
 
       await updateMealPlan({
         ...existingPlan,
