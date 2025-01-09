@@ -129,6 +129,43 @@ export default function MealPlanner() {
     }
   };
 
+  const handleMealUpdate = async (updatedMeals: WeekMeals) => {
+    try {
+      const existingPlan = mealPlans?.find(
+        (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
+      );
+
+      if (!existingPlan) return;
+
+      const mealsData = DAYS.map((d) => ({
+        day: d,
+        recipes: {
+          breakfast: updatedMeals[d].breakfast || [],
+          lunch: updatedMeals[d].lunch || [],
+          dinner: updatedMeals[d].dinner || [],
+        },
+      }));
+
+      await updateMealPlan({
+        ...existingPlan,
+        weekStart: weekStart,
+        weekEnd: addDays(weekStart, 6),
+        meals: mealsData,
+      });
+
+      toast({
+        title: "Success",
+        description: "Meal plan updated successfully",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update meal plan",
+      });
+    }
+  };
+
   const handleDeleteMeal = async (day: DayType, meal: MealType) => {
     try {
       const existingPlan = mealPlans?.find(
@@ -250,16 +287,42 @@ export default function MealPlanner() {
                             )}
                           </div>
                           {hasRecipe && (
-                            <span className="text-xs text-muted-foreground truncate">
+                            <div className="space-y-1 mt-1">
                               {recipes
                                 ? recipes.filter(r => {
                                     const recipesForMeal = selectedMeals[day][meal] || [];
                                     return Array.isArray(recipesForMeal) && recipesForMeal.includes(r.id);
                                   })
-                                  .map(r => r.title)
-                                  .join(', ')
+                                  .map(recipe => (
+                                    <div key={recipe.id} className="flex items-center justify-between text-xs">
+                                      <span className="text-muted-foreground">{recipe.title}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const updatedRecipes = selectedMeals[day][meal].filter(id => id !== recipe.id);
+                                          const updatedMeals = {
+                                            ...selectedMeals,
+                                            [day]: {
+                                              ...selectedMeals[day],
+                                              [meal]: updatedRecipes,
+                                            },
+                                          };
+                                          if (updatedRecipes.length === 0) {
+                                            delete updatedMeals[day][meal];
+                                          }
+                                          setSelectedMeals(updatedMeals);
+                                          handleMealUpdate(updatedMeals);
+                                        }}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  ))
                                 : 'Loading...'}
-                            </span>
+                            </div>
                           )}
                         </div>
                       </div>
