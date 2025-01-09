@@ -23,8 +23,8 @@ export default function Home() {
           <h2 className="text-3xl font-bold tracking-tight mb-6">Today's Meals</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {["breakfast", "lunch", "dinner"].map((meal) => {
-              const recipeId = todayMeals?.[meal as keyof typeof todayMeals];
-              const recipe = recipes?.find(r => r.id === recipeId);
+              const recipeIds = todayMeals?.[meal as keyof typeof todayMeals] || [];
+              const mealRecipes = recipes?.filter(r => recipeIds.includes(r.id));
 
               return (
                 <div key={meal} className="rounded-lg border p-4">

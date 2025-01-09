@@ -36,9 +36,9 @@ const mealPlanSchema = z.object({
         "Sunday",
       ]),
       recipes: z.object({
-        breakfast: z.number().optional(),
-        lunch: z.number().optional(),
-        dinner: z.number().optional(),
+        breakfast: z.array(z.number()).optional(),
+        lunch: z.array(z.number()).optional(),
+        dinner: z.array(z.number()).optional(),
       }).refine(
         (data) => Object.keys(data).length > 0,
         "At least one meal type must be specified"

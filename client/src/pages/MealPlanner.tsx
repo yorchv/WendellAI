@@ -26,7 +26,7 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 type DayType = typeof DAYS[number];
 
 type DayMeals = {
-  [key in MealType]?: number;
+  [key in MealType]?: number[];
 };
 
 type WeekMeals = {
