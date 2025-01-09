@@ -84,8 +84,10 @@ export default function MealPlanner() {
       // Format meals data for API
       const mealsData = DAYS.map((day) => ({
         day,
-        recipes: updatedMeals[day],
-      }));
+        recipes: {
+          ...updatedMeals[day],
+        },
+      })).filter(meal => Object.keys(meal.recipes).length > 0);
 
       // Find existing plan or create new one
       const existingPlan = mealPlans?.find(
