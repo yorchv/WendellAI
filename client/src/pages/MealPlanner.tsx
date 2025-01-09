@@ -26,7 +26,7 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 type DayType = typeof DAYS[number];
 
 type DayMeals = {
-  [key in MealType]?: number;
+  [key in MealType]?: number[];
 };
 
 type WeekMeals = {
@@ -64,7 +64,7 @@ export default function MealPlanner() {
     if (existingPlan && existingPlan.meals) {
       const meals = existingPlan.meals.reduce((acc, meal) => ({
         ...acc,
-        [meal.day]: meal.recipes || {},
+        [meal.day]: meal.recipes || [],
       }), {...EMPTY_WEEK_MEALS});
       setSelectedMeals(meals);
     } else {
@@ -77,7 +77,7 @@ export default function MealPlanner() {
       ...selectedMeals,
       [selectedDay]: {
         ...selectedMeals[selectedDay],
-        [selectedMeal]: recipeId,
+        [selectedMeal]: [...(selectedMeals[selectedDay][selectedMeal] || []), recipeId],
       },
     };
     setSelectedMeals(updatedMeals);
@@ -86,10 +86,8 @@ export default function MealPlanner() {
       // Format meals data for API
       const mealsData = DAYS.map((day) => ({
         day,
-        recipes: {
-          ...updatedMeals[day],
-        },
-      })).filter(meal => Object.keys(meal.recipes).length > 0);
+        recipes: updatedMeals[day][selectedMeal] || [],
+      })).filter(meal => meal.recipes.length > 0);
 
       // Find existing plan or create new one
       const existingPlan = mealPlans?.find(
@@ -125,7 +123,7 @@ export default function MealPlanner() {
     }
   };
 
-  const handleDeleteMeal = async (day: DayType, meal: MealType) => {
+  const handleDeleteMeal = async (day: DayType, meal: MealType, recipeId: number) => {
     try {
       const existingPlan = mealPlans?.find(
         (plan) => format(new Date(plan.weekStart), "yyyy-MM-dd") === format(weekStart, "yyyy-MM-dd")
@@ -137,13 +135,14 @@ export default function MealPlanner() {
         ...selectedMeals,
         [day]: {
           ...selectedMeals[day],
+          [meal]: selectedMeals[day][meal].filter((id) => id !== recipeId),
         },
       };
-      delete updatedMeals[day][meal];
+      
 
       const mealsData = DAYS.map((d) => ({
         day: d,
-        recipes: updatedMeals[d],
+        recipes: Object.values(updatedMeals[d]).flat(),
       }));
 
       await updateMealPlan({
@@ -213,12 +212,12 @@ export default function MealPlanner() {
                 </div>
                 <div className="space-y-2">
                   {MEALS.map((meal) => {
-                    const hasRecipe = selectedMeals[day]?.[meal] !== undefined;
+                    const recipesForMeal = selectedMeals[day][meal] || [];
                     return (
                       <div
                         key={meal}
                         className={`relative p-2 rounded-md cursor-pointer group transition-all ${
-                          hasRecipe ? "bg-primary/10 hover:bg-primary/20" : "bg-muted hover:bg-muted/80"
+                          recipesForMeal.length > 0 ? "bg-primary/10 hover:bg-primary/20" : "bg-muted hover:bg-muted/80"
                         }`}
                         onClick={() => {
                           setSelectedDay(day);
@@ -229,26 +228,35 @@ export default function MealPlanner() {
                         <div className="truncate flex flex-col">
                           <div className="flex items-center justify-between">
                             <span className="capitalize">{meal}</span>
-                            {hasRecipe ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="opacity-0 group-hover:opacity-100 absolute right-1 -top-1 transition-opacity"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteMeal(day, meal);
-                                }}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
+                            {recipesForMeal.length > 0 ? (
+                              <div className="flex gap-1">
+                              {recipesForMeal.map(recipeId => (
+                                <Button
+                                  key={recipeId}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="opacity-100 absolute right-1 -top-1 transition-opacity"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteMeal(day, meal, recipeId);
+                                  }}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              ))}
+                              </div>
                             ) : (
                               <Plus className="h-4 w-4 text-muted-foreground" />
                             )}
                           </div>
-                          {hasRecipe && (
-                            <span className="text-xs text-muted-foreground truncate">
-                              {recipes?.find(r => r.id === selectedMeals[day][meal])?.title || 'Loading...'}
-                            </span>
+                          {recipesForMeal.length > 0 && (
+                            <div>
+                              {recipesForMeal.map(recipeId => (
+                                <span key={recipeId} className="text-xs text-muted-foreground truncate">
+                                  {recipes?.find(r => r.id === recipeId)?.title || 'Loading...'}
+                                </span>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </div>
