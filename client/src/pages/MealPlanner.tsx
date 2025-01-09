@@ -87,9 +87,9 @@ export default function MealPlanner() {
       const mealsData = DAYS.map((day) => ({
         day,
         recipes: {
-          ...updatedMeals[day],
+          [selectedMeal]: updatedMeals[day][selectedMeal] ? [updatedMeals[day][selectedMeal]] : [],
         },
-      })).filter(meal => Object.keys(meal.recipes).length > 0);
+      })).filter(meal => Object.values(meal.recipes).some(arr => arr.length > 0));
 
       // Find existing plan or create new one
       const existingPlan = mealPlans?.find(
