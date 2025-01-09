@@ -248,9 +248,13 @@ export default function MealPlanner() {
                           {hasRecipe && (
                             <span className="text-xs text-muted-foreground truncate">
                               {recipes
-                                ?.filter(r => selectedMeals[day][meal]?.includes(r.id))
-                                .map(r => r.title)
-                                .join(', ') || 'Loading...'}
+                                ? recipes.filter(r => {
+                                    const recipesForMeal = selectedMeals[day][meal] || [];
+                                    return Array.isArray(recipesForMeal) && recipesForMeal.includes(r.id);
+                                  })
+                                  .map(r => r.title)
+                                  .join(', ')
+                                : 'Loading...'}
                             </span>
                           )}
                         </div>
