@@ -68,13 +68,11 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
 
   const data: PerplexityResponse = await response.json();
   const content = data.choices[0].message.content;
-
-  // For now, return a stub recipe until we integrate with Claude for proper formatting
+  
+  // Use Claude to format the response
+  const formattedRecipe = await formatRecipeResponse(content);
   return {
-    title: "Sample Recipe",
-    description: content,
-    ingredients: [],
-    instructions: [content],
+    ...formattedRecipe,
     sources: data.citations,
   };
 }
