@@ -19,7 +19,7 @@ export default function MealView() {
 
   const planId = parseInt(params.planId ?? "0");
   const day = params.day as DayType;
-  const mealType = params.mealType as MealType;
+  const mealType = params.type as MealType;
   
   const plan = mealPlans?.find(p => p.id === planId);
   const dayMeal = plan?.meals.find(m => m.day === day);
