@@ -14,7 +14,7 @@ export default function MealView() {
   const [, navigate] = useLocation();
   const params = useParams();
   const { mealPlans, updateMealPlan } = useMealPlans();
-  const { recipes } = useRecipes();
+  const { recipes: recipesData } = useRecipes();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const planId = parseInt(params.planId ?? "0");
@@ -76,36 +76,39 @@ export default function MealView() {
       </div>
 
       <div className="space-y-4">
-        {recipeIds.map((id) => (
-          <Card key={id}>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg cursor-pointer" onClick={() => navigate(`/recipes/${id}`)}>
-                {recipes && recipes[id] ? recipes[id].title : 'Loading...'}
-              </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => handleRemoveRecipe(id)}>
-                Remove
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="flex space-x-4 text-sm text-muted-foreground">
-                {(recipes[id]?.prepTime || recipes[id]?.cookTime) && (
-                  <div className="flex items-center">
-                    <Clock className="mr-1 h-4 w-4" />
-                    {recipes[id]?.prepTime && `${recipes[id].prepTime} min prep`}
-                    {recipes[id]?.prepTime && recipes[id]?.cookTime && " + "}
-                    {recipes[id]?.cookTime && `${recipes[id].cookTime} min cook`}
-                  </div>
-                )}
-                {recipes[id]?.servings && (
-                  <div className="flex items-center">
-                    <Users className="mr-1 h-4 w-4" />
-                    {recipes[id].servings} servings
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {recipeIds.map((id) => {
+          const recipe = recipesData?.[id];
+          return recipe ? (
+            <Card key={id}>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg cursor-pointer" onClick={() => navigate(`/recipes/${id}`)}>
+                  {recipe.title}
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => handleRemoveRecipe(id)}>
+                  Remove
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="flex space-x-4 text-sm text-muted-foreground">
+                  {(recipe.prepTime || recipe.cookTime) && (
+                    <div className="flex items-center">
+                      <Clock className="mr-1 h-4 w-4" />
+                      {recipe.prepTime && `${recipe.prepTime} min prep`}
+                      {recipe.prepTime && recipe.cookTime && " + "}
+                      {recipe.cookTime && `${recipe.cookTime} min cook`}
+                    </div>
+                  )}
+                  {recipe.servings && (
+                    <div className="flex items-center">
+                      <Users className="mr-1 h-4 w-4" />
+                      {recipe.servings} servings
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null;
+        })}
 
         <Button onClick={() => setIsSearchOpen(true)} className="w-full">
           <Plus className="mr-2 h-4 w-4" />
