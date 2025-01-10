@@ -34,6 +34,7 @@ interface MealPlanTableProps {
 }
 
 export function MealPlanTable({ 
+  planId,   
   weekStart, 
   weekEnd, 
   meals, 
