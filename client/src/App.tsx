@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import RecipeView from "./pages/RecipeView";
 import RecipesPage from "./pages/RecipesPage";
 import MealPlanner from "./pages/MealPlanner";
+import MealView from "./pages/MealView";
 import ShoppingList from "./pages/ShoppingList";
 import FamilyDashboard from "./pages/FamilyDashboard";
 import StreamStarting from "./pages/StreamStarting";
@@ -43,6 +44,7 @@ function App() {
               <Route path="/recipes" component={RecipesPage} />
               <Route path="/recipes/:id" component={RecipeView} />
               <Route path="/meal-planner" component={MealPlanner} />
+              <Route path="/meal/:planId/:day/:type" component={MealView} />
               <Route path="/shopping-list" component={ShoppingList} />
               <Route path="/family" component={FamilyDashboard} />
               <Route path="/stream/starting" component={StreamStarting} />
