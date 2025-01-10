@@ -98,7 +98,7 @@ export function MealPlanTable({
                       className="p-2 align-top"
                     >
                       <MealCell
-                        planId={weekStart.getTime()}
+                        planId={currentWeekPlan?.id ?? 0}
                         day={day}
                         mealType={mealType}
                         recipeIds={recipeIds}

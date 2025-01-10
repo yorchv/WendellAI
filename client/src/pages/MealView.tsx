@@ -26,7 +26,7 @@ export default function MealView() {
   const { recipes } = useRecipes();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const planId = parseInt(params.planId ?? "0");
+  const planId = parseInt(params.planId ?? "0", 10);
   const day = params.day as DayType;
   const mealType = params.type as MealType;
 
