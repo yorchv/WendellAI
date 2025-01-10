@@ -10,6 +10,15 @@ import { useMealPlans } from "@/hooks/use-meal-plans";
 import { useRecipes } from "@/hooks/use-recipes";
 import type { MealType, DayType } from "@db/schema";
 
+interface Recipe {
+  id: number;
+  title: string;
+  description?: string;
+  prepTime?: number;
+  cookTime?: number;
+  servings?: number;
+}
+
 export default function MealView() {
   const [, navigate] = useLocation();
   const params = useParams();
@@ -64,9 +73,16 @@ export default function MealView() {
   };
 
   const recipesMap = recipes?.reduce((acc, recipe) => {
-    acc[recipe.id] = recipe;
+    acc[recipe.id] = {
+      id: recipe.id,
+      title: recipe.title,
+      description: recipe.description || undefined,
+      prepTime: recipe.prepTime || undefined,
+      cookTime: recipe.cookTime || undefined,
+      servings: recipe.servings || undefined
+    };
     return acc;
-  }, {} as Record<number, typeof recipes[0]>) ?? {};
+  }, {} as Record<number, Recipe>) ?? {};
 
   return (
     <div className="container max-w-4xl">
