@@ -19,6 +19,7 @@ interface Recipe {
 }
 
 interface MealPlanTableProps {
+  planId: number;
   weekStart: Date;
   weekEnd: Date;
   meals: Array<{
@@ -98,7 +99,7 @@ export function MealPlanTable({
                       className="p-2 align-top"
                     >
                       <MealCell
-                        planId={currentWeekPlan?.id ?? 0}
+                        planId={planId}
                         day={day}
                         mealType={mealType}
                         recipeIds={recipeIds}

@@ -107,6 +107,7 @@ export default function MealPlanner() {
           {currentWeekPlan ? (
             <DndProvider backend={HTML5Backend}>
               <MealPlanTable
+                planId={currentWeekPlan.id}
                 weekStart={weekStart}
                 weekEnd={weekEnd}
                 meals={currentWeekPlan.meals}
