@@ -1,3 +1,4 @@
+
 import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ export default function MealView() {
   const [, navigate] = useLocation();
   const params = useParams();
   const { mealPlans, updateMealPlan } = useMealPlans();
-  const { recipes: recipesData } = useRecipes();
+  const { recipes } = useRecipes();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const planId = parseInt(params.planId ?? "0");
@@ -23,6 +24,7 @@ export default function MealView() {
   const plan = mealPlans?.find(p => p.id === planId);
   const dayMeal = plan?.meals.find(m => m.day === day);
   const recipeIds = dayMeal?.recipes[mealType] ?? [];
+
   const date = plan ? new Date(plan.weekStart) : new Date();
   date.setDate(date.getDate() + ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].indexOf(day));
 
@@ -61,6 +63,11 @@ export default function MealView() {
     setIsSearchOpen(false);
   };
 
+  const recipesMap = recipes?.reduce((acc, recipe) => {
+    acc[recipe.id] = recipe;
+    return acc;
+  }, {} as Record<number, typeof recipes[0]>) ?? {};
+
   return (
     <div className="container max-w-4xl">
       <div className="mb-4">
@@ -76,7 +83,7 @@ export default function MealView() {
 
       <div className="space-y-4">
         {recipeIds.map((id) => {
-          const recipe = recipesData?.find(r => r.id === id);
+          const recipe = recipesMap[id];
           return recipe ? (
             <Card key={id}>
               <CardHeader className="flex flex-row items-center justify-between">
