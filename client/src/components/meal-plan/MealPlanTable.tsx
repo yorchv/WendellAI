@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -19,7 +18,7 @@ interface Recipe {
 }
 
 interface MealPlanTableProps {
-  planId: number;
+  planId: number | undefined;
   weekStart: Date;
   weekEnd: Date;
   meals: Array<{
