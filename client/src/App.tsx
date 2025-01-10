@@ -7,6 +7,8 @@ import RecipesPage from "./pages/RecipesPage";
 import MealPlanner from "./pages/MealPlanner";
 import ShoppingList from "./pages/ShoppingList";
 import FamilyDashboard from "./pages/FamilyDashboard";
+import StreamStarting from "./pages/StreamStarting";
+import StreamBreak from "./pages/StreamBreak";
 import Navigation from "./components/Navigation";
 import { useUser } from "./hooks/use-user";
 import { Loader2 } from "lucide-react";
@@ -37,6 +39,8 @@ function App() {
           <Route path="/meal-planner" component={MealPlanner} />
           <Route path="/shopping-list" component={ShoppingList} />
           <Route path="/family" component={FamilyDashboard} />
+          <Route path="/stream/starting" component={StreamStarting} />
+          <Route path="/stream/break" component={StreamBreak} />
           <Route>404 - Not Found</Route>
         </Switch>
       </main>
