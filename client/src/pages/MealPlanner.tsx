@@ -98,25 +98,30 @@ export default function MealPlanner() {
 
 const handleSelectRecipe = async (recipeId: number) => {
     try {
-      const mealsData = DAYS.map((day) => ({
-        day,
-        recipes: {
-          ...(day === selectedDay
-            ? {
-                ...currentWeekPlan?.meals.find(m => m.day === day)?.recipes,
-                [selectedMeal]: [
-                  ...(currentWeekPlan?.meals.find(m => m.day === day)?.recipes[selectedMeal] || []),
-                  recipeId
-                ]
-              }
-            : currentWeekPlan?.meals.find(m => m.day === day)?.recipes || {})
+      // Preserve existing meals and update only the selected day/meal
+      const existingMeals = currentWeekPlan?.meals || [];
+      const updatedMeals = DAYS.map((day) => {
+        const existingDayMeal = existingMeals.find(m => m.day === day);
+        
+        if (day === selectedDay) {
+          return {
+            day,
+            recipes: {
+              ...existingDayMeal?.recipes,
+              [selectedMeal]: [
+                ...(existingDayMeal?.recipes[selectedMeal] || []),
+                recipeId
+              ]
+            }
+          };
         }
-      })).filter(meal => Object.values(meal.recipes).some(arr => Array.isArray(arr) && arr.length > 0));
+        return existingDayMeal || { day, recipes: {} };
+      });
 
       const mealPlanData = {
         weekStart,
         weekEnd,
-        meals: mealsData,
+        meals: updatedMeals,
       };
 
       if (currentWeekPlan) {
