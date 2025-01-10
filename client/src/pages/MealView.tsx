@@ -63,9 +63,9 @@ export default function MealView() {
   };
 
   return (
-    <div className="container max-w-4xl py-8">
-      <div className="mb-8">
-        <Button variant="ghost" onClick={() => navigate("/meal-planner")} className="mb-4">
+    <div className="container max-w-4xl">
+      <div className="mb-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/meal-planner")} className="mb-2">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Meal Planner
         </Button>
@@ -80,7 +80,7 @@ export default function MealView() {
           <Card key={id}>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg cursor-pointer" onClick={() => navigate(`/recipes/${id}`)}>
-                {recipes[id]?.title}
+                {recipes && recipes[id] ? recipes[id].title : 'Loading...'}
               </CardTitle>
               <Button variant="ghost" size="sm" onClick={() => handleRemoveRecipe(id)}>
                 Remove
