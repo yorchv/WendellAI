@@ -1,4 +1,3 @@
-
 import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +19,7 @@ export default function MealView() {
   const planId = parseInt(params.planId ?? "0");
   const day = params.day as DayType;
   const mealType = params.type as MealType;
-  
+
   const plan = mealPlans?.find(p => p.id === planId);
   const dayMeal = plan?.meals.find(m => m.day === day);
   const recipeIds = dayMeal?.recipes[mealType] ?? [];
@@ -77,7 +76,7 @@ export default function MealView() {
 
       <div className="space-y-4">
         {recipeIds.map((id) => {
-          const recipe = recipesData?.[id];
+          const recipe = recipesData?.find(r => r.id === id);
           return recipe ? (
             <Card key={id}>
               <CardHeader className="flex flex-row items-center justify-between">
