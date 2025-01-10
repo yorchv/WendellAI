@@ -66,7 +66,12 @@ export function MealPlanTable({
             <TableRow>
               <TableHead className="w-[14.28%] bg-muted">Meal</TableHead>
               {days.map((day) => (
-                <TableHead key={day} className="w-[14.28%] text-center bg-muted">
+                <TableHead 
+                  key={day} 
+                  className={`w-[14.28%] text-center bg-muted ${
+                    day === format(new Date(), 'EEEE') ? 'ring-2 ring-primary' : ''
+                  }`}
+                >
                   {day}
                   <br />
                   <span className="text-xs text-muted-foreground">

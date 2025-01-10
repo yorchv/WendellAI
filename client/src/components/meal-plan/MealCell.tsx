@@ -46,7 +46,7 @@ export function MealCell({ recipeIds, recipes, onViewAll }: MealCellProps) {
                 onClick={() => navigate(`/recipes/${id}`)}
               >
                 <span className="line-clamp-2 break-words">
-                  {recipe.title.length > 200 ? `${recipe.title.slice(0, 200)}...` : recipe.title}
+                  {recipe.title.length > 20 ? `${recipe.title.slice(0, 20)}...` : recipe.title}
                 </span>
               </Button>
             );
