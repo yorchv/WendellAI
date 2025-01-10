@@ -7,12 +7,14 @@ import { format } from "date-fns";
 import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
 import { useState } from "react";
 import { useMealPlans } from "@/hooks/use-meal-plans";
+import { useRecipes } from "@/hooks/use-recipes";
 import type { MealType, DayType } from "@db/schema";
 
 export default function MealView() {
   const [, navigate] = useLocation();
   const params = useParams();
   const { mealPlans, updateMealPlan } = useMealPlans();
+  const { recipes } = useRecipes();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const planId = parseInt(params.planId ?? "0");
