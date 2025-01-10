@@ -29,12 +29,16 @@ export default function Home() {
               return (
                 <div key={meal} className="rounded-lg border p-4">
                   <h3 className="font-medium capitalize mb-2">{meal}</h3>
-                  {recipe ? (
+                  {mealRecipes && mealRecipes.length > 0 ? (
                     <div>
-                      <p className="font-semibold">{recipe.title}</p>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {recipe.description}
-                      </p>
+                      {mealRecipes.map((recipe) => (
+                        <div key={recipe.id}>
+                          <p className="font-semibold">{recipe.title}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {recipe.description}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">No meal planned</p>
