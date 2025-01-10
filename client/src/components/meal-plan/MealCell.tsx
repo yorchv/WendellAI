@@ -1,6 +1,8 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
+import type { MealType, DayType } from "@db/schema";
 
 interface Recipe {
   id: number;
@@ -12,26 +14,35 @@ interface Recipe {
 }
 
 interface MealCellProps {
+  planId: number;
+  day: DayType;
+  mealType: MealType;
   recipeIds: number[];
   recipes: Record<number, Recipe>;
-  onViewAll: () => void;
+  onAddNew: () => void;
 }
 
-export function MealCell({ recipeIds, recipes, onViewAll }: MealCellProps) {
+export function MealCell({ planId, day, mealType, recipeIds, recipes, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
   const displayedRecipes = recipeIds.slice(0, 2);
-  const remainingCount = recipeIds.length - 2;
 
   if (recipeIds.length === 0) {
     return (
-      <div className="h-24 flex items-center justify-center text-muted-foreground">
+      <div 
+        className="h-24 flex items-center justify-center text-muted-foreground cursor-pointer hover:bg-accent/50 rounded-lg"
+        onClick={onAddNew}
+      >
         No recipes planned
       </div>
     );
   }
 
+  const handleClick = () => {
+    navigate(`/meal/${planId}/${day}/${mealType}`);
+  };
+
   return (
-    <Card>
+    <Card className="cursor-pointer hover:bg-accent/50" onClick={handleClick}>
       <CardContent className="p-4">
         <div className="space-y-2">
           {displayedRecipes.map((id) => {
@@ -39,27 +50,17 @@ export function MealCell({ recipeIds, recipes, onViewAll }: MealCellProps) {
             if (!recipe) return null;
 
             return (
-              <Button
-                key={id}
-                variant="link"
-                className="p-0 h-auto text-left justify-start hover:no-underline w-full"
-                onClick={() => navigate(`/recipes/${id}`)}
-              >
+              <div key={id} className="text-sm">
                 <span className="line-clamp-2 break-words">
                   {recipe.title.length > 20 ? `${recipe.title.slice(0, 20)}...` : recipe.title}
                 </span>
-              </Button>
+              </div>
             );
           })}
-          {remainingCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full mt-2"
-              onClick={onViewAll}
-            >
-              +{remainingCount} more recipes
-            </Button>
+          {recipeIds.length > 2 && (
+            <div className="text-sm text-muted-foreground">
+              +{recipeIds.length - 2} more recipes
+            </div>
           )}
         </div>
       </CardContent>

@@ -95,19 +95,15 @@ export function MealPlanTable({
                   return (
                     <TableCell 
                       key={`${day}-${mealType}`} 
-                      className="p-2 align-top cursor-pointer hover:bg-muted/50"
-                      onClick={() => onAddRecipe?.(day, mealType)}
+                      className="p-2 align-top"
                     >
                       <MealCell
+                        planId={weekStart.getTime()}
+                        day={day}
+                        mealType={mealType}
                         recipeIds={recipeIds}
                         recipes={recipes}
-                        onViewAll={() =>
-                          setSelectedMeal({
-                            day,
-                            type: mealType,
-                            recipeIds,
-                          })
-                        }
+                        onAddNew={() => onAddRecipe?.(day, mealType)}
                       />
                     </TableCell>
                   );
