@@ -1,6 +1,8 @@
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useDrop } from "react-dnd";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import type { MealType, DayType } from "@db/schema";
@@ -26,9 +28,18 @@ interface MealPlanTableProps {
     };
   }>;
   recipes: Record<number, Recipe>;
+  onAddRecipe?: (day: DayType, mealType: MealType) => void;
+  onDropRecipe?: (day: DayType, mealType: MealType, recipeId: number) => void;
 }
 
-export function MealPlanTable({ weekStart, weekEnd, meals, recipes }: MealPlanTableProps) {
+export function MealPlanTable({ 
+  weekStart, 
+  weekEnd, 
+  meals, 
+  recipes,
+  onAddRecipe,
+  onDropRecipe 
+}: MealPlanTableProps) {
   const [selectedMeal, setSelectedMeal] = useState<{
     day: DayType;
     type: MealType;
@@ -48,53 +59,59 @@ export function MealPlanTable({ weekStart, weekEnd, meals, recipes }: MealPlanTa
   const mealTypes: MealType[] = ["breakfast", "lunch", "dinner"];
 
   return (
-    <div className="w-full overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Meal Type</TableHead>
-            {days.map((day) => (
-              <TableHead key={day} className="min-w-[200px]">
-                {day}
-                <br />
-                <span className="text-sm text-muted-foreground">
-                  {format(
-                    new Date(weekStart.getTime() + days.indexOf(day) * 24 * 60 * 60 * 1000),
-                    "MMM d"
-                  )}
-                </span>
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {mealTypes.map((mealType) => (
-            <TableRow key={mealType}>
-              <TableCell className="font-medium capitalize">{mealType}</TableCell>
-              {days.map((day) => {
-                const dayMeals = meals.find((m) => m.day === day);
-                const recipeIds = dayMeals?.recipes[mealType] || [];
-
-                return (
-                  <TableCell key={`${day}-${mealType}`}>
-                    <MealCell
-                      recipeIds={recipeIds}
-                      recipes={recipes}
-                      onViewAll={() =>
-                        setSelectedMeal({
-                          day,
-                          type: mealType,
-                          recipeIds,
-                        })
-                      }
-                    />
-                  </TableCell>
-                );
-              })}
+    <div className="w-full">
+      <div className="overflow-hidden border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[80px] bg-muted">Meal</TableHead>
+              {days.map((day) => (
+                <TableHead key={day} className="min-w-[100px] lg:min-w-[130px] text-center bg-muted">
+                  {day}
+                  <br />
+                  <span className="text-xs text-muted-foreground">
+                    {format(
+                      new Date(weekStart.getTime() + days.indexOf(day) * 24 * 60 * 60 * 1000),
+                      "MMM d"
+                    )}
+                  </span>
+                </TableHead>
+              ))}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {mealTypes.map((mealType) => (
+              <TableRow key={mealType}>
+                <TableCell className="font-medium capitalize bg-muted/50">{mealType}</TableCell>
+                {days.map((day) => {
+                  const dayMeals = meals.find((m) => m.day === day);
+                  const recipeIds = dayMeals?.recipes[mealType] || [];
+
+                  return (
+                    <TableCell 
+                      key={`${day}-${mealType}`} 
+                      className="p-2 align-top cursor-pointer hover:bg-muted/50"
+                      onClick={() => onAddRecipe?.(day, mealType)}
+                    >
+                      <MealCell
+                        recipeIds={recipeIds}
+                        recipes={recipes}
+                        onViewAll={() =>
+                          setSelectedMeal({
+                            day,
+                            type: mealType,
+                            recipeIds,
+                          })
+                        }
+                      />
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {selectedMeal && (
         <DetailedMealView

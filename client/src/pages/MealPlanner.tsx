@@ -20,6 +20,9 @@ type MealType = typeof MEALS[number];
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
 type DayType = typeof DAYS[number];
 
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+
 export default function MealPlanner() {
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
   const [selectedMeal, setSelectedMeal] = useState<MealType>("breakfast");
@@ -130,12 +133,16 @@ export default function MealPlanner() {
       <Card>
         <CardContent className="p-6">
           {currentWeekPlan ? (
-            <MealPlanTable
-              weekStart={weekStart}
-              weekEnd={weekEnd}
-              meals={currentWeekPlan.meals}
-              recipes={recipesLookup}
-            />
+            <DndProvider backend={HTML5Backend}>
+              <MealPlanTable
+                weekStart={weekStart}
+                weekEnd={weekEnd}
+                meals={currentWeekPlan.meals}
+                recipes={recipesLookup}
+                onAddRecipe={(day, mealType) => setIsSearchOpen(true)}
+                onDropRecipe={handleAddRecipeToMeal}
+              />
+            </DndProvider>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               No meal plan for this week. Click on any slot to start planning.
