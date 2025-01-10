@@ -51,7 +51,52 @@ export default function MealPlanner() {
     }), {});
   }, [recipes]);
 
-  const handleSelectRecipe = async (recipeId: number) => {
+  const handleAddRecipeToMeal = (day: DayType, mealType: MealType, recipeId: number) => {
+  try {
+    const mealsData = DAYS.map((d) => ({
+      day: d,
+      recipes: {
+        ...(d === day
+          ? {
+              ...currentWeekPlan?.meals.find(m => m.day === d)?.recipes,
+              [mealType]: [
+                ...(currentWeekPlan?.meals.find(m => m.day === d)?.recipes[mealType] || []),
+                recipeId
+              ]
+            }
+          : currentWeekPlan?.meals.find(m => m.day === d)?.recipes || {})
+      }
+    })).filter(meal => Object.values(meal.recipes).some(arr => Array.isArray(arr) && arr.length > 0));
+
+    if (currentWeekPlan) {
+      updateMealPlan({
+        ...currentWeekPlan,
+        weekStart,
+        weekEnd,
+        meals: mealsData,
+      });
+    } else {
+      createMealPlan({
+        weekStart,
+        weekEnd,
+        meals: mealsData,
+      });
+    }
+
+    toast({
+      title: "Success",
+      description: "Recipe added to meal plan",
+    });
+  } catch (error) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to update meal plan",
+    });
+  }
+};
+
+const handleSelectRecipe = async (recipeId: number) => {
     try {
       const mealsData = DAYS.map((day) => ({
         day,
