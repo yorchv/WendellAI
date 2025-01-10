@@ -64,9 +64,9 @@ export function MealPlanTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px] bg-muted">Meal</TableHead>
+              <TableHead className="w-[14.28%] bg-muted">Meal</TableHead>
               {days.map((day) => (
-                <TableHead key={day} className="min-w-[100px] lg:min-w-[130px] text-center bg-muted">
+                <TableHead key={day} className="w-[14.28%] text-center bg-muted">
                   {day}
                   <br />
                   <span className="text-xs text-muted-foreground">
