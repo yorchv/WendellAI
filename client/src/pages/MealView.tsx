@@ -14,7 +14,7 @@ export default function MealView() {
   const [, navigate] = useLocation();
   const params = useParams();
   const { mealPlans, updateMealPlan } = useMealPlans();
-  const { recipes: recipesData } = useRecipes();
+  const { recipes: recipesArray } = useRecipes();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const planId = parseInt(params.planId ?? "0");
@@ -24,6 +24,12 @@ export default function MealView() {
   const plan = mealPlans?.find(p => p.id === planId);
   const dayMeal = plan?.meals.find(m => m.day === day);
   const recipeIds = dayMeal?.recipes[mealType] ?? [];
+  
+  // Convert recipes array to record for easier lookup
+  const recipesData = recipesArray?.reduce((acc, recipe) => {
+    acc[recipe.id] = recipe;
+    return acc;
+  }, {} as Record<number, typeof recipesArray[0]>) ?? {};
   const date = plan ? new Date(plan.weekStart) : new Date();
   date.setDate(date.getDate() + ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].indexOf(day));
 
