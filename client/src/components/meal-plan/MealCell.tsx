@@ -42,10 +42,12 @@ export function MealCell({ recipeIds, recipes, onViewAll }: MealCellProps) {
               <Button
                 key={id}
                 variant="link"
-                className="p-0 h-auto text-left justify-start hover:no-underline"
+                className="p-0 h-auto text-left justify-start hover:no-underline w-full"
                 onClick={() => navigate(`/recipes/${id}`)}
               >
-                {recipe.title}
+                <span className="line-clamp-2 break-words">
+                  {recipe.title.length > 200 ? `${recipe.title.slice(0, 200)}...` : recipe.title}
+                </span>
               </Button>
             );
           })}
