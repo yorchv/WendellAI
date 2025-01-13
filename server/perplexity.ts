@@ -21,14 +21,19 @@ export const recipeIngredientSchema = z.object({
 
 export const recipePreviewSchema = z.object({
   title: z.string(),
-  description: z.string().optional(),
-  ingredients: z.array(recipeIngredientSchema),
+  description: z.string().nullable(),
+  ingredients: z.array(z.object({
+    name: z.string(),
+    quantity: z.number().nullable(),
+    unit: z.string().nullable(),
+    notes: z.string().nullable()
+  })),
   instructions: z.array(z.string()),
-  prepTime: z.number().optional(),
-  cookTime: z.number().optional(),
-  servings: z.number().optional(),
+  prepTime: z.number().nullable(),
+  cookTime: z.number().nullable(),
+  servings: z.number().nullable(),
   image: z.string().optional(),
-  sources: z.array(z.string()).optional(),
+  sources: z.array(z.string()).nullable()
 });
 
 export type RecipePreview = z.infer<typeof recipePreviewSchema>;
@@ -68,7 +73,7 @@ export async function generateRecipe(prompt: string): Promise<RecipePreview> {
 
   const data: PerplexityResponse = await response.json();
   const content = data.choices[0].message.content;
-  
+
   // Use Claude to format the response
   const formattedRecipe = await formatRecipeResponse(content);
   return {

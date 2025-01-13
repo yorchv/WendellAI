@@ -69,7 +69,6 @@ export async function analyzeRecipeImage(base64Image: string, mediaType: string)
       ? base64Image.split("base64,")[1]
       : base64Image;
 
-    log(base64Image);
     const response = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20241022",
       max_tokens: 1024,
