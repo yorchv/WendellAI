@@ -1,9 +1,8 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { Card } from "@/components/ui/card";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import type { MealType, DayType } from "@db/schema";
 import { MealCell } from "./MealCell";
-import { MEAL_TYPES } from "@/lib/meal-planner";
 import { Clock, AlertCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -29,7 +28,6 @@ interface DailyViewProps {
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
 }
 
-// Default meal times for timeline calculation
 const DEFAULT_MEAL_TIMES = {
   breakfast: { hour: 8, minute: 0 },
   lunch: { hour: 12, minute: 30 },
@@ -85,13 +83,7 @@ function getTimelineProgress(startTime: Date, mealTime: Date): number {
   return Math.round((elapsed / totalDuration) * 100);
 }
 
-export function DailyView({ 
-  planId, 
-  date, 
-  meals, 
-  recipes,
-  onAddRecipe 
-}: DailyViewProps) {
+export function DailyView({ planId, date, meals, recipes, onAddRecipe }: DailyViewProps) {
   const dayOfWeek = format(date, 'EEEE') as DayType;
   const dayMeals = meals.find(m => m.day === dayOfWeek);
 
@@ -105,81 +97,72 @@ export function DailyView({
           </span>
         </h2>
       </div>
-      <div className="p-4">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Meal Type</TableHead>
-              <TableHead className="w-[200px]">Recipes</TableHead>
-              <TableHead>Timeline</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
-              const recipeIds = dayMeals?.recipes[mealType] || [];
-              const mealRecipes = recipeIds.map(id => recipes[id]).filter(Boolean);
-              const totalPrepTime = calculateTotalPrepTime(mealRecipes);
-              const mealTime = DEFAULT_MEAL_TIMES[mealType];
-              const mealTimeDate = getMealTimeDate(mealTime);
-              const startTime = totalPrepTime > 0 ? getSuggestedStartTime(mealTime, totalPrepTime) : null;
-              const status = startTime ? getPreparationStatus(startTime, mealTimeDate) : null;
-              const progress = startTime ? getTimelineProgress(startTime, mealTimeDate) : 0;
+      <div className="divide-y">
+        {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
+          const recipeIds = dayMeals?.recipes[mealType] || [];
+          const mealRecipes = recipeIds.map(id => recipes[id]).filter(Boolean);
+          const totalPrepTime = calculateTotalPrepTime(mealRecipes);
+          const mealTime = DEFAULT_MEAL_TIMES[mealType];
+          const mealTimeDate = getMealTimeDate(mealTime);
+          const startTime = totalPrepTime > 0 ? getSuggestedStartTime(mealTime, totalPrepTime) : null;
+          const status = startTime ? getPreparationStatus(startTime, mealTimeDate) : null;
+          const progress = startTime ? getTimelineProgress(startTime, mealTimeDate) : 0;
 
-              return (
-                <TableRow key={mealType}>
-                  <TableCell className="font-medium capitalize">
-                    {mealType}
-                  </TableCell>
-                  <TableCell>
-                    <MealCell
-                      planId={planId}
-                      day={dayOfWeek}
-                      mealType={mealType}
-                      recipeIds={recipeIds}
-                      recipes={recipes}
-                      onAddNew={() => onAddRecipe?.(dayOfWeek, mealType)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {totalPrepTime > 0 ? (
-                      <div className="space-y-2">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                          <div className="flex items-center text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
-                            <Clock className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                            {totalPrepTime}m
-                          </div>
-                          {status && (
-                            <div className={`text-xs sm:text-sm flex items-center whitespace-nowrap ${
-                              status.variant === 'destructive' ? 'text-destructive' : 
-                              status.variant === 'warning' ? 'text-orange-500' :
-                              'text-muted-foreground'
-                            }`}>
-                              <AlertCircle className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                              {status.status}
-                            </div>
-                          )}
+          return (
+            <div key={mealType} className="p-4 space-y-3">
+              <div className="font-medium capitalize text-lg text-muted-foreground">
+                {mealType}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <MealCell
+                    planId={planId}
+                    day={dayOfWeek}
+                    mealType={mealType}
+                    recipeIds={recipeIds}
+                    recipes={recipes}
+                    onAddNew={() => onAddRecipe?.(dayOfWeek, mealType)}
+                  />
+                </div>
+                <div>
+                  {totalPrepTime > 0 ? (
+                    <div className="space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                        <div className="flex items-center text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                          <Clock className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                          {totalPrepTime}m
                         </div>
-                        <Progress value={progress} className="h-1.5 sm:h-2" />
-                        <div className="flex justify-between text-xs sm:text-sm">
-                          <div className="whitespace-nowrap">
-                            {startTime && format(startTime, 'h:mm a')}
+                        {status && (
+                          <div className={`text-xs sm:text-sm flex items-center whitespace-nowrap ${
+                            status.variant === 'destructive' ? 'text-destructive' : 
+                            status.variant === 'warning' ? 'text-orange-500' :
+                            'text-muted-foreground'
+                          }`}>
+                            <AlertCircle className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                            {status.status}
                           </div>
-                          <div className="whitespace-nowrap">
-                            {format(mealTimeDate, 'h:mm a')}
-                          </div>
+                        )}
+                      </div>
+                      <Progress value={progress} className="h-1.5 sm:h-2" />
+                      <div className="flex justify-between text-xs sm:text-sm">
+                        <div className="whitespace-nowrap">
+                          {startTime && format(startTime, 'h:mm a')}
+                        </div>
+                        <div className="whitespace-nowrap">
+                          {format(mealTimeDate, 'h:mm a')}
                         </div>
                       </div>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">
-                        No preparation time needed
-                      </span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">
+                      No preparation time needed
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </Card>
   );
