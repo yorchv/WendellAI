@@ -19,6 +19,7 @@ import {
 import { eq, and, between } from "drizzle-orm";
 import { z } from "zod";
 import { generateRecipe } from "./perplexity";
+import { analyzeRecipeImage } from "./claude";
 
 // Schema for meal plan operations
 const mealPlanSchema = z.object({
