@@ -35,7 +35,14 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
   const handleSubmit = async (data: RecipeFormData) => {
     try {
       const payload = {
-        ...data,
+        title: data.title,
+        description: data.description,
+        instructions: data.instructions,
+        prepTime: data.prepTime,
+        cookTime: data.cookTime,
+        servings: data.servings,
+        image: data.image,
+        sources: data.sources,
         ingredients: data.ingredients.map(ing => ({
           name: ing.name,
           quantity: ing.quantity,
@@ -50,8 +57,7 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
           title: "Success",
           description: "Recipe created successfully",
         });
-      } else {
-        if (!recipe) return;
+      } else if (recipe?.id) {
         await updateRecipe(recipe.id, payload);
         toast({
           title: "Success",
@@ -61,10 +67,11 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
       setOpen(false);
       onClose?.();
     } catch (error) {
+      console.error('Recipe submission error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong",
+        description: error instanceof Error ? error.message : "Failed to save recipe",
       });
     }
   };
