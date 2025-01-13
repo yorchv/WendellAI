@@ -89,7 +89,15 @@ export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(newOpen) => {
+        setOpen(newOpen);
+        if (!newOpen && !mode.includes("create")) {
+          onClose?.();
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant={mode === "create" ? "default" : "ghost"}>
           {mode === "create" ? (
