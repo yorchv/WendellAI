@@ -1,4 +1,18 @@
 
+import { Card, CardContent } from "@/components/ui/card";
+import { Clock, Plus } from "lucide-react";
+import { useLocation } from "wouter";
+import type { MealType, DayType } from "@db/schema";
+
+interface Recipe {
+  id: number;
+  title: string;
+  description?: string;
+  prepTime?: number;
+  cookTime?: number;
+  servings?: number;
+}
+
 interface MealCellProps {
   planId: number | undefined;
   day: DayType;
