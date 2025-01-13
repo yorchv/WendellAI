@@ -110,7 +110,15 @@ export default function MealPlanner() {
               Daily
             </Button>
           </div>
-          <CalendarNavigation selectedDate={selectedDate} setSelectedDate={setSelectedDate} viewMode={viewMode} />
+          <CalendarNavigation 
+            selectedDate={selectedDate} 
+            setSelectedDate={setSelectedDate} 
+            viewMode={viewMode}
+            weekStart={weekStart}
+            setViewMode={setViewMode}
+            navigate={navigate}
+            goToToday={goToToday}
+          />
         </div>
       </div>
 
