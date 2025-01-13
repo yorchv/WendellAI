@@ -1,0 +1,82 @@
+at get error [as error] (file:///home/runner/workspace/node_modules/zod/lib/index.mjs:587:31)
+    at analyzeRecipeImage (/home/runner/workspace/server/claude.ts:128:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:276:22) {
+  issues: [
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'null',
+      path: [Array],
+      message: 'Expected string, received null'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'null',
+      path: [Array],
+      message: 'Expected string, received null'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'number',
+      received: 'null',
+      path: [Array],
+      message: 'Expected number, received null'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'number',
+      received: 'null',
+      path: [Array],
+      message: 'Expected number, received null'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'array',
+      received: 'null',
+      path: [Array],
+      message: 'Expected array, received null'
+    }
+  ],
+  addIssue: [Function (anonymous)],
+  addIssues: [Function (anonymous)],
+  errors: [
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'null',
+      path: [Array],
+      message: 'Expected string, received null'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'null',
+      path: [Array],
+      message: 'Expected string, received null'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'number',
+      received: 'null',
+      path: [Array],
+      message: 'Expected number, received null'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'number',
+      received: 'null',
+      path: [Array],
+      message: 'Expected number, received null'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'array',
+      received: 'null',
+      path: [Array],
+      message: 'Expected array, received null'
+    }
+  ]
+}
+10:56:34 PM [Invalid recipe format after image analysis] Error analyzing recipe image:
