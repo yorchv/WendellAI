@@ -181,7 +181,11 @@ export default function MealPlanner() {
                   weekEnd,
                   meals: DAYS.map(day => ({
                     day,
-                    recipes: {}
+                    recipes: {
+                      breakfast: [],
+                      lunch: [],
+                      dinner: []
+                    }
                   }))
                 })}
                 className="gap-2"
