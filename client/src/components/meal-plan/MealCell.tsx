@@ -1,4 +1,4 @@
-
+typescript
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
@@ -14,19 +14,19 @@ interface Recipe {
 }
 
 interface MealCellProps {
-  planId: number;
+  planId: number | undefined;
   day: DayType;
   mealType: MealType;
   recipeIds: number[];
   recipes: Record<number, Recipe>;
-  onAddNew: () => void;
+  onAddNew?: () => void;
 }
 
 export function MealCell({ planId, day, mealType, recipeIds, recipes, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
   const displayedRecipes = recipeIds.slice(0, 2);
 
-  if (recipeIds.length === 0) {
+  if (!recipeIds || recipeIds.length === 0) {
     return (
       <div 
         className="h-24 flex items-center justify-center text-muted-foreground cursor-pointer hover:bg-accent/50 rounded-lg"
@@ -38,7 +38,9 @@ export function MealCell({ planId, day, mealType, recipeIds, recipes, onAddNew }
   }
 
   const handleClick = () => {
-    navigate(`/meal/${planId}/${day}/${mealType}`);
+    if (planId) {
+      navigate(`/meal/${planId}/${day}/${mealType}`);
+    }
   };
 
   return (

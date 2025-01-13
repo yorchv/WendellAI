@@ -4,8 +4,8 @@ import { useRecipes } from "@/hooks/use-recipes";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { addWeeks, subWeeks, format } from "date-fns";
+import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from "lucide-react";
+import { addWeeks, subWeeks, format, startOfToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
   Popover,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/popover";
 import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
 import { MealPlanTable } from "@/components/meal-plan/MealPlanTable";
+import { DailyView } from "@/components/meal-plan/DailyView";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import {
@@ -26,9 +27,12 @@ import {
   type MealType,
 } from "@/lib/meal-planner";
 
+type ViewMode = "daily" | "weekly";
+
 export default function MealPlanner() {
+  const [viewMode, setViewMode] = useState<ViewMode>("weekly");
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
-  const [selectedMeal, setSelectedMeal] = useState<MealType>("breakfast");
+  const [selectedMeal, setSelectedMeal] = useState<MealType>(MEAL_TYPES[0]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
@@ -73,18 +77,50 @@ export default function MealPlanner() {
     setSelectedDate(direction === "prev" ? subWeeks(selectedDate, 1) : addWeeks(selectedDate, 1));
   };
 
+  const goToToday = () => {
+    setSelectedDate(startOfToday());
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
         <h1 className="text-3xl font-bold">Meal Planner</h1>
         <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2 mr-4">
+            <Button
+              variant={viewMode === "weekly" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("weekly")}
+            >
+              <CalendarRange className="h-4 w-4 mr-2" />
+              Weekly
+            </Button>
+            <Button
+              variant={viewMode === "daily" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("daily")}
+            >
+              <CalendarDays className="h-4 w-4 mr-2" />
+              Daily
+            </Button>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToToday}
+          >
+            Today
+          </Button>
           <Button variant="outline" size="icon" onClick={() => navigateWeek("prev")}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline">
-                Week of {format(weekStart, "MMM d, yyyy")}
+                {viewMode === "weekly" 
+                  ? `Week of ${format(weekStart, "MMM d, yyyy")}`
+                  : format(selectedDate, "MMM d, yyyy")
+                }
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -106,19 +142,33 @@ export default function MealPlanner() {
         <CardContent className="p-6">
           {currentWeekPlan ? (
             <DndProvider backend={HTML5Backend}>
-              <MealPlanTable
-                planId={currentWeekPlan.id}
-                weekStart={weekStart}
-                weekEnd={weekEnd}
-                meals={currentWeekPlan.meals}
-                recipes={recipesLookup}
-                onAddRecipe={(day, mealType) => {
-                  setSelectedDay(day);
-                  setSelectedMeal(mealType);
-                  setIsSearchOpen(true);
-                }}
-                onDropRecipe={handleSelectRecipe}
-              />
+              {viewMode === "weekly" ? (
+                <MealPlanTable
+                  planId={currentWeekPlan.id}
+                  weekStart={weekStart}
+                  weekEnd={weekEnd}
+                  meals={currentWeekPlan.meals}
+                  recipes={recipesLookup}
+                  onAddRecipe={(day, mealType) => {
+                    setSelectedDay(day);
+                    setSelectedMeal(mealType);
+                    setIsSearchOpen(true);
+                  }}
+                  onDropRecipe={handleSelectRecipe}
+                />
+              ) : (
+                <DailyView
+                  planId={currentWeekPlan.id}
+                  date={selectedDate}
+                  meals={currentWeekPlan.meals}
+                  recipes={recipesLookup}
+                  onAddRecipe={(day, mealType) => {
+                    setSelectedDay(day);
+                    setSelectedMeal(mealType);
+                    setIsSearchOpen(true);
+                  }}
+                />
+              )}
             </DndProvider>
           ) : (
             <div className="text-center py-8 text-muted-foreground">

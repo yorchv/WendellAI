@@ -94,7 +94,7 @@ export const mealPlans = pgTable("meal_plans", {
   weekStart: timestamp("week_start").notNull(),
   weekEnd: timestamp("week_end").notNull(),
   meals: jsonb("meals").$type<{
-    day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+    day: DayType;
     recipes: {
       breakfast?: number[];
       lunch?: number[];
@@ -196,7 +196,7 @@ export type MealPlan = typeof mealPlans.$inferSelect & {
   meals?: Array<{
     day: DayType;
     recipes: {
-      [key in MealType]?: number;
+      [key in MealType]?: number[];
     };
   }>;
 };
