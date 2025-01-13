@@ -28,13 +28,17 @@ export function ImageUploadRecipe({ onRecipeGenerated }: ImageUploadRecipeProps)
     try {
       setIsLoading(true);
       const base64Image = await convertToBase64(file);
+      const mediaType = file.type; // Get the actual media type from the file
       
       const response = await fetch('/api/recipes/analyze-image', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ image: base64Image }),
+        body: JSON.stringify({ 
+          image: base64Image,
+          mediaType: mediaType 
+        }),
       });
 
       if (!response.ok) {

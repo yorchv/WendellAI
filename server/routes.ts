@@ -265,12 +265,15 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      const { image } = req.body;
+      const { image, mediaType } = req.body;
       if (!image) {
         return res.status(400).send("No image provided");
       }
+      if (!mediaType) {
+        return res.status(400).send("No media type provided");
+      }
 
-      const recipe = await analyzeRecipeImage(image);
+      const recipe = await analyzeRecipeImage(image, mediaType);
       res.json(recipe);
     } catch (error) {
       console.error("Error analyzing recipe image:", error);

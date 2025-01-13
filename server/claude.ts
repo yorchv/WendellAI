@@ -62,7 +62,7 @@ export async function formatRecipeResponse(text: string) {
   }
 }
 
-export async function analyzeRecipeImage(base64Image: string) {
+export async function analyzeRecipeImage(base64Image: string, mediaType: string) {
   try {
     // Ensure proper base64 image format with data URI prefix if not present
     const formattedBase64 = base64Image.includes("base64,")
@@ -85,7 +85,7 @@ export async function analyzeRecipeImage(base64Image: string) {
               type: "image",
               source: {
                 type: "base64",
-                media_type: "image/png",
+                media_type: mediaType,
                 data: formattedBase64,
               },
             },
