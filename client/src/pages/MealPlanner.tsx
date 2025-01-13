@@ -3,7 +3,7 @@ import { useMealPlans } from "@/hooks/use-meal-plans";
 import { useRecipes } from "@/hooks/use-recipes";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+// import { Calendar } from "@/components/ui/calendar";
 import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from "lucide-react";
 import { addWeeks, subWeeks, format, startOfToday, subDays, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +26,7 @@ import {
   type DayType,
   type MealType,
 } from "@/lib/meal-planner";
+import { CalendarNavigation } from "@/components/meal-plan/CalendarNavigation";
 
 type ViewMode = "daily" | "weekly";
 
@@ -109,38 +110,7 @@ export default function MealPlanner() {
               Daily
             </Button>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToToday}
-            className={viewMode === "daily" && format(selectedDate, "yyyy-MM-dd") === format(startOfToday(), "yyyy-MM-dd") ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}
-          >
-            Today
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => navigate("prev")}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline">
-                {viewMode === "weekly"
-                  ? `Week of ${format(weekStart, "MMM d, yyyy")}`
-                  : format(selectedDate, "MMM d, yyyy")
-                }
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <Button variant="outline" size="icon" onClick={() => navigate("next")}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          <CalendarNavigation selectedDate={selectedDate} setSelectedDate={setSelectedDate} viewMode={viewMode} />
         </div>
       </div>
 
