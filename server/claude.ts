@@ -79,7 +79,7 @@ export async function analyzeRecipeImage(base64Image: string, mediaType: string)
           content: [
             {
               type: "text",
-              text: "Please analyze this recipe image and extract the recipe details. Format the response as JSON with the following structure: { title: string, description: string, ingredients: string[], instructions: string[], prepTime: number, cookTime: number, servings: number }",
+              text: "Analyze this recipe image and return only a JSON object with this exact structure: { title: string, description: string, ingredients: [{ name: string, quantity: number | null, unit: string | null, notes: string | null }], instructions: string[], prepTime: number | null, cookTime: number | null, servings: number | null, sources: string[] | null }",
             },
             {
               type: "image",
@@ -102,10 +102,30 @@ export async function analyzeRecipeImage(base64Image: string, mediaType: string)
     // Parse and validate the formatted JSON
     const parsed = JSON.parse(formattedJson);
     // Handle if response is an array by taking first item
-    const recipeData = Array.isArray(parsed) ? parsed[0] : parsed;
+    const rawData = Array.isArray(parsed) ? parsed[0] : parsed;
+    
+    // Ensure ingredients match schema format
+    const recipeData = {
+      ...rawData,
+      // Convert simple string array to full ingredient objects if needed
+      ingredients: Array.isArray(rawData.ingredients) 
+        ? rawData.ingredients.map(ing => 
+            typeof ing === 'string' 
+              ? { name: ing, quantity: null, unit: null, notes: null }
+              : ing
+          )
+        : [],
+      // Ensure optional fields exist
+      prepTime: rawData.prepTime || null,
+      cookTime: rawData.cookTime || null,
+      servings: rawData.servings || null,
+      sources: rawData.sources || null
+    };
+
     const result = recipePreviewSchema.safeParse(recipeData);
 
     if (!result.success) {
+      console.error("Validation error:", result.error);
       throw new Error("Invalid recipe format after image analysis");
     }
 
