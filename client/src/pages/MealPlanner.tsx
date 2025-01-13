@@ -73,8 +73,12 @@ export default function MealPlanner() {
     }
   };
 
-  const navigateWeek = (direction: "prev" | "next") => {
-    setSelectedDate(direction === "prev" ? subWeeks(selectedDate, 1) : addWeeks(selectedDate, 1));
+  const navigate = (direction: "prev" | "next") => {
+    if (viewMode === "weekly") {
+      setSelectedDate(direction === "prev" ? subWeeks(selectedDate, 1) : addWeeks(selectedDate, 1));
+    } else {
+      setSelectedDate(direction === "prev" ? subDays(selectedDate, 1) : addDays(selectedDate, 1));
+    }
   };
 
   const goToToday = () => {
@@ -113,7 +117,7 @@ export default function MealPlanner() {
           >
             Today
           </Button>
-          <Button variant="outline" size="icon" onClick={() => navigateWeek("prev")}>
+          <Button variant="outline" size="icon" onClick={() => navigate("prev")}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Popover>
@@ -134,7 +138,7 @@ export default function MealPlanner() {
               />
             </PopoverContent>
           </Popover>
-          <Button variant="outline" size="icon" onClick={() => navigateWeek("next")}>
+          <Button variant="outline" size="icon" onClick={() => navigate("next")}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
