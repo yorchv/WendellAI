@@ -257,7 +257,27 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.post("/api/recipes", async (req, res) => {
+  app.post("/api/recipes/analyze-image", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const { image } = req.body;
+      if (!image) {
+        return res.status(400).send("No image provided");
+      }
+
+      const recipe = await analyzeRecipeImage(image);
+      res.json(recipe);
+    } catch (error) {
+      console.error("Error analyzing recipe image:", error);
+      res.status(500).send("Failed to analyze recipe image");
+    }
+});
+
+app.post("/api/recipes", async (req, res) => {
     const user = req.user as { id: number } | undefined;
     if (!user?.id) {
       return res.status(401).send("Not authenticated");
