@@ -91,35 +91,15 @@ export default function MealPlanner() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
         <h1 className="text-3xl font-bold">Meal Planner</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-2 mr-4">
-            <Button
-              variant={viewMode === "weekly" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("weekly")}
-            >
-              <CalendarRange className="h-4 w-4 mr-2" />
-              Weekly
-            </Button>
-            <Button
-              variant={viewMode === "daily" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("daily")}
-            >
-              <CalendarDays className="h-4 w-4 mr-2" />
-              Daily
-            </Button>
-          </div>
-          <CalendarNavigation 
-            selectedDate={selectedDate} 
-            setSelectedDate={setSelectedDate} 
-            viewMode={viewMode}
-            weekStart={weekStart}
-            setViewMode={setViewMode}
-            navigate={navigate}
-            goToToday={goToToday}
-          />
-        </div>
+        <CalendarNavigation 
+          selectedDate={selectedDate} 
+          setSelectedDate={setSelectedDate} 
+          viewMode={viewMode}
+          weekStart={weekStart}
+          setViewMode={setViewMode}
+          navigate={navigate}
+          goToToday={goToToday}
+        />
       </div>
 
       <div className="">
