@@ -31,7 +31,7 @@ import { CalendarNavigation } from "@/components/meal-plan/CalendarNavigation";
 type ViewMode = "daily" | "weekly";
 
 export default function MealPlanner() {
-  const [viewMode, setViewMode] = useState<ViewMode>("weekly");
+  const [viewMode, setViewMode] = useState<ViewMode>("daily");
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
   const [selectedMeal, setSelectedMeal] = useState<MealType>(MEAL_TYPES[0]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());

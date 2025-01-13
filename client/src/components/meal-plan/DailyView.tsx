@@ -109,9 +109,9 @@ export function DailyView({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[150px]">Meal Type</TableHead>
-              <TableHead className="w-[300px]">Recipes</TableHead>
-              <TableHead className="min-w-[250px]">Preparation Timeline</TableHead>
+              <TableHead className="w-[100px]">Meal Type</TableHead>
+              <TableHead className="w-[200px]">Recipes</TableHead>
+              <TableHead>Timeline</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -142,31 +142,29 @@ export function DailyView({
                   </TableCell>
                   <TableCell>
                     {totalPrepTime > 0 ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Clock className="mr-2 h-4 w-4" />
-                            {totalPrepTime} min prep time
+                      <div className="space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                          <div className="flex items-center text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                            <Clock className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                            {totalPrepTime}m
                           </div>
                           {status && (
-                            <div className={`text-sm flex items-center ${
+                            <div className={`text-xs sm:text-sm flex items-center whitespace-nowrap ${
                               status.variant === 'destructive' ? 'text-destructive' : 
                               status.variant === 'warning' ? 'text-orange-500' :
                               'text-muted-foreground'
                             }`}>
-                              <AlertCircle className="mr-1 h-4 w-4" />
+                              <AlertCircle className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
                               {status.status}
                             </div>
                           )}
                         </div>
-                        <Progress value={progress} className="h-2" />
-                        <div className="grid grid-cols-2 text-sm">
-                          <div>
-                            <span className="font-medium">Start:</span>{' '}
+                        <Progress value={progress} className="h-1.5 sm:h-2" />
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <div className="whitespace-nowrap">
                             {startTime && format(startTime, 'h:mm a')}
                           </div>
-                          <div className="text-right">
-                            <span className="font-medium">Ready by:</span>{' '}
+                          <div className="whitespace-nowrap">
                             {format(mealTimeDate, 'h:mm a')}
                           </div>
                         </div>
