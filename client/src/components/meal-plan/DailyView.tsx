@@ -115,7 +115,7 @@ export function DailyView({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {MEAL_TYPES.map((mealType) => {
+            {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
               const recipeIds = dayMeals?.recipes[mealType] || [];
               const mealRecipes = recipeIds.map(id => recipes[id]).filter(Boolean);
               const totalPrepTime = calculateTotalPrepTime(mealRecipes);

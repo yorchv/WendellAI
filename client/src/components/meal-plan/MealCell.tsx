@@ -1,16 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { useLocation } from "wouter";
-import type { MealType, DayType } from "@db/schema";
-
-interface Recipe {
-  id: number;
-  title: string;
-  description?: string;
-  prepTime?: number;
-  cookTime?: number;
-  servings?: number;
-}
 
 interface MealCellProps {
   planId: number | undefined;
@@ -24,17 +11,7 @@ interface MealCellProps {
 export function MealCell({ planId, day, mealType, recipeIds, recipes, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
   const displayedRecipes = recipeIds.slice(0, 2);
-
-  if (!recipeIds || recipeIds.length === 0) {
-    return (
-      <div 
-        className="h-24 flex items-center justify-center text-muted-foreground cursor-pointer hover:bg-accent/50 rounded-lg"
-        onClick={onAddNew}
-      >
-        No recipes planned
-      </div>
-    );
-  }
+  const remainingCount = recipeIds.length - displayedRecipes.length;
 
   const handleClick = () => {
     if (planId) {
@@ -43,27 +20,43 @@ export function MealCell({ planId, day, mealType, recipeIds, recipes, onAddNew }
   };
 
   return (
-    <Card className="cursor-pointer hover:bg-accent/50" onClick={handleClick}>
-      <CardContent className="p-4">
-        <div className="space-y-2">
-          {displayedRecipes.map((id) => {
-            const recipe = recipes[id];
-            if (!recipe) return null;
-
-            return (
-              <div key={id} className="text-sm">
-                <span className="line-clamp-2 break-words">
-                  {recipe.title.length > 20 ? `${recipe.title.slice(0, 20)}...` : recipe.title}
-                </span>
+    <Card className="h-32">
+      <CardContent className="p-4 h-full">
+        {recipeIds.length > 0 ? (
+          <div 
+            className="space-y-2 cursor-pointer hover:bg-accent/50 h-full"
+            onClick={handleClick}
+          >
+            {displayedRecipes.map((id) => {
+              const recipe = recipes[id];
+              if (!recipe) return null;
+              return (
+                <div key={id} className="text-sm">
+                  <div className="font-medium">{recipe.title}</div>
+                  {(recipe.prepTime || recipe.cookTime) && (
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {remainingCount > 0 && (
+              <div className="text-xs text-muted-foreground">
+                +{remainingCount} more
               </div>
-            );
-          })}
-          {recipeIds.length > 2 && (
-            <div className="text-sm text-muted-foreground">
-              +{recipeIds.length - 2} more recipes
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <div 
+            className="h-full flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-accent/50 rounded-lg"
+            onClick={onAddNew}
+          >
+            <Plus className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Add Recipe</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
