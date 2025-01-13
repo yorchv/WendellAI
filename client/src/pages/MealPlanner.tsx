@@ -140,63 +140,61 @@ export default function MealPlanner() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-6">
-          {currentWeekPlan ? (
-            <DndProvider backend={HTML5Backend}>
-              {viewMode === "weekly" ? (
-                <MealPlanTable
-                  planId={currentWeekPlan.id}
-                  weekStart={weekStart}
-                  weekEnd={weekEnd}
-                  meals={currentWeekPlan.meals}
-                  recipes={recipesLookup}
-                  onAddRecipe={(day, mealType) => {
-                    setSelectedDay(day);
-                    setSelectedMeal(mealType);
-                    setIsSearchOpen(true);
-                  }}
-                  onDropRecipe={handleRecipeSelection}
-                />
-              ) : (
-                <DailyView
-                  planId={currentWeekPlan.id}
-                  date={selectedDate}
-                  meals={currentWeekPlan.meals}
-                  recipes={recipesLookup}
-                  onAddRecipe={(day, mealType) => {
-                    setSelectedDay(day);
-                    setSelectedMeal(mealType);
-                    setIsSearchOpen(true);
-                  }}
-                />
-              )}
-            </DndProvider>
-          ) : (
-            <div className="text-center py-8 space-y-4">
-              <p className="text-muted-foreground">No meal plan exists for this week.</p>
-              <Button
-                onClick={() => createMealPlan({
-                  weekStart,
-                  weekEnd,
-                  meals: DAYS.map(day => ({
-                    day,
-                    recipes: {
-                      breakfast: [],
-                      lunch: [],
-                      dinner: []
-                    }
-                  }))
-                })}
-                className="gap-2"
-              >
-                <CalendarRange className="h-4 w-4" />
-                Create Meal Plan
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="">
+        {currentWeekPlan ? (
+          <DndProvider backend={HTML5Backend}>
+            {viewMode === "weekly" ? (
+              <MealPlanTable
+                planId={currentWeekPlan.id}
+                weekStart={weekStart}
+                weekEnd={weekEnd}
+                meals={currentWeekPlan.meals}
+                recipes={recipesLookup}
+                onAddRecipe={(day, mealType) => {
+                  setSelectedDay(day);
+                  setSelectedMeal(mealType);
+                  setIsSearchOpen(true);
+                }}
+                onDropRecipe={handleRecipeSelection}
+              />
+            ) : (
+              <DailyView
+                planId={currentWeekPlan.id}
+                date={selectedDate}
+                meals={currentWeekPlan.meals}
+                recipes={recipesLookup}
+                onAddRecipe={(day, mealType) => {
+                  setSelectedDay(day);
+                  setSelectedMeal(mealType);
+                  setIsSearchOpen(true);
+                }}
+              />
+            )}
+          </DndProvider>
+        ) : (
+          <div className="text-center py-8 space-y-4">
+            <p className="text-muted-foreground">No meal plan exists for this week.</p>
+            <Button
+              onClick={() => createMealPlan({
+                weekStart,
+                weekEnd,
+                meals: DAYS.map(day => ({
+                  day,
+                  recipes: {
+                    breakfast: [],
+                    lunch: [],
+                    dinner: []
+                  }
+                }))
+              })}
+              className="gap-2"
+            >
+              <CalendarRange className="h-4 w-4" />
+              Create Meal Plan
+            </Button>
+          </div>
+        )}
+      </div>
 
       <RecipeSearchDialog
         open={isSearchOpen}
