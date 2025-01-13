@@ -101,7 +101,9 @@ export async function analyzeRecipeImage(base64Image: string, mediaType: string)
 
     // Parse and validate the formatted JSON
     const parsed = JSON.parse(formattedJson);
-    const result = recipePreviewSchema.safeParse(parsed);
+    // Handle if response is an array by taking first item
+    const recipeData = Array.isArray(parsed) ? parsed[0] : parsed;
+    const result = recipePreviewSchema.safeParse(recipeData);
 
     if (!result.success) {
       throw new Error("Invalid recipe format after image analysis");
