@@ -176,7 +176,14 @@ export default function MealPlanner() {
             <div className="text-center py-8 space-y-4">
               <p className="text-muted-foreground">No meal plan exists for this week.</p>
               <Button
-                onClick={() => createMealPlan({ weekStart, weekEnd, meals: [] })}
+                onClick={() => createMealPlan({
+                  weekStart,
+                  weekEnd,
+                  meals: DAYS.map(day => ({
+                    day,
+                    recipes: {}
+                  }))
+                })}
                 className="gap-2"
               >
                 <CalendarRange className="h-4 w-4" />
