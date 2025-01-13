@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from "lucide-react";
-import { addWeeks, subWeeks, format, startOfToday } from "date-fns";
+import { addWeeks, subWeeks, format, startOfToday, subDays, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
   Popover,
