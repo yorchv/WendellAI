@@ -45,12 +45,14 @@ export function MealCell({ planId, day, mealType, recipeIds, recipes, onAddNew }
               const recipe = recipes[id];
               if (!recipe) return null;
               return (
-                <div key={id} className="text-sm">
-                  <div className="font-medium">{recipe.title}</div>
+                <div key={id} className="text-sm mb-1 last:mb-0">
+                  <div className="font-medium truncate">{recipe.title}</div>
                   {(recipe.prepTime || recipe.cookTime) && (
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
+                    <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                      <Clock className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">
+                        {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
+                      </span>
                     </div>
                   )}
                 </div>
