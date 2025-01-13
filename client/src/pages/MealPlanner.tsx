@@ -48,9 +48,9 @@ export default function MealPlanner() {
     [recipe.id]: recipe
   }), {}) ?? {};
 
-  const handleSelectRecipe = async (recipeId: number) => {
+  const handleRecipeSelection = async (day: DayType, mealType: MealType, recipeId: number) => {
     try {
-      const mealsData = generateMealsData(DAYS, currentWeekPlan, selectedDay, selectedMeal, recipeId);
+      const mealsData = generateMealsData(DAYS, currentWeekPlan, day, mealType, recipeId);
       const mealPlanData = { weekStart, weekEnd, meals: mealsData };
 
       if (currentWeekPlan) {
@@ -79,6 +79,7 @@ export default function MealPlanner() {
 
   const goToToday = () => {
     setSelectedDate(startOfToday());
+    setViewMode("daily");  // Switch to daily view when clicking Today
   };
 
   return (
@@ -108,6 +109,7 @@ export default function MealPlanner() {
             variant="outline"
             size="sm"
             onClick={goToToday}
+            className={viewMode === "daily" && format(selectedDate, "yyyy-MM-dd") === format(startOfToday(), "yyyy-MM-dd") ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}
           >
             Today
           </Button>
@@ -117,7 +119,7 @@ export default function MealPlanner() {
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline">
-                {viewMode === "weekly" 
+                {viewMode === "weekly"
                   ? `Week of ${format(weekStart, "MMM d, yyyy")}`
                   : format(selectedDate, "MMM d, yyyy")
                 }
@@ -154,7 +156,7 @@ export default function MealPlanner() {
                     setSelectedMeal(mealType);
                     setIsSearchOpen(true);
                   }}
-                  onDropRecipe={handleSelectRecipe}
+                  onDropRecipe={handleRecipeSelection}
                 />
               ) : (
                 <DailyView
@@ -181,7 +183,7 @@ export default function MealPlanner() {
       <RecipeSearchDialog
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
-        onSelectRecipe={(recipe) => handleSelectRecipe(recipe.id)}
+        onSelectRecipe={(recipe) => handleRecipeSelection(selectedDay, selectedMeal, recipe.id)}
       />
     </div>
   );

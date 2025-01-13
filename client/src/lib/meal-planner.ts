@@ -1,9 +1,5 @@
-
-import { MealPlan } from "@db/schema";
+import { MealPlan, type DayType, type MealType } from "@db/schema";
 import { startOfWeek, addDays, format } from "date-fns";
-
-export type DayType = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
-export type MealType = "breakfast" | "lunch" | "dinner";
 
 export const DAYS: DayType[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 export const MEAL_TYPES: MealType[] = ["breakfast", "lunch", "dinner"];
@@ -27,11 +23,18 @@ export function generateMealsData(
   selectedDay: DayType,
   selectedMeal: MealType,
   recipeId: number
-) {
+): Array<{
+  day: DayType;
+  recipes: {
+    breakfast?: number[];
+    lunch?: number[];
+    dinner?: number[];
+  };
+}> {
   return days.map((day) => {
-    const existingDayMeal = currentWeekPlan?.meals.find(m => m.day === day);
+    const existingDayMeal = currentWeekPlan?.meals?.find(m => m.day === day);
     const existingRecipes = existingDayMeal?.recipes || {};
-    
+
     if (day === selectedDay) {
       return {
         day,
@@ -41,7 +44,7 @@ export function generateMealsData(
         }
       };
     } 
-    
+
     return existingDayMeal || { 
       day, 
       recipes: {} 
