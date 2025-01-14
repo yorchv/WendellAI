@@ -90,7 +90,7 @@ export function MealPlanTable({
               <TableRow key={mealType}>
                 <TableCell className="font-medium capitalize bg-muted/50">{mealType}</TableCell>
                 {days.map((day) => {
-                  const mealData = meals[day]?.[mealType] || { recipeIds: [], participants: [] };
+                  const mealData = meals[day]?.[mealType];
 
                   return (
                     <TableCell 

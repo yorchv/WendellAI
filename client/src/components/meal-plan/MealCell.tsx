@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Plus, Users } from "lucide-react";
 import { useLocation } from "wouter";
@@ -16,7 +17,7 @@ interface MealCellProps {
   planId: number | undefined;
   day: DayType;
   mealType: MealType;
-  meal: {
+  meal?: {
     recipeIds: number[];
     participants: number[];
   };
@@ -24,10 +25,10 @@ interface MealCellProps {
   onAddNew?: () => void;
 }
 
-export function MealCell({ planId, day, mealType, meal = { recipeIds: [], participants: [] }, recipes, onAddNew }: MealCellProps) {
+export function MealCell({ planId, day, mealType, meal, recipes, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
-  const displayedRecipes = meal.recipeIds.slice(0, 2);
-  const remainingCount = meal.recipeIds.length - displayedRecipes.length;
+  const displayedRecipes = meal?.recipeIds?.slice(0, 2) || [];
+  const remainingCount = (meal?.recipeIds?.length || 0) - displayedRecipes.length;
 
   const handleClick = () => {
     if (planId) {
@@ -38,7 +39,7 @@ export function MealCell({ planId, day, mealType, meal = { recipeIds: [], partic
   return (
     <Card className="h-32">
       <CardContent className="p-4 h-full">
-        {meal.recipeIds.length > 0 ? (
+        {(meal?.recipeIds?.length || 0) > 0 ? (
           <div 
             className="space-y-2 cursor-pointer hover:bg-accent/50 h-full"
             onClick={handleClick}
