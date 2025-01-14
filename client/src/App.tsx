@@ -31,8 +31,15 @@ function App() {
     );
   }
 
-  // If user is not logged in, show marketing page or auth page based on route
+  // If user is not logged in, redirect to auth unless on marketing or auth page
   if (!user) {
+    const [, setLocation] = useLocation();
+    const isPublicRoute = window.location.pathname === "/" || window.location.pathname === "/auth";
+    
+    if (!isPublicRoute) {
+      setLocation("/auth");
+    }
+
     return (
       <QueryClientProvider client={queryClient}>
         <div className="min-h-screen bg-background">
