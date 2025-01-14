@@ -1,10 +1,11 @@
+
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import {
   CalendarCheck2,
   ShoppingCart,
   Clock,
-  DollarSign,
+  Sprout,
   ChefHat,
   Heart
 } from "lucide-react";
@@ -19,7 +20,7 @@ export default function Marketing() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-primary">WendellAI</div>
           <Button onClick={() => navigate("/auth")} variant="outline">
-            Get Started
+            Join Now
           </Button>
         </div>
       </header>
@@ -29,17 +30,17 @@ export default function Marketing() {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-6">
             <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-              Meal Planning Made <span className="text-primary">Simple</span>
+              Mindful <span className="text-primary">Meal Planning</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Stop stressing about what to cook. Save time and money with AI-powered meal planning that adapts to your family's needs.
+              "The care of the Earth is our most ancient and most worthy, and after all, our most pleasing responsibility." - Wendell Berry
+            </p>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              An open-source meal planning assistant built with AI, inspired by Wendell Berry's philosophy of mindful living and sustainable food practices.
             </p>
             <div className="flex gap-4 justify-center pt-4">
               <Button size="lg" onClick={() => navigate("/auth")}>
-                Start Free Trial
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate("/auth")}>
-                See How It Works
+                Create Account
               </Button>
             </div>
           </div>
@@ -50,39 +51,39 @@ export default function Marketing() {
       <section className="py-20 bg-secondary/20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Solve Your Daily Meal Planning Challenges
+            A Different Approach to Meal Planning
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
-                icon: Clock,
-                title: "Save Time",
-                description: "Cut meal planning time by 80% with AI-generated personalized meal plans."
-              },
-              {
-                icon: DollarSign,
-                title: "Reduce Costs",
-                description: "Save up to 25% on grocery bills by eliminating food waste and optimizing shopping lists."
+                icon: Sprout,
+                title: "Mindful Planning",
+                description: "Plan meals with intention, reducing waste and connecting with your food choices."
               },
               {
                 icon: Heart,
-                title: "Eat Better",
-                description: "Enjoy healthier, varied meals that match your dietary preferences and restrictions."
-              },
-              {
-                icon: ShoppingCart,
-                title: "Smart Shopping",
-                description: "Generate organized shopping lists automatically based on your meal plans."
+                title: "Family-Focused",
+                description: "Create meal plans that consider everyone's needs and preferences."
               },
               {
                 icon: ChefHat,
-                title: "Recipe Variety",
-                description: "Access thousands of recipes and get personalized suggestions based on your preferences."
+                title: "AI-Powered",
+                description: "Leverage AI to help organize and suggest recipes while maintaining personal touch."
+              },
+              {
+                icon: ShoppingCart,
+                title: "Shopping Lists",
+                description: "Generate organized shopping lists from your meal plans."
               },
               {
                 icon: CalendarCheck2,
-                title: "Easy Planning",
-                description: "Drag-and-drop interface makes weekly meal planning a breeze."
+                title: "Simple Planning",
+                description: "Easy-to-use interface for weekly meal planning."
+              },
+              {
+                icon: Clock,
+                title: "Time-Aware",
+                description: "Plan ahead and make cooking fit your schedule."
               }
             ].map((benefit, i) => (
               <div key={i} className="flex flex-col items-center text-center p-6 rounded-lg bg-card">
@@ -99,13 +100,13 @@ export default function Marketing() {
       <section className="py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Ready to Simplify Your Meal Planning?
+            Join Our Growing Community
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of families who have transformed their meal planning routine with WendellAI.
+            An open-source project combining AI technology with mindful meal planning principles.
           </p>
           <Button size="lg" onClick={() => navigate("/auth")}>
-            Get Started Now
+            Get Started
           </Button>
         </div>
       </section>
@@ -114,7 +115,7 @@ export default function Marketing() {
       <footer className="mt-auto border-t">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} WendellAI. All rights reserved.
+            © {new Date().getFullYear()} WendellAI. Open source project inspired by Wendell Berry.
           </div>
         </div>
       </footer>
