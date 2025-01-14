@@ -24,10 +24,10 @@ interface MealCellProps {
   onAddNew?: () => void;
 }
 
-export function MealCell({ planId, day, mealType, meal, recipes, onAddNew }: MealCellProps) {
+export function MealCell({ planId, day, mealType, meal = { recipeIds: [], participants: [] }, recipes, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
-  const displayedRecipes = meal?.recipeIds?.slice(0, 2) || [];
-  const remainingCount = (meal?.recipeIds?.length || 0) - displayedRecipes.length;
+  const displayedRecipes = meal.recipeIds.slice(0, 2);
+  const remainingCount = meal.recipeIds.length - displayedRecipes.length;
 
   const handleClick = () => {
     if (planId) {

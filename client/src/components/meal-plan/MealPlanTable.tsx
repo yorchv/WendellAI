@@ -103,7 +103,7 @@ export function MealPlanTable({
                         day={day}
                         mealType={mealType}
                         meal={{
-                          recipeIds: recipeIds,
+                          recipeIds: recipeIds ?? [],
                           participants: []
                         }}
                         recipes={recipes}
