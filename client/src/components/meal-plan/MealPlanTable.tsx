@@ -1,12 +1,10 @@
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { useDrop } from "react-dnd";
-import { useLocation } from "wouter";
-import { format } from "date-fns";
 import type { MealType, DayType } from "@db/schema";
 import { MealCell } from "./MealCell";
 import { DetailedMealView } from "./DetailedMealView";
+import { useState } from "react";
+import { format } from "date-fns";
 
 interface Recipe {
   id: number;
@@ -21,12 +19,14 @@ interface MealPlanTableProps {
   planId: number | undefined;
   weekStart: Date;
   weekEnd: Date;
-  meals: Array<{
-    day: DayType;
-    recipes: {
-      [key in MealType]?: number[];
+  meals: {
+    [key: string]: {
+      [key in MealType]?: {
+        recipeIds: number[];
+        participants: number[];
+      };
     };
-  }>;
+  };
   recipes: Record<number, Recipe>;
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
   onDropRecipe?: (day: DayType, mealType: MealType, recipeId: number) => void;
@@ -90,8 +90,7 @@ export function MealPlanTable({
               <TableRow key={mealType}>
                 <TableCell className="font-medium capitalize bg-muted/50">{mealType}</TableCell>
                 {days.map((day) => {
-                  const dayMeals = meals.find((m) => m.day === day);
-                  const recipeIds = dayMeals?.recipes[mealType] || [];
+                  const mealData = meals[day]?.[mealType] || { recipeIds: [], participants: [] };
 
                   return (
                     <TableCell 
@@ -102,10 +101,7 @@ export function MealPlanTable({
                         planId={planId}
                         day={day}
                         mealType={mealType}
-                        meal={{
-                          recipeIds: dayMeals?.recipes[mealType]?.recipeIds ?? [],
-                          participants: dayMeals?.recipes[mealType]?.participants ?? []
-                        }}
+                        meal={mealData}
                         recipes={recipes}
                         onAddNew={() => onAddRecipe?.(day, mealType)}
                       />

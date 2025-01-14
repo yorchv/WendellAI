@@ -18,12 +18,12 @@ interface Recipe {
 interface DailyViewProps {
   planId: number | undefined;
   date: Date;
-  meals: Array<{
-    day: DayType;
-    recipes: {
-      [key in MealType]?: number[];
+  meals: {
+    [key in MealType]?: {
+      recipeIds: number[];
+      participants: number[];
     };
-  }>;
+  };
   recipes: Record<number, Recipe>;
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
 }
@@ -85,7 +85,6 @@ function getTimelineProgress(startTime: Date, mealTime: Date): number {
 
 export function DailyView({ planId, date, meals, recipes, onAddRecipe }: DailyViewProps) {
   const dayOfWeek = format(date, 'EEEE') as DayType;
-  const dayMeals = meals.find(m => m.day === dayOfWeek);
 
   return (
     <Card className="w-full">
@@ -99,8 +98,8 @@ export function DailyView({ planId, date, meals, recipes, onAddRecipe }: DailyVi
       </div>
       <div className="divide-y">
         {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
-          const recipeIds = dayMeals?.recipes[mealType]?.recipeIds || [];
-          const mealRecipes = recipeIds.map(id => recipes[id]).filter(Boolean);
+          const mealData = meals[mealType] || { recipeIds: [], participants: [] };
+          const mealRecipes = mealData.recipeIds.map(id => recipes[id]).filter(Boolean);
           const totalPrepTime = calculateTotalPrepTime(mealRecipes);
           const mealTime = DEFAULT_MEAL_TIMES[mealType];
           const mealTimeDate = getMealTimeDate(mealTime);
@@ -119,10 +118,7 @@ export function DailyView({ planId, date, meals, recipes, onAddRecipe }: DailyVi
                     planId={planId}
                     day={dayOfWeek}
                     mealType={mealType}
-                    meal={{
-                      recipeIds: recipeIds ?? [],
-                      participants: []
-                    }}
+                    meal={mealData}
                     recipes={recipes}
                     onAddNew={() => onAddRecipe?.(dayOfWeek, mealType)}
                   />
