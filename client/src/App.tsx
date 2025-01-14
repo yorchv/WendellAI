@@ -31,13 +31,14 @@ function App() {
     );
   }
 
-  // If user is not logged in, redirect to auth unless on marketing or auth page
+  // If user is not logged in, show marketing page or auth page based on route
   if (!user) {
-    const [, setLocation] = useLocation();
-    const isPublicRoute = window.location.pathname === "/" || window.location.pathname === "/auth";
+    const path = window.location.pathname;
+    const isPublicRoute = path === "/" || path === "/auth";
     
     if (!isPublicRoute) {
-      setLocation("/auth");
+      window.location.href = "/auth";
+      return null;
     }
 
     return (
