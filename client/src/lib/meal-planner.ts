@@ -55,7 +55,7 @@ export function generateMealsData(
             ])
           ),
           [selectedMeal]: {
-            recipeIds: [...currentMeal.recipeIds, recipeId],
+            recipeIds: [...(currentMeal.recipeIds || []), recipeId],
             participants: currentMeal.participants || []
           }
         }
