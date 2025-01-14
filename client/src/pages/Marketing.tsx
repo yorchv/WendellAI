@@ -30,15 +30,29 @@ export default function Marketing() {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-6">
             <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-              Mindful <span className="text-primary">Meal Planning</span>
+              Smart <span className="text-primary">Meal Planning</span> Assistant
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              "The care of the Earth is our most ancient and most worthy, and after all, our most pleasing responsibility." - Wendell Berry
-            </p>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              An open-source meal planning assistant built with AI, inspired by Wendell Berry's philosophy of mindful living and sustainable food practices.
+              An open-source AI-powered meal planner built to make your cooking journey easier and more enjoyable.
             </p>
-            <div className="flex gap-4 justify-center pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
+              <div className="p-4 rounded-lg bg-secondary/20">
+                <ChefHat className="h-8 w-8 text-primary mx-auto mb-2" />
+                <h3 className="font-semibold mb-1">AI Recipe Generation</h3>
+                <p className="text-sm text-muted-foreground">Generate personalized recipes based on your preferences</p>
+              </div>
+              <div className="p-4 rounded-lg bg-secondary/20">
+                <ShoppingCart className="h-8 w-8 text-primary mx-auto mb-2" />
+                <h3 className="font-semibold mb-1">Smart Shopping Lists</h3>
+                <p className="text-sm text-muted-foreground">Automatically create organized shopping lists</p>
+              </div>
+              <div className="p-4 rounded-lg bg-secondary/20">
+                <Heart className="h-8 w-8 text-primary mx-auto mb-2" />
+                <h3 className="font-semibold mb-1">Family Friendly</h3>
+                <p className="text-sm text-muted-foreground">Manage preferences and dietary restrictions for the whole family</p>
+              </div>
+            </div>
+            <div className="flex gap-4 justify-center pt-8">
               <Button size="lg" onClick={() => navigate("/auth")}>
                 Create Account
               </Button>
