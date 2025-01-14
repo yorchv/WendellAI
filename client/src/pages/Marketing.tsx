@@ -110,6 +110,25 @@ export default function Marketing() {
         </div>
       </section>
 
+      {/* Why Wendell Section */}
+      <section className="py-20 px-4">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="text-3xl font-bold mb-8">Why Wendell?</h2>
+          <div className="prose prose-lg mx-auto text-muted-foreground">
+            <blockquote className="text-xl italic mb-8 px-8 border-l-4 border-primary">
+              "Eating is an agricultural act. Eating ends the annual drama of the food economy that begins with planting and birth."
+              <footer className="text-sm mt-2">— Wendell Berry</footer>
+            </blockquote>
+            <p className="mb-8">
+              Named in honor of Wendell Berry, this project embraces his philosophy of holistic integration between food systems and nature. His teachings about mindful consumption, sustainable practices, and the importance of understanding where our food comes from deeply inspire our approach to meal planning.
+            </p>
+            <p>
+              Built by Valboa, a software engineer tackling the real challenges his own family faces with meal planning and dietary management. This open-source project combines AI technology with mindful eating principles to create a more sustainable and conscious approach to family meal planning.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 text-center">
