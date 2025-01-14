@@ -119,7 +119,10 @@ export function DailyView({ planId, date, meals, recipes, onAddRecipe }: DailyVi
                     planId={planId}
                     day={dayOfWeek}
                     mealType={mealType}
-                    recipeIds={recipeIds}
+                    meal={{
+                      recipeIds: recipeIds ?? [],
+                      participants: []
+                    }}
                     recipes={recipes}
                     onAddNew={() => onAddRecipe?.(dayOfWeek, mealType)}
                   />
