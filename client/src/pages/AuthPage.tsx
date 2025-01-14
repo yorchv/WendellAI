@@ -45,8 +45,10 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         await login(data);
+        window.location.href = "/";
       } else {
         await register(data);
+        setIsLogin(true); // Switch to login view after successful registration
       }
     } catch (error) {
       toast({
