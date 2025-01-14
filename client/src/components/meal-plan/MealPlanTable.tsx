@@ -102,7 +102,10 @@ export function MealPlanTable({
                         planId={planId}
                         day={day}
                         mealType={mealType}
-                        recipeIds={recipeIds}
+                        meal={{
+                          recipeIds: recipeIds,
+                          participants: []
+                        }}
                         recipes={recipes}
                         onAddNew={() => onAddRecipe?.(day, mealType)}
                       />
