@@ -45,6 +45,34 @@ export default function Navigation({ user }: NavigationProps) {
               </Button>
             </Link>
           </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <List className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <Link href="/meal-planner">
+                <DropdownMenuItem className="cursor-pointer">
+                  <CalendarDays className="h-4 w-4 mr-2" />
+                  Meal Planner
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/recipes">
+                <DropdownMenuItem className="cursor-pointer">
+                  <ChefHat className="h-4 w-4 mr-2" />
+                  Recipes
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/shopping-list">
+                <DropdownMenuItem className="cursor-pointer">
+                  <ShoppingBasket className="h-4 w-4 mr-2" />
+                  Shopping List
+                </DropdownMenuItem>
+              </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <DropdownMenu>
