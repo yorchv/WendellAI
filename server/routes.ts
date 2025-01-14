@@ -12,9 +12,11 @@ import {
   familyMembers,
   dietaryPreferences,
   familyMemberDietaryPreferences,
+  familyMemberMealParticipation,
   insertFamilyMemberSchema,
   insertDietaryPreferenceSchema,
   insertFamilyMemberDietaryPreferenceSchema,
+  insertFamilyMemberMealParticipationSchema,
 } from "@db/schema";
 import { eq, and, between } from "drizzle-orm";
 import { z } from "zod";
@@ -67,7 +69,38 @@ export function registerRoutes(app: Express): Server {
         where: eq(mealPlans.userId, user.id),
         orderBy: (mealPlans, { desc }) => [desc(mealPlans.weekStart)],
       });
-      res.json(userMealPlans);
+
+      // Get default meal participations for family members
+      const familyMemberParticipations = await db.query.familyMembers.findMany({
+        where: eq(familyMembers.userId, user.id),
+        with: {
+          mealParticipations: true,
+        },
+      });
+
+      // Enhance meal plans with default participants if not specified
+      const enhancedMealPlans = userMealPlans.map(plan => ({
+        ...plan,
+        meals: plan.meals?.map(meal => ({
+          ...meal,
+          recipes: Object.fromEntries(
+            Object.entries(meal.recipes).map(([mealType, mealData]) => {
+              const participants = mealData.participants ?? familyMemberParticipations
+                .filter(member => 
+                  member.mealParticipations.some(mp => 
+                    mp.defaultParticipation && 
+                    (!mp.defaultMeals || mp.defaultMeals.includes(mealType as MealType))
+                  )
+                )
+                .map(member => member.id);
+
+              return [mealType, { ...mealData, participants }];
+            })
+          ),
+        })),
+      }));
+
+      res.json(enhancedMealPlans);
     } catch (error) {
       console.error("Error fetching meal plans:", error);
       res.status(500).send("Failed to fetch meal plans");
@@ -94,7 +127,15 @@ export function registerRoutes(app: Express): Server {
           userId: user.id,
           weekStart: result.data.weekStart,
           weekEnd: result.data.weekEnd,
-          meals: result.data.meals,
+          meals: result.data.meals.map(meal => ({
+            day: meal.day,
+            recipes: Object.fromEntries(
+              Object.entries(meal.recipes).map(([key, value]) => [
+                key,
+                { recipeIds: value || [], participants: [] }
+              ])
+            )
+          })),
         })
         .returning();
 
@@ -279,9 +320,9 @@ export function registerRoutes(app: Express): Server {
       console.error("Error analyzing recipe image:", error);
       res.status(500).send("Failed to analyze recipe image");
     }
-});
+  });
 
-app.post("/api/recipes", async (req, res) => {
+  app.post("/api/recipes", async (req, res) => {
     const user = req.user as { id: number } | undefined;
     if (!user?.id) {
       return res.status(401).send("Not authenticated");
@@ -714,6 +755,149 @@ app.post("/api/recipes", async (req, res) => {
     }
   });
 
+  // Family Member Meal Participation endpoints
+  app.get("/api/family-members/:familyMemberId/meal-participation", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.familyMemberId)),
+        with: {
+          mealParticipations: true,
+        },
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to view this family member's preferences");
+      }
+
+      res.json(familyMember.mealParticipations[0] || null);
+    } catch (error) {
+      console.error("Error fetching meal participation:", error);
+      res.status(500).send("Failed to fetch meal participation");
+    }
+  });
+
+  app.post("/api/family-members/:familyMemberId/meal-participation", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.familyMemberId)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this family member's preferences");
+      }
+
+      const result = insertFamilyMemberMealParticipationSchema.safeParse({
+        ...req.body,
+        familyMemberId: parseInt(req.params.familyMemberId),
+      });
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      // Remove existing participation if any
+      await db
+        .delete(familyMemberMealParticipation)
+        .where(eq(familyMemberMealParticipation.familyMemberId, parseInt(req.params.familyMemberId)));
+
+      const [participation] = await db
+        .insert(familyMemberMealParticipation)
+        .values(result.data)
+        .returning();
+
+      res.json(participation);
+    } catch (error) {
+      console.error("Error setting meal participation:", error);
+      res.status(500).send("Failed to set meal participation");
+    }
+  });
+
+  // Update recipe search to consider dietary preferences
+  app.get("/api/recipes/suggestions", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    const participantIds = req.query.participantIds ? 
+      (req.query.participantIds as string).split(',').map(id => parseInt(id)) : 
+      undefined;
+
+    try {
+      // Get dietary preferences for all participants
+      let participantPreferences: number[] = [];
+      if (participantIds?.length) {
+        const familyMemberPreferences = await db.query.familyMembers.findMany({
+          where: eq(familyMembers.userId, user.id),
+          with: {
+            dietaryPreferences: {
+              with: {
+                dietaryPreference: true,
+              },
+            },
+          },
+        });
+
+        participantPreferences = familyMemberPreferences
+          .filter(member => participantIds.includes(member.id))
+          .flatMap(member => member.dietaryPreferences.map(dp => dp.dietaryPreferenceId));
+      }
+
+      // Get recipes that are compatible with all participant preferences
+      const userRecipes = await db.query.recipes.findMany({
+        where: eq(recipes.userId, user.id),
+        with: {
+          ingredients: {
+            with: {
+              ingredient: true,
+            },
+          },
+          dietaryPreferences: {
+            with: {
+              dietaryPreference: true,
+            },
+          },
+        },
+      });
+
+      // Filter recipes based on dietary preferences
+      const compatibleRecipes = participantPreferences.length > 0
+        ? userRecipes.filter(recipe =>
+            participantPreferences.every(prefId =>
+              recipe.dietaryPreferences.some(dp =>
+                dp.dietaryPreferenceId === prefId && dp.isCompatible
+              )
+            )
+          )
+        : userRecipes;
+
+      res.json(compatibleRecipes);
+    } catch (error) {
+      console.error("Error fetching recipe suggestions:", error);
+      res.status(500).send("Failed to fetch recipe suggestions");
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
@@ -751,3 +935,5 @@ const recipeSchema = z.object({
   image: z.string().optional(),
   sources: z.array(z.string()).optional(),
 });
+
+type MealType = 'breakfast' | 'lunch' | 'dinner';

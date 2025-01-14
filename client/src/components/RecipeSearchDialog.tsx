@@ -17,15 +17,17 @@ interface RecipeSearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectRecipe: (recipe: Recipe) => void;
+  participantIds?: number[];
 }
 
 export function RecipeSearchDialog({
   open,
   onOpenChange,
   onSelectRecipe,
+  participantIds,
 }: RecipeSearchDialogProps) {
   const [search, setSearch] = useState("");
-  const { recipes, isLoading } = useRecipes();
+  const { recipes, isLoading } = useRecipes(participantIds);
 
   const filteredRecipes = recipes?.filter((recipe) =>
     recipe.title.toLowerCase().includes(search.toLowerCase())
@@ -35,7 +37,11 @@ export function RecipeSearchDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>Select Recipe</DialogTitle>
+          <DialogTitle>
+            {participantIds?.length 
+              ? "Select Compatible Recipe"
+              : "Select Recipe"}
+          </DialogTitle>
         </DialogHeader>
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
@@ -85,6 +91,11 @@ export function RecipeSearchDialog({
                   </div>
                 </div>
               ))}
+              {filteredRecipes?.length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                  No compatible recipes found
+                </div>
+              )}
             </div>
           </ScrollArea>
         )}

@@ -86,6 +86,30 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
   notes: text("notes"),
 });
 
+export const recipeDietaryPreferences = pgTable("recipe_dietary_preferences", {
+  id: serial("id").primaryKey(),
+  recipeId: integer("recipe_id")
+    .references(() => recipes.id, { onDelete: "cascade" })
+    .notNull(),
+  dietaryPreferenceId: integer("dietary_preference_id")
+    .references(() => dietaryPreferences.id)
+    .notNull(),
+  isCompatible: boolean("is_compatible").default(true).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const familyMemberMealParticipation = pgTable("family_member_meal_participation", {
+  id: serial("id").primaryKey(),
+  familyMemberId: integer("family_member_id")
+    .references(() => familyMembers.id)
+    .notNull(),
+  defaultParticipation: boolean("default_participation").default(true).notNull(),
+  defaultMeals: jsonb("default_meals").$type<MealType[]>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const mealPlans = pgTable("meal_plans", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
@@ -96,9 +120,10 @@ export const mealPlans = pgTable("meal_plans", {
   meals: jsonb("meals").$type<{
     day: DayType;
     recipes: {
-      breakfast?: number[];
-      lunch?: number[];
-      dinner?: number[];
+      [key in MealType]?: {
+        recipeIds: number[];
+        participants?: number[]; // Array of familyMember IDs
+      };
     };
   }[]>(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -136,6 +161,7 @@ export const recipeRelations = relations(recipes, ({ one, many }) => ({
     references: [users.id],
   }),
   ingredients: many(recipeIngredients),
+  dietaryPreferences: many(recipeDietaryPreferences),
 }));
 
 export const ingredientRelations = relations(ingredients, ({ many }) => ({
@@ -160,10 +186,12 @@ export const familyMemberRelations = relations(familyMembers, ({ one, many }) =>
     references: [users.id],
   }),
   dietaryPreferences: many(familyMemberDietaryPreferences),
+  mealParticipations: many(familyMemberMealParticipation),
 }));
 
 export const dietaryPreferenceRelations = relations(dietaryPreferences, ({ many }) => ({
   familyMembers: many(familyMemberDietaryPreferences),
+  recipes: many(recipeDietaryPreferences),
 }));
 
 export const familyMemberDietaryPreferenceRelations = relations(familyMemberDietaryPreferences, ({ one }) => ({
@@ -176,6 +204,25 @@ export const familyMemberDietaryPreferenceRelations = relations(familyMemberDiet
     references: [dietaryPreferences.id],
   }),
 }));
+
+export const recipeDietaryPreferenceRelations = relations(recipeDietaryPreferences, ({ one }) => ({
+  recipe: one(recipes, {
+    fields: [recipeDietaryPreferences.recipeId],
+    references: [recipes.id],
+  }),
+  dietaryPreference: one(dietaryPreferences, {
+    fields: [recipeDietaryPreferences.dietaryPreferenceId],
+    references: [dietaryPreferences.id],
+  }),
+}));
+
+export const familyMemberMealParticipationRelations = relations(familyMemberMealParticipation, ({ one }) => ({
+  familyMember: one(familyMembers, {
+    fields: [familyMemberMealParticipation.familyMemberId],
+    references: [familyMembers.id],
+  }),
+}));
+
 
 // Types
 export const mealTypeEnum = ["breakfast", "lunch", "dinner"] as const;
@@ -196,7 +243,10 @@ export type MealPlan = typeof mealPlans.$inferSelect & {
   meals?: Array<{
     day: DayType;
     recipes: {
-      [key in MealType]?: number[];
+      [key in MealType]?: {
+        recipeIds: number[];
+        participants?: number[];
+      };
     };
   }>;
 };
@@ -226,6 +276,12 @@ export type InsertDietaryPreference = typeof dietaryPreferences.$inferInsert;
 export type FamilyMemberDietaryPreference = typeof familyMemberDietaryPreferences.$inferSelect;
 export type InsertFamilyMemberDietaryPreference = typeof familyMemberDietaryPreferences.$inferInsert;
 
+export type RecipeDietaryPreference = typeof recipeDietaryPreferences.$inferSelect;
+export type InsertRecipeDietaryPreference = typeof recipeDietaryPreferences.$inferInsert;
+
+export type FamilyMemberMealParticipation = typeof familyMemberMealParticipation.$inferSelect;
+export type InsertFamilyMemberMealParticipation = typeof familyMemberMealParticipation.$inferInsert;
+
 
 // Schemas
 export const insertUserSchema = createInsertSchema(users);
@@ -254,3 +310,9 @@ export const selectDietaryPreferenceSchema = createSelectSchema(dietaryPreferenc
 
 export const insertFamilyMemberDietaryPreferenceSchema = createInsertSchema(familyMemberDietaryPreferences);
 export const selectFamilyMemberDietaryPreferenceSchema = createSelectSchema(familyMemberDietaryPreferences);
+
+export const insertRecipeDietaryPreferenceSchema = createInsertSchema(recipeDietaryPreferences);
+export const selectRecipeDietaryPreferenceSchema = createSelectSchema(recipeDietaryPreferences);
+
+export const insertFamilyMemberMealParticipationSchema = createInsertSchema(familyMemberMealParticipation);
+export const selectFamilyMemberMealParticipationSchema = createSelectSchema(familyMemberMealParticipation);

@@ -25,12 +25,16 @@ interface CreateRecipePayload {
   }[];
 }
 
-export function useRecipes() {
+export function useRecipes(participantIds?: number[]) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  const queryUrl = participantIds?.length 
+    ? `/api/recipes/suggestions?participantIds=${participantIds.join(',')}`
+    : '/api/recipes';
+
   const { data: recipes, isLoading } = useQuery<RecipeWithIngredients[]>({
-    queryKey: ["/api/recipes"],
+    queryKey: [queryUrl],
   });
 
   const createRecipe = useMutation({
@@ -50,6 +54,7 @@ export function useRecipes() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/recipes/suggestions"] });
     },
   });
 
@@ -73,6 +78,7 @@ export function useRecipes() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/recipes/suggestions"] });
     },
   });
 
@@ -89,6 +95,7 @@ export function useRecipes() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/recipes/suggestions"] });
     },
   });
 
