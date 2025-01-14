@@ -45,7 +45,14 @@ export default function MealPlanner() {
 
   const handleRecipeSelection = async (day: DayType, mealType: MealType, recipeId: number) => {
     try {
-      const mealsData = generateMealsData(DAYS, currentWeekPlan, day, mealType, recipeId);
+      const mealsData = DAYS.map(d => ({
+        day: d,
+        recipes: {
+          breakfast: d === day && mealType === 'breakfast' ? [recipeId] : [],
+          lunch: d === day && mealType === 'lunch' ? [recipeId] : [],
+          dinner: d === day && mealType === 'dinner' ? [recipeId] : []
+        }
+      }));
       const mealPlanData = { weekStart, weekEnd, meals: mealsData };
 
       if (currentWeekPlan) {
