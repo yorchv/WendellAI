@@ -1,7 +1,16 @@
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { Loader2 } from "lucide-react";
+
+import { queryClient } from "./lib/queryClient";
+import { useUser } from "./hooks/use-user";
+import Navigation from "./components/Navigation";
 import AuthPage from "./pages/AuthPage";
-import Home from "./pages/Home";
+import Marketing from "./pages/Marketing";
+import Dashboard from "./pages/Dashboard";
 import RecipeView from "./pages/RecipeView";
 import RecipesPage from "./pages/RecipesPage";
 import MealPlanner from "./pages/MealPlanner";
@@ -10,13 +19,6 @@ import ShoppingList from "./pages/ShoppingList";
 import FamilyDashboard from "./pages/FamilyDashboard";
 import StreamStarting from "./pages/StreamStarting";
 import StreamBreak from "./pages/StreamBreak";
-import Navigation from "./components/Navigation";
-import { useUser } from "./hooks/use-user";
-import { Loader2 } from "lucide-react";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { queryClient } from "./lib/queryClient";
 
 function App() {
   const { user, isLoading } = useUser();
@@ -29,10 +31,23 @@ function App() {
     );
   }
 
+  // If user is not logged in, show marketing page or auth page based on route
   if (!user) {
-    return <AuthPage />;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <div className="min-h-screen bg-background">
+          <Switch>
+            <Route path="/" component={Marketing} />
+            <Route path="/auth" component={AuthPage} />
+            <Route>404 - Not Found</Route>
+          </Switch>
+          <Toaster />
+        </div>
+      </QueryClientProvider>
+    );
   }
 
+  // Show authenticated app routes
   return (
     <QueryClientProvider client={queryClient}>
       <DndProvider backend={HTML5Backend}>
@@ -40,7 +55,7 @@ function App() {
           <Navigation user={user} />
           <main className="container mx-auto px-4 py-8">
             <Switch>
-              <Route path="/" component={Home} />
+              <Route path="/" component={Dashboard} />
               <Route path="/recipes" component={RecipesPage} />
               <Route path="/recipes/:id" component={RecipeView} />
               <Route path="/meal-planner" component={MealPlanner} />
