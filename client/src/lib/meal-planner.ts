@@ -48,18 +48,28 @@ export function generateMealsData(
       return {
         day,
         recipes: {
-          ...existingRecipes,
+          ...Object.fromEntries(
+            Object.entries(existingRecipes).map(([key, value]) => [
+              key,
+              { recipeIds: value?.recipeIds || [], participants: value?.participants || [] }
+            ])
+          ),
           [selectedMeal]: {
             recipeIds: [...currentMeal.recipeIds, recipeId],
-            participants: currentMeal.participants
+            participants: currentMeal.participants || []
           }
         }
       };
     } 
 
-    return existingDayMeal || { 
-      day, 
-      recipes: {} 
+    return {
+      day,
+      recipes: Object.fromEntries(
+        Object.entries(existingDayMeal?.recipes || {}).map(([key, value]) => [
+          key,
+          { recipeIds: value?.recipeIds || [], participants: value?.participants || [] }
+        ])
+      )
     };
   });
 }
