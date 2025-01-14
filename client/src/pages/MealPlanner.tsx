@@ -3,20 +3,9 @@ import { useMealPlans } from "@/hooks/use-meal-plans";
 import { useRecipes } from "@/hooks/use-recipes";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-// import { Calendar } from "@/components/ui/calendar";
 import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from "lucide-react";
 import { addWeeks, subWeeks, format, startOfToday, subDays, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
-import { MealPlanTable } from "@/components/meal-plan/MealPlanTable";
-import { DailyView } from "@/components/meal-plan/DailyView";
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import {
   DAYS,
   MEAL_TYPES,
@@ -26,6 +15,11 @@ import {
   type DayType,
   type MealType,
 } from "@/lib/meal-planner";
+import { RecipeSearchDialog } from "@/components/RecipeSearchDialog";
+import { MealPlanTable } from "@/components/meal-plan/MealPlanTable";
+import { DailyView } from "@/components/meal-plan/DailyView";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { CalendarNavigation } from "@/components/meal-plan/CalendarNavigation";
 
 type ViewMode = "daily" | "weekly";
@@ -84,7 +78,36 @@ export default function MealPlanner() {
 
   const goToToday = () => {
     setSelectedDate(startOfToday());
-    setViewMode("daily");  // Switch to daily view when clicking Today
+    setViewMode("daily");
+  };
+
+  const createEmptyMealPlan = async () => {
+    try {
+      await createMealPlan({
+        weekStart,
+        weekEnd,
+        meals: DAYS.map(day => ({
+          day,
+          recipes: Object.fromEntries(
+            MEAL_TYPES.map(type => [
+              type,
+              { recipeIds: [], participants: [] }
+            ])
+          )
+        }))
+      });
+
+      toast({
+        title: "Success",
+        description: "Empty meal plan created successfully",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create meal plan",
+      });
+    }
   };
 
   return (
@@ -137,18 +160,7 @@ export default function MealPlanner() {
           <div className="text-center py-8 space-y-4">
             <p className="text-muted-foreground">No meal plan exists for this week.</p>
             <Button
-              onClick={() => createMealPlan({
-                weekStart,
-                weekEnd,
-                meals: DAYS.map(day => ({
-                  day,
-                  recipes: {
-                    breakfast: [],
-                    lunch: [],
-                    dinner: []
-                  }
-                }))
-              })}
+              onClick={createEmptyMealPlan}
               className="gap-2"
             >
               <CalendarRange className="h-4 w-4" />

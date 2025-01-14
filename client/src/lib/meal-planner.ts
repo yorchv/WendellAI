@@ -1,8 +1,23 @@
-import { MealPlan, type DayType, type MealType } from "@db/schema";
+import { MealPlan } from "@db/schema";
 import { startOfWeek, addDays, format } from "date-fns";
+
+export type DayType = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+export type MealType = "breakfast" | "lunch" | "dinner";
 
 export const DAYS: DayType[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 export const MEAL_TYPES: MealType[] = ["breakfast", "lunch", "dinner"];
+
+export interface MealData {
+  recipeIds: number[];
+  participants: number[];
+}
+
+export interface DayMeal {
+  day: DayType;
+  recipes: {
+    [K in MealType]?: MealData;
+  };
+}
 
 export function getWeekBoundaries(date: Date) {
   const weekStart = startOfWeek(date, { weekStartsOn: 1 });
@@ -23,24 +38,21 @@ export function generateMealsData(
   selectedDay: DayType,
   selectedMeal: MealType,
   recipeId: number
-): Array<{
-  day: DayType;
-  recipes: {
-    breakfast?: number[];
-    lunch?: number[];
-    dinner?: number[];
-  };
-}> {
+): DayMeal[] {
   return days.map((day) => {
     const existingDayMeal = currentWeekPlan?.meals?.find(m => m.day === day);
     const existingRecipes = existingDayMeal?.recipes || {};
 
     if (day === selectedDay) {
+      const currentMeal = existingRecipes[selectedMeal] || { recipeIds: [], participants: [] };
       return {
         day,
         recipes: {
           ...existingRecipes,
-          [selectedMeal]: [...(existingRecipes[selectedMeal] || []), recipeId]
+          [selectedMeal]: {
+            recipeIds: [...currentMeal.recipeIds, recipeId],
+            participants: currentMeal.participants
+          }
         }
       };
     } 
