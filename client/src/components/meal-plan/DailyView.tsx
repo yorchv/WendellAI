@@ -99,7 +99,7 @@ export function DailyView({ planId, date, meals, recipes, onAddRecipe }: DailyVi
       </div>
       <div className="divide-y">
         {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
-          const recipeIds = dayMeals?.recipes[mealType] || [];
+          const recipeIds = dayMeals?.recipes[mealType]?.recipeIds || [];
           const mealRecipes = recipeIds.map(id => recipes[id]).filter(Boolean);
           const totalPrepTime = calculateTotalPrepTime(mealRecipes);
           const mealTime = DEFAULT_MEAL_TIMES[mealType];
