@@ -23,7 +23,8 @@ export default function Dashboard() {
           <h2 className="text-3xl font-bold tracking-tight mb-6">Today's Meals</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {["breakfast", "lunch", "dinner"].map((meal) => {
-              const recipeIds = todayMeals?.[meal as keyof typeof todayMeals] || [];
+              const mealData = todayMeals?.[meal as keyof typeof todayMeals];
+              const recipeIds = mealData?.recipeIds || [];
               const mealRecipes = recipes?.filter(r => recipeIds.includes(r.id));
 
               return (
