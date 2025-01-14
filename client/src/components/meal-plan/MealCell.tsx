@@ -26,8 +26,8 @@ interface MealCellProps {
 
 export function MealCell({ planId, day, mealType, meal, recipes, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
-  const displayedRecipes = meal.recipeIds.slice(0, 2);
-  const remainingCount = meal.recipeIds.length - displayedRecipes.length;
+  const displayedRecipes = meal?.recipeIds?.slice(0, 2) || [];
+  const remainingCount = (meal?.recipeIds?.length || 0) - displayedRecipes.length;
 
   const handleClick = () => {
     if (planId) {
@@ -58,7 +58,7 @@ export function MealCell({ planId, day, mealType, meal, recipes, onAddNew }: Mea
                         </span>
                       </div>
                     )}
-                    {meal.participants.length > 0 && (
+                    {(meal?.participants?.length || 0) > 0 && (
                       <div className="flex items-center gap-1">
                         <Users className="h-3 w-3 flex-shrink-0" />
                         <span>{meal.participants.length}</span>
