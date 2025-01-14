@@ -23,18 +23,15 @@ import StreamStarting from "./pages/StreamStarting";
 import StreamBreak from "./pages/StreamBreak";
 
 function AppContent() {
-  const { isAuthenticated, handlePublicRoute } = useAuth();
+  const { isAuthenticated, handleAuthRedirect } = useAuth();
   const { user } = useUser();
+  const path = window.location.pathname;
+
+  if (!handleAuthRedirect(path)) {
+    return null;
+  }
 
   if (!isAuthenticated) {
-    const path = window.location.pathname;
-    const isPublicRoute = handlePublicRoute(path);
-    
-    if (!isPublicRoute) {
-      window.location.href = "/auth";
-      return null;
-    }
-
     return (
       <div className="min-h-screen bg-background">
         <Switch>
