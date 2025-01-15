@@ -119,12 +119,11 @@ export const mealPlans = pgTable("meal_plans", {
   weekEnd: timestamp("week_end").notNull(),
   meals: jsonb("meals").$type<Array<{
     day: DayType;
-    recipes: {
-      [key in MealType]: {
-        recipeIds: number[];
-        participants: number[]; // Array of familyMember IDs
-      };
-    };
+    meals: Array<{
+      mealType: MealType;
+      recipes: number[];
+      participants: number[];
+    }>;
   }>>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
