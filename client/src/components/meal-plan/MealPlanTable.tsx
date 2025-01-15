@@ -102,6 +102,7 @@ export function MealPlanTable({
                         mealType={mealType}
                         meal={meals.find(m => m.day === day)?.recipes[mealType]}
                         recipes={recipes}
+                        familyMembers={familyMembers}
                         onAddNew={() => onAddRecipe?.(day, mealType)}
                       />
                     </TableCell>

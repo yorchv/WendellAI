@@ -22,6 +22,7 @@ interface MealCellProps {
     participants: number[];
   };
   recipes: Record<number, Recipe>;
+  familyMembers: Record<number, { id: number; name: string }>;
   onAddNew?: () => void;
 }
 
@@ -60,9 +61,17 @@ export function MealCell({ planId, day, mealType, meal, recipes, onAddNew }: Mea
                       </div>
                     )}
                     {(meal?.participants?.length || 0) > 0 && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 group relative">
                         <Users className="h-3 w-3 flex-shrink-0" />
                         <span>{meal.participants.length}</span>
+                        <div className="absolute bottom-full mb-2 hidden group-hover:block bg-popover text-popover-foreground rounded-md shadow-md p-2 text-xs w-max">
+                          {meal.participants.slice(0, 5).map((id) => (
+                            <div key={id}>{familyMembers?.[id]?.name || `User ${id}`}</div>
+                          ))}
+                          {meal.participants.length > 5 && (
+                            <div className="text-muted-foreground">+{meal.participants.length - 5} more eaters in this meal</div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
