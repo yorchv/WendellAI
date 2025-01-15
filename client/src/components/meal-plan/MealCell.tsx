@@ -17,7 +17,7 @@ interface MealCellProps {
   day: DayType;
   mealType: MealType;
   meal?: {
-    recipes: number[];
+    recipeIds: number[];
     participants: number[];
   };
   recipes: Record<number, Recipe>;
