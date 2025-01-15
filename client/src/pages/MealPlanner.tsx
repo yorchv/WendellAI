@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMealPlans } from "@/hooks/use-meal-plans";
 import { useRecipes } from "@/hooks/use-recipes";
+import { useFamilyMembers } from "@/hooks/use-family-members";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from "lucide-react";
@@ -30,10 +31,9 @@ export default function MealPlanner() {
   const [selectedMeal, setSelectedMeal] = useState<MealType>(MEAL_TYPES[0]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [familyMembers, setFamilyMembers] = useState([]); // Added state for family members
-
   const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
   const { recipes } = useRecipes();
+  const { familyMembers } = useFamilyMembers();
   const { toast } = useToast();
 
   const { weekStart, weekEnd } = getWeekBoundaries(selectedDate);
@@ -44,22 +44,7 @@ export default function MealPlanner() {
     [recipe.id]: recipe
   }), {}) ?? {};
 
-  // Fetch family members (replace with your actual API call)
-  useEffect(() => {
-    const fetchFamilyMembers = async () => {
-      try {
-        const response = await fetch('/api/participants'); // Replace with your API endpoint
-        const data = await response.json();
-        setFamilyMembers(data);
-      } catch (error) {
-        console.error("Error fetching family members:", error);
-      }
-    };
-    fetchFamilyMembers();
-  }, []);
-
-
-  const familyMembersMap = familyMembers.reduce((map, member) => ({...map, [member.id]: member}), {});
+  const familyMembersMap = familyMembers?.reduce((map, member) => ({...map, [member.id]: member}), {}) ?? {};
 
 
   const handleRecipeSelection = async (day: DayType, mealType: MealType, recipeId: number) => {
