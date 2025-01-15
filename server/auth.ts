@@ -39,6 +39,45 @@ export function setupAuth(app: Express) {
     secret: process.env.REPL_ID || "porygon-supremacy",
     resave: false,
     saveUninitialized: false,
+    store: {
+      all: async () => {
+        const allSessions = await db.select().from(sessions);
+        return allSessions.map(s => s.sess);
+      },
+      destroy: async (sid: string) => {
+        await db.delete(sessions).where(eq(sessions.sid, sid));
+      },
+      clear: async () => {
+        await db.delete(sessions);
+      },
+      length: async () => {
+        const count = await db.select({ count: sql`count(*)` }).from(sessions);
+        return Number(count[0].count);
+      },
+      get: async (sid: string) => {
+        const [session] = await db.select().from(sessions).where(eq(sessions.sid, sid));
+        return session?.sess || null;
+      },
+      set: async (sid: string, sess: any) => {
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + (sessionSettings.cookie?.maxAge || 86400000));
+        await db.insert(sessions).values({
+          sid,
+          sess,
+          expire: expiresAt,
+        }).onConflictDoUpdate({
+          target: sessions.sid,
+          set: { sess, expire: expiresAt }
+        });
+      },
+      touch: async (sid: string) => {
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + (sessionSettings.cookie?.maxAge || 86400000));
+        await db.update(sessions)
+          .set({ expire: expiresAt })
+          .where(eq(sessions.sid, sid));
+      }
+    },
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       secure: process.env.NODE_ENV === 'production',
@@ -49,6 +88,7 @@ export function setupAuth(app: Express) {
     app.set("trust proxy", 1);
     sessionSettings.cookie = {
       secure: true,
+      sameSite: 'none'
     };
   }
 
