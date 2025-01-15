@@ -47,17 +47,17 @@ export default function MealPlanner() {
     try {
       const mealsData = DAYS.map(d => {
         const existingDayMeal = currentWeekPlan?.meals?.find(m => m.day === d);
-        const existingRecipes = existingDayMeal?.recipes || {};
+        const existingMeals = existingDayMeal?.meals || [];
         
         return {
           day: d,
-          recipes: {
-            ...existingRecipes,
-            [mealType]: d === day ? {
-              recipeIds: [...(existingRecipes[mealType]?.recipeIds || []), recipeId],
-              participants: existingRecipes[mealType]?.participants || []
-            } : existingRecipes[mealType] || { recipeIds: [], participants: [] }
-          }
+          meals: MEAL_TYPES.map(type => ({
+            mealType: type,
+            recipes: type === mealType && d === day ? 
+              [...(existingMeals.find(m => m.mealType === type)?.recipes || []), recipeId] :
+              existingMeals.find(m => m.mealType === type)?.recipes || [],
+            participants: existingMeals.find(m => m.mealType === type)?.participants || []
+          }))
         };
       });
       const mealPlanData = { weekStart, weekEnd, meals: mealsData };

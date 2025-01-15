@@ -7,16 +7,15 @@ export type MealType = "breakfast" | "lunch" | "dinner";
 export const DAYS: DayType[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 export const MEAL_TYPES: MealType[] = ["breakfast", "lunch", "dinner"];
 
-export interface MealData {
-  recipeIds: number[];
+export interface Meal {
+  mealType: MealType;
+  recipes: number[];
   participants: number[];
 }
 
 export interface DayMeal {
   day: DayType;
-  recipes: {
-    [K in MealType]?: MealData;
-  };
+  meals: Meal[];
 }
 
 export function getWeekBoundaries(date: Date) {

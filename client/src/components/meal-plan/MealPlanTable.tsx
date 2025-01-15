@@ -19,14 +19,14 @@ interface MealPlanTableProps {
   planId: number | undefined;
   weekStart: Date;
   weekEnd: Date;
-  meals: {
-    [key: string]: {
-      [key in MealType]?: {
-        recipeIds: number[];
-        participants: number[];
-      };
-    };
-  };
+  meals: Array<{
+    day: DayType;
+    meals: Array<{
+      mealType: MealType;
+      recipes: number[];
+      participants: number[];
+    }>;
+  }>;
   recipes: Record<number, Recipe>;
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
   onDropRecipe?: (day: DayType, mealType: MealType, recipeId: number) => void;

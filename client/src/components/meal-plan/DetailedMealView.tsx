@@ -16,7 +16,10 @@ interface Recipe {
 interface DetailedMealViewProps {
   day: DayType;
   mealType: MealType;
-  recipeIds: number[];
+  meal: {
+    recipes: number[];
+    participants: number[];
+  };
   recipes: Record<number, Recipe>;
   onClose: () => void;
 }
