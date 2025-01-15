@@ -21,9 +21,8 @@ interface MealPlanTableProps {
   weekEnd: Date;
   meals: Array<{
     day: DayType;
-    meals: Array<{
-      mealType: MealType;
-      recipes: number[];
+    recipes: Record<MealType, {
+      recipeIds: number[];
       participants: number[];
     }>;
   }>;
@@ -101,7 +100,7 @@ export function MealPlanTable({
                         planId={planId}
                         day={day}
                         mealType={mealType}
-                        meal={mealData}
+                        meal={meals.find(m => m.day === day)?.recipes[mealType]}
                         recipes={recipes}
                         onAddNew={() => onAddRecipe?.(day, mealType)}
                       />
