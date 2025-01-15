@@ -18,11 +18,14 @@ interface DailyViewProps {
   planId: number | undefined;
   date: Date;
   meals: {
-    [key in MealType]?: {
-      recipeIds: number[];
-      participants: number[];
+    day: DayType;
+    recipes: {
+      [key in MealType]?: {
+        recipeIds: number[];
+        participants: number[];
+      };
     };
-  };
+  }[];
   recipes: Record<number, Recipe>;
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
 }
@@ -97,7 +100,7 @@ export function DailyView({ planId, date, meals, recipes, onAddRecipe }: DailyVi
       </div>
       <div className="divide-y">
         {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
-          const mealData = meals[mealType as MealType] || { recipeIds: [], participants: [] };
+          const mealData = meals.find(m => m.day === dayOfWeek)?.recipes[mealType] || { recipeIds: [], participants: [] };
           const mealRecipes = mealData.recipeIds?.map(id => recipes[id]).filter(Boolean) || [];
           const totalPrepTime = calculateTotalPrepTime(mealRecipes);
           const mealTime = DEFAULT_MEAL_TIMES[mealType];
