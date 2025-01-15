@@ -69,13 +69,28 @@ export function useMealPlans() {
     if (!mealPlans) return null;
 
     const today = startOfDay(new Date());
-    return mealPlans.find(
+    const currentPlan = mealPlans.find(
       (plan) => {
         const start = new Date(plan.weekStart);
         const end = new Date(plan.weekEnd);
         return today >= start && today <= end;
       }
     );
+
+    if (!currentPlan) return null;
+
+    return {
+      ...currentPlan,
+      meals: currentPlan.meals?.map(meal => ({
+        ...meal,
+        recipes: Object.fromEntries(
+          Object.entries(meal.recipes || {}).map(([key, value]) => [
+            key,
+            { recipeIds: value?.recipeIds || [], participants: value?.participants || [] }
+          ])
+        )
+      }))
+    };
   };
 
   return {

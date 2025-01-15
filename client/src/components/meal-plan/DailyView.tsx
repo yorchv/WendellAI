@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import type { MealType, DayType } from "@db/schema";
@@ -98,8 +97,8 @@ export function DailyView({ planId, date, meals, recipes, onAddRecipe }: DailyVi
       </div>
       <div className="divide-y">
         {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
-          const mealData = meals[mealType] || { recipeIds: [], participants: [] };
-          const mealRecipes = mealData.recipeIds.map(id => recipes[id]).filter(Boolean);
+          const mealData = meals[mealType as MealType] || { recipeIds: [], participants: [] };
+          const mealRecipes = mealData.recipeIds?.map(id => recipes[id]).filter(Boolean) || [];
           const totalPrepTime = calculateTotalPrepTime(mealRecipes);
           const mealTime = DEFAULT_MEAL_TIMES[mealType];
           const mealTimeDate = getMealTimeDate(mealTime);
