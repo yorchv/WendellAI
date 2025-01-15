@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Plus, Users } from "lucide-react";
 import { useLocation } from "wouter";
@@ -26,7 +25,7 @@ interface MealCellProps {
   onAddNew?: () => void;
 }
 
-export function MealCell({ planId, day, mealType, meal, recipes, onAddNew }: MealCellProps) {
+export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
   const displayedRecipes = meal?.recipeIds?.slice(0, 2) || [];
   const remainingCount = (meal?.recipeIds?.length || 0) - displayedRecipes.length;

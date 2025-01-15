@@ -30,6 +30,7 @@ export default function MealPlanner() {
   const [selectedMeal, setSelectedMeal] = useState<MealType>(MEAL_TYPES[0]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState([]); // Added state for family members
 
   const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
   const { recipes } = useRecipes();
@@ -43,17 +44,35 @@ export default function MealPlanner() {
     [recipe.id]: recipe
   }), {}) ?? {};
 
+  // Fetch family members (replace with your actual API call)
+  useEffect(() => {
+    const fetchFamilyMembers = async () => {
+      try {
+        const response = await fetch('/api/participants'); // Replace with your API endpoint
+        const data = await response.json();
+        setFamilyMembers(data);
+      } catch (error) {
+        console.error("Error fetching family members:", error);
+      }
+    };
+    fetchFamilyMembers();
+  }, []);
+
+
+  const familyMembersMap = familyMembers.reduce((map, member) => ({...map, [member.id]: member}), {});
+
+
   const handleRecipeSelection = async (day: DayType, mealType: MealType, recipeId: number) => {
     try {
       const mealsData = DAYS.map(d => {
         const existingDayMeal = currentWeekPlan?.meals?.find(m => m.day === d);
         const existingMeals = existingDayMeal?.meals || [];
-        
+
         return {
           day: d,
           meals: MEAL_TYPES.map(type => ({
             mealType: type,
-            recipes: type === mealType && d === day ? 
+            recipes: type === mealType && d === day ?
               [...(existingMeals.find(m => m.mealType === type)?.recipes || []), recipeId] :
               existingMeals.find(m => m.mealType === type)?.recipes || [],
             participants: existingMeals.find(m => m.mealType === type)?.participants || []
@@ -128,9 +147,9 @@ export default function MealPlanner() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
         <h1 className="text-3xl font-bold">Meal Planner</h1>
-        <CalendarNavigation 
-          selectedDate={selectedDate} 
-          setSelectedDate={setSelectedDate} 
+        <CalendarNavigation
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
           viewMode={viewMode}
           weekStart={weekStart}
           setViewMode={setViewMode}
@@ -149,6 +168,7 @@ export default function MealPlanner() {
                 weekEnd={weekEnd}
                 meals={currentWeekPlan.meals}
                 recipes={recipesLookup}
+                familyMembers={familyMembersMap} // Added familyMembers prop
                 onAddRecipe={(day, mealType) => {
                   setSelectedDay(day);
                   setSelectedMeal(mealType);
@@ -162,6 +182,7 @@ export default function MealPlanner() {
                 date={selectedDate}
                 meals={currentWeekPlan.meals}
                 recipes={recipesLookup}
+                familyMembers={familyMembersMap} // Added familyMembers prop
                 onAddRecipe={(day, mealType) => {
                   setSelectedDay(day);
                   setSelectedMeal(mealType);

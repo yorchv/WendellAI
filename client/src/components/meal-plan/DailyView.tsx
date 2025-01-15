@@ -27,6 +27,7 @@ interface DailyViewProps {
     };
   }[];
   recipes: Record<number, Recipe>;
+  familyMembers: Record<number, { id: number; name: string }>; // Added familyMembers prop
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
 }
 
@@ -85,7 +86,7 @@ function getTimelineProgress(startTime: Date, mealTime: Date): number {
   return Math.round((elapsed / totalDuration) * 100);
 }
 
-export function DailyView({ planId, date, meals, recipes, onAddRecipe }: DailyViewProps) {
+export function DailyView({ planId, date, meals, recipes, familyMembers, onAddRecipe }: DailyViewProps) {
   const dayOfWeek = format(date, 'EEEE') as DayType;
 
   return (
