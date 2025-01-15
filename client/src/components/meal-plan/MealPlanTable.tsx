@@ -27,6 +27,7 @@ interface MealPlanTableProps {
     }>;
   }>;
   recipes: Record<number, Recipe>;
+  familyMembers: Record<number, { id: number; name: string }>;
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
   onDropRecipe?: (day: DayType, mealType: MealType, recipeId: number) => void;
 }
