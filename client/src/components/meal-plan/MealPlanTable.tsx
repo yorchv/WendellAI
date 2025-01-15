@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { MealType, DayType } from "@db/schema";
 import { MealCell } from "./MealCell";
@@ -38,6 +37,7 @@ export function MealPlanTable({
   weekEnd, 
   meals, 
   recipes,
+  familyMembers,
   onAddRecipe,
   onDropRecipe 
 }: MealPlanTableProps) {
