@@ -38,14 +38,10 @@ const mealPlanSchema = z.object({
         "Saturday",
         "Sunday",
       ]),
-      recipes: z.object({
-        breakfast: z.array(z.number()).optional(),
-        lunch: z.array(z.number()).optional(),
-        dinner: z.array(z.number()).optional(),
-      }).refine(
-        (data) => Object.keys(data).length > 0,
-        "At least one meal type must be specified"
-      ),
+      recipes: z.record(z.object({
+        recipeIds: z.array(z.number()),
+        participants: z.array(z.number())
+      }))
     })
   ).min(1, "At least one day's meals are required"),
 });
