@@ -199,8 +199,7 @@ export function registerRoutes(app: Express): Server {
         .set({
           weekStart: result.data.weekStart,
           weekEnd: result.data.weekEnd,
-          meals: result.data.meals,
-          updatedAt: new Date() // Add updatedAt explicitly
+          meals: result.data.meals
         })
         .where(eq(mealPlans.id, parseInt(req.params.id)))
         .returning();
