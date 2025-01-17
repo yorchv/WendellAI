@@ -200,6 +200,7 @@ export function registerRoutes(app: Express): Server {
           weekStart: result.data.weekStart,
           weekEnd: result.data.weekEnd,
           meals: result.data.meals,
+          updatedAt: new Date() // Add updatedAt explicitly
         })
         .where(eq(mealPlans.id, parseInt(req.params.id)))
         .returning();
