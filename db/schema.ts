@@ -32,6 +32,7 @@ export const familyMembers = pgTable("family_members", {
     .notNull(),
   name: text("name").notNull(),
   birthDate: date("birth_date").notNull(),
+  isGuest: boolean("is_guest").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
