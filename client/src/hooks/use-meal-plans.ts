@@ -11,16 +11,10 @@ export function useMealPlans() {
 
   const createMealPlan = useMutation({
     mutationFn: async (mealPlan: Omit<MealPlan, "id" | "userId" | "createdAt">) => {
-      const formattedMealPlan = {
-        ...mealPlan,
-        weekStart: new Date(mealPlan.weekStart).toISOString(),
-        weekEnd: new Date(mealPlan.weekEnd).toISOString(),
-      };
-
       const response = await fetch("/api/meal-plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formattedMealPlan),
+        body: JSON.stringify(mealPlan),
         credentials: "include",
       });
 
@@ -37,16 +31,10 @@ export function useMealPlans() {
 
   const updateMealPlan = useMutation({
     mutationFn: async ({ id, ...data }: MealPlan) => {
-      const formattedData = {
-        ...data,
-        weekStart: new Date(data.weekStart).toISOString(),
-        weekEnd: new Date(data.weekEnd).toISOString(),
-      };
-
       const response = await fetch(`/api/meal-plans/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formattedData),
+        body: JSON.stringify(data),
         credentials: "include",
       });
 
