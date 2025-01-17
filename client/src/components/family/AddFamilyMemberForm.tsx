@@ -15,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,13 +23,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { useLocation } from "wouter";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   birthDate: z.date({
     required_error: "Birth date is required",
   }),
+  isGuest: z.boolean().default(false),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -36,8 +40,14 @@ type FormData = z.infer<typeof formSchema>;
 export default function AddFamilyMemberForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
+  const isNewGuest = new URLSearchParams(location.split('?')[1]).get("newGuest") === "true";
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      isGuest: isNewGuest,
+    },
   });
 
   const mutation = useMutation({
@@ -48,6 +58,7 @@ export default function AddFamilyMemberForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -60,7 +71,7 @@ export default function AddFamilyMemberForm() {
       queryClient.invalidateQueries({ queryKey: ["/api/family-members"] });
       toast({
         title: "Success",
-        description: "Family member added successfully",
+        description: `${form.getValues("isGuest") ? "Guest" : "Family member"} added successfully`,
       });
       form.reset();
     },
@@ -126,9 +137,7 @@ export default function AddFamilyMemberForm() {
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
                       }
-                      hideNavigation
-                      hideWeekdays
-                      captionLayout="dropdown"
+                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>
@@ -138,8 +147,29 @@ export default function AddFamilyMemberForm() {
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="isGuest"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Guest</FormLabel>
+                <FormDescription>
+                  Mark this person as a guest for occasional meal participation
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
         <Button type="submit" className="w-full">
-          Add Family Member
+          Add {form.watch("isGuest") ? "Guest" : "Family Member"}
         </Button>
       </form>
     </Form>
