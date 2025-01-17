@@ -152,6 +152,12 @@ export const shoppingListItems = pgTable("shopping_list_items", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const waitlist = pgTable("waitlist", {
+  id: serial("id").primaryKey(),
+  email: text("email").unique().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const userRelations = relations(users, ({ many }) => ({
   recipes: many(recipes),
@@ -287,6 +293,8 @@ export type InsertRecipeDietaryPreference = typeof recipeDietaryPreferences.$inf
 export type FamilyMemberMealParticipation = typeof familyMemberMealParticipation.$inferSelect;
 export type InsertFamilyMemberMealParticipation = typeof familyMemberMealParticipation.$inferInsert;
 
+export type Waitlist = typeof waitlist.$inferSelect;
+export type InsertWaitlist = typeof waitlist.$inferInsert;
 
 // Schemas
 export const insertUserSchema = createInsertSchema(users);
@@ -321,3 +329,6 @@ export const selectRecipeDietaryPreferenceSchema = createSelectSchema(recipeDiet
 
 export const insertFamilyMemberMealParticipationSchema = createInsertSchema(familyMemberMealParticipation);
 export const selectFamilyMemberMealParticipationSchema = createSelectSchema(familyMemberMealParticipation);
+
+export const insertWaitlistSchema = createInsertSchema(waitlist);
+export const selectWaitlistSchema = createSelectSchema(waitlist);

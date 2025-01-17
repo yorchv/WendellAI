@@ -1,17 +1,78 @@
-
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   CalendarCheck2,
   ShoppingCart,
   Clock,
   Sprout,
   ChefHat,
-  Heart
+  Heart,
+  Loader2
 } from "lucide-react";
+import { useState } from "react";
+
+const waitlistSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+type WaitlistForm = z.infer<typeof waitlistSchema>;
 
 export default function Marketing() {
   const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<WaitlistForm>({
+    resolver: zodResolver(waitlistSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  async function onSubmit(data: WaitlistForm) {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to join waitlist");
+      }
+
+      toast({
+        title: "Success!",
+        description: "You've been added to our waitlist. We'll notify you when we launch!",
+      });
+
+      form.reset();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to join waitlist",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -25,7 +86,7 @@ export default function Marketing() {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section with Waitlist Form */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-6">
@@ -35,6 +96,40 @@ export default function Marketing() {
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               An open-source AI-powered meal planner built to make your cooking journey easier and more enjoyable.
             </p>
+
+            {/* Waitlist Form */}
+            <div className="max-w-md mx-auto mt-8">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="flex gap-2">
+                            <Input 
+                              placeholder="Enter your email to join the waitlist" 
+                              {...field}
+                              className="flex-1"
+                            />
+                            <Button type="submit" disabled={isSubmitting}>
+                              {isSubmitting ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              ) : null}
+                              Join Waitlist
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
+            </div>
+
+            {/* Feature Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
               <div className="p-4 rounded-lg bg-secondary/20">
                 <ChefHat className="h-8 w-8 text-primary mx-auto mb-2" />
@@ -51,11 +146,6 @@ export default function Marketing() {
                 <h3 className="font-semibold mb-1">Family Friendly</h3>
                 <p className="text-sm text-muted-foreground">Manage preferences and dietary restrictions for the whole family</p>
               </div>
-            </div>
-            <div className="flex gap-4 justify-center pt-8">
-              <Button size="lg" onClick={() => navigate("/auth")}>
-                Create Account
-              </Button>
             </div>
           </div>
         </div>

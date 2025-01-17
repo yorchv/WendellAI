@@ -17,41 +17,53 @@ import {
   insertDietaryPreferenceSchema,
   insertFamilyMemberDietaryPreferenceSchema,
   insertFamilyMemberMealParticipationSchema,
+  waitlist,
+  insertWaitlistSchema,
 } from "@db/schema";
 import { eq, and, between } from "drizzle-orm";
 import { z } from "zod";
 import { generateRecipe } from "./perplexity";
 import { analyzeRecipeImage } from "./claude";
 
-// Schema for meal plan operations
-const mealPlanSchema = z.object({
-  weekStart: z.string().or(z.date()).transform((val) => new Date(val)),
-  weekEnd: z.string().or(z.date()).transform((val) => new Date(val)),
-  meals: z.array(
-    z.object({
-      day: z.enum([
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ]),
-      recipes: z.record(z.object({
-        recipeIds: z.array(z.number()),
-        participants: z.array(z.number())
-      }))
-    })
-  ).min(1, "At least one day's meals are required"),
+// Schema for waitlist email validation
+const waitlistSchema = z.object({
+  email: z.string().email("Invalid email format"),
 });
-
-// New schema for dietary preference type validation
-const dietaryPreferenceTypeSchema = z.enum(['ALLERGY', 'DIET', 'SUPPLEMENTATION']);
 
 export function registerRoutes(app: Express): Server {
   // Important: Setup auth before registering routes
   setupAuth(app);
+
+  // Waitlist endpoint - no auth required
+  app.post("/api/waitlist", async (req, res) => {
+    try {
+      const result = waitlistSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const [entry] = await db
+        .insert(waitlist)
+        .values({
+          email: result.data.email.toLowerCase(),
+        })
+        .returning();
+
+      res.json({ message: "Successfully joined the waitlist" });
+    } catch (error: any) {
+      // Check for unique constraint violation
+      if (error.code === '23505') { // PostgreSQL unique violation code
+        return res.status(409).json({ 
+          message: "This email is already on the waitlist" 
+        });
+      }
+
+      console.error("Error adding to waitlist:", error);
+      res.status(500).send("Failed to join waitlist");
+    }
+  });
 
   // Meal Plans
   app.get("/api/meal-plans", async (req, res) => {
