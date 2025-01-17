@@ -168,7 +168,14 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      const result = mealPlanSchema.safeParse(req.body);
+      // Transform date strings to Date objects
+      const transformedData = {
+        ...req.body,
+        weekStart: new Date(req.body.weekStart),
+        weekEnd: new Date(req.body.weekEnd),
+      };
+
+      const result = mealPlanSchema.safeParse(transformedData);
       if (!result.success) {
         return res.status(400).send(
           "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
