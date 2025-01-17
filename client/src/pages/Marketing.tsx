@@ -100,7 +100,7 @@ export default function Marketing() {
             {/* Waitlist Form */}
             <div className="max-w-md mx-auto mt-8">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 waitlist-form">
                   <FormField
                     control={form.control}
                     name="email"
@@ -228,7 +228,7 @@ export default function Marketing() {
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             An open-source project combining AI technology with mindful meal planning principles.
           </p>
-          <Button size="lg" onClick={() => navigate("/auth")}>
+          <Button size="lg" onClick={() => document.querySelector('.waitlist-form')?.scrollIntoView({ behavior: 'smooth' })}>
             Get Started
           </Button>
         </div>
