@@ -18,6 +18,7 @@ import {
   insertFamilyMemberDietaryPreferenceSchema,
   insertFamilyMemberMealParticipationSchema,
   waitlist,
+  insertMealPlanSchema as mealPlanSchema,
 } from "@db/schema";
 import { eq, and, between } from "drizzle-orm";
 import { z } from "zod";
