@@ -122,12 +122,11 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      // Transform date strings to Date objects and exclude createdAt
-      const { createdAt, ...reqData } = req.body;
+      // Transform date strings to Date objects
       const transformedData = {
-        ...reqData,
-        weekStart: new Date(reqData.weekStart),
-        weekEnd: new Date(reqData.weekEnd),
+        ...req.body,
+        weekStart: new Date(req.body.weekStart),
+        weekEnd: new Date(req.body.weekEnd),
       };
 
       const result = mealPlanSchema.safeParse(transformedData);
@@ -951,7 +950,8 @@ const recipeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   ingredients: z.array(recipeIngredientSchema).min(1, "At least one ingredient is required"),
-  instructions: z.array(z.string()).min(1, "At least one instruction is required"), prepTime: z.number().optional(),
+  instructions: z.array(z.string()).min(1, "At least one instruction is required"),
+  prepTime: z.number().optional(),
   cookTime: z.number().optional(),
   servings: z.number().optional(),
   image: z.string().optional(),
