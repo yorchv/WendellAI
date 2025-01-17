@@ -80,9 +80,9 @@ export default function Marketing() {
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-primary">WendellAI</div>
-          <Button onClick={() => navigate("/auth")} variant="outline">
-            Join Now
-          </Button>
+          <div className="text-sm text-muted-foreground bg-secondary/20 px-3 py-1.5 rounded-md">
+            Currently in closed beta
+          </div>
         </div>
       </header>
 
