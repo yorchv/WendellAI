@@ -122,11 +122,12 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      // Transform date strings to Date objects
+      // Transform date strings to Date objects and exclude createdAt
+      const { createdAt, ...reqData } = req.body;
       const transformedData = {
-        ...req.body,
-        weekStart: new Date(req.body.weekStart),
-        weekEnd: new Date(req.body.weekEnd),
+        ...reqData,
+        weekStart: new Date(reqData.weekStart),
+        weekEnd: new Date(reqData.weekEnd),
       };
 
       const result = mealPlanSchema.safeParse(transformedData);
@@ -168,11 +169,12 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      // Transform date strings to Date objects
+      // Transform date strings to Date objects and exclude createdAt
+      const { createdAt, ...reqData } = req.body;
       const transformedData = {
-        ...req.body,
-        weekStart: new Date(req.body.weekStart),
-        weekEnd: new Date(req.body.weekEnd),
+        ...reqData,
+        weekStart: new Date(reqData.weekStart),
+        weekEnd: new Date(reqData.weekEnd),
       };
 
       const result = mealPlanSchema.safeParse(transformedData);
