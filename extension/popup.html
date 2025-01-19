@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WendellAI Recipe Capture</title>
+  <style>
+    body {
+      width: 320px;
+      padding: 16px;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    button {
+      background: hsl(222.2 47.4% 11.2%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .status {
+      font-size: 14px;
+      color: #666;
+    }
+    .error {
+      color: #dc2626;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>WendellAI Recipe Capture</h2>
+    <button id="captureBtn">Capture Recipe</button>
+    <p class="status" id="status"></p>
+    <p class="error" id="error"></p>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

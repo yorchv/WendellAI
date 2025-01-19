@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { log } from "./vite";
 import { db } from "@db";
+import cors from "cors";
 import {
   recipes,
   mealPlans,
@@ -25,6 +26,7 @@ import { z } from "zod";
 import { generateRecipe } from "./perplexity";
 import { analyzeRecipeImage } from "./claude";
 
+
 // Schema for waitlist email validation
 const waitlistSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -33,6 +35,12 @@ const waitlistSchema = z.object({
 export function registerRoutes(app: Express): Server {
   // Important: Setup auth before registering routes
   setupAuth(app);
+
+  app.use(cors({
+    origin: "*", // For Chrome extension
+    methods: ["POST"],
+    allowedHeaders: ["Content-Type"]
+  }));
 
   // Waitlist endpoint - no auth required
   app.post("/api/waitlist", async (req, res) => {
@@ -408,6 +416,591 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error creating recipe:", error);
       res.status(500).send("Failed to create recipe");
+    }
+  });
+
+  // Shopping List Items with date range
+  app.get("/api/shopping-list-items", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    const dateRangeResult = dateRangeSchema.safeParse({
+      startDate: req.query.startDate || new Date().toISOString(),
+      endDate: req.query.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+
+    if (!dateRangeResult.success) {
+      return res.status(400).send(dateRangeResult.error.errors.map((err) => err.message).join(", "));
+    }
+
+    const { startDate, endDate } = dateRangeResult.data;
+
+    try {
+      const items = await db.query.shoppingListItems.findMany({
+        where: and(
+          eq(shoppingListItems.userId, user.id),
+          between(shoppingListItems.startDate, startDate, endDate)
+        ),
+        with: {
+          ingredient: true,
+        },
+      });
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching shopping list items:", error);
+      res.status(500).send("Failed to fetch shopping list items");
+    }
+  });
+
+  app.post("/api/shopping-list-items", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    const {
+      ingredientId,
+      startDate,
+      endDate,
+      quantity,
+      unit,
+      recipeIds,
+    } = req.body;
+
+    try {
+      const dateRangeResult = dateRangeSchema.safeParse({ startDate, endDate });
+      if (!dateRangeResult.success) {
+        return res.status(400).send(dateRangeResult.error.errors.map((err) => err.message).join(", "));
+      }
+
+      const item = await db
+        .insert(shoppingListItems)
+        .values({
+          userId: user.id,
+          ingredientId,
+          startDate: dateRangeResult.data.startDate,
+          endDate: dateRangeResult.data.endDate,
+          quantity,
+          unit,
+          recipeIds,
+        })
+        .returning();
+      res.json(item[0]);
+    } catch (error) {
+      console.error("Error creating shopping list item:", error);
+      res.status(500).send("Failed to create shopping list item");
+    }
+  });
+
+  app.put("/api/shopping-list-items/:id", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const item = await db.query.shoppingListItems.findFirst({
+        where: eq(shoppingListItems.id, parseInt(req.params.id)),
+      });
+
+      if (!item) {
+        return res.status(404).send("Item not found");
+      }
+
+      if (item.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this item");
+      }
+
+      const updatedItem = await db
+        .update(shoppingListItems)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(shoppingListItems.id, parseInt(req.params.id)))
+        .returning();
+
+      res.json(updatedItem[0]);
+    } catch (error) {
+      console.error("Error updating shopping list item:", error);
+      res.status(500).send("Failed to update shopping list item");
+    }
+  });
+
+  // Family Members endpoints
+  app.get("/api/family-members", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const userFamilyMembers = await db.query.familyMembers.findMany({
+        where: eq(familyMembers.userId, user.id),
+        with: {
+          dietaryPreferences: {
+            with: {
+              dietaryPreference: true,
+            },
+          },
+        },
+      });
+      res.json(userFamilyMembers);
+    } catch (error) {
+      console.error("Error fetching family members:", error);
+      res.status(500).send("Failed to fetch family members");
+    }
+  });
+
+  app.post("/api/family-members", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const result = insertFamilyMemberSchema.safeParse({
+        ...req.body,
+        userId: user.id,
+      });
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const [familyMember] = await db
+        .insert(familyMembers)
+        .values(result.data)
+        .returning();
+
+      res.json(familyMember);
+    } catch (error) {
+      console.error("Error creating family member:", error);
+      res.status(500).send("Failed to create family member");
+    }
+  });
+
+  app.put("/api/family-members/:id", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.id)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this family member");
+      }
+
+      const result = insertFamilyMemberSchema.partial().safeParse({
+        ...req.body,
+        userId: user.id,
+      });
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const [updatedFamilyMember] = await db
+        .update(familyMembers)
+        .set({ ...result.data, updatedAt: new Date() })
+        .where(eq(familyMembers.id, parseInt(req.params.id)))
+        .returning();
+
+      res.json(updatedFamilyMember);
+    } catch (error) {
+      console.error("Error updating family member:", error);
+      res.status(500).send("Failed to update family member");
+    }
+  });
+
+  app.delete("/api/family-members/:id", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.id)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to delete this family member");
+      }
+
+      // First delete any dietary preferences
+      await db
+        .delete(familyMemberDietaryPreferences)
+        .where(eq(familyMemberDietaryPreferences.familyMemberId, parseInt(req.params.id)));
+
+      // Then delete the family member
+      await db
+        .delete(familyMembers)
+        .where(eq(familyMembers.id, parseInt(req.params.id)));
+
+      res.status(200).send();
+    } catch (error) {
+      console.error("Error deleting family member:", error);
+      res.status(500).send("Failed to delete family member");
+    }
+  });
+
+  // Dietary Preferences endpoints
+  app.get("/api/dietary-preferences", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const allDietaryPreferences = await db.query.dietaryPreferences.findMany();
+      res.json(allDietaryPreferences);
+    } catch (error) {
+      console.error("Error fetching dietary preferences:", error);
+      res.status(500).send("Failed to fetch dietary preferences");
+    }
+  });
+
+  app.post("/api/dietary-preferences", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const result = insertDietaryPreferenceSchema.safeParse(req.body);
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      // Validate the type field
+      const typeResult = dietaryPreferenceTypeSchema.safeParse(result.data.type);
+      if (!typeResult.success) {
+        return res.status(400).send("Invalid dietary preference type");
+      }
+
+      const [dietaryPreference] = await db
+        .insert(dietaryPreferences)
+        .values(result.data)
+        .returning();
+
+      res.json(dietaryPreference);
+    } catch (error) {
+      console.error("Error creating dietary preference:", error);
+      res.status(500).send("Failed to create dietary preference");
+    }
+  });
+
+  // Family Member Dietary Preferences endpoints
+  app.post("/api/family-members/:familyMemberId/dietary-preferences", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.familyMemberId)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this family member's preferences");
+      }
+
+      const result = insertFamilyMemberDietaryPreferenceSchema.safeParse({
+        ...req.body,
+        familyMemberId: parseInt(req.params.familyMemberId),
+      });
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const [preference] = await db
+        .insert(familyMemberDietaryPreferences)
+        .values(result.data)
+        .returning();
+
+      res.json(preference);
+    } catch (error) {
+      console.error("Error adding dietary preference to family member:", error);
+      res.status(500).send("Failed to add dietary preference to family member");
+    }
+  });
+
+  app.delete("/api/family-members/:familyMemberId/dietary-preferences/:preferenceId", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.familyMemberId)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this family member's preferences");
+      }
+
+      await db
+        .delete(familyMemberDietaryPreferences)
+        .where(
+          and(
+            eq(familyMemberDietaryPreferences.familyMemberId, parseInt(req.params.familyMemberId)),
+            eq(familyMemberDietaryPreferences.dietaryPreferenceId, parseInt(req.params.preferenceId))
+          )
+        );
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing dietary preference from family member:", error);
+      res.status(500).send("Failed to remove dietary preference from family member");
+    }
+  });
+
+  // Family Member Meal Participation endpoints
+  app.get("/api/family-members/:familyMemberId/meal-participation", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.familyMemberId)),
+        with: {
+          mealParticipations: true,
+        },
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to view this family member's preferences");
+      }
+
+      res.json(familyMember.mealParticipations[0] || null);
+    } catch (error) {
+      console.error("Error fetching meal participation:", error);
+      res.status(500).send("Failed to fetch meal participation");
+    }
+  });
+
+  app.post("/api/family-members/:familyMemberId/meal-participation", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const familyMember = await db.query.familyMembers.findFirst({
+        where: eq(familyMembers.id, parseInt(req.params.familyMemberId)),
+      });
+
+      if (!familyMember) {
+        return res.status(404).send("Family member not found");
+      }
+
+      if (familyMember.userId !== user.id) {
+        return res.status(403).send("Not authorized to update this family member's preferences");
+      }
+
+      const result = insertFamilyMemberMealParticipationSchema.safeParse({
+        ...req.body,
+        familyMemberId: parseInt(req.params.familyMemberId),
+      });
+
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      // Remove existing participation if any
+      await db
+        .delete(familyMemberMealParticipation)
+        .where(eq(familyMemberMealParticipation.familyMemberId, parseInt(req.params.familyMemberId)));
+
+      const [participation] = await db
+        .insert(familyMemberMealParticipation)
+        .values(result.data)
+        .returning();
+
+      res.json(participation);
+    } catch (error) {
+      console.error("Error setting meal participation:", error);
+      res.status(500).send("Failed to set meal participation");
+    }
+  });
+
+  // Update recipe search to consider dietary preferences
+  app.get("/api/recipes/suggestions", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    const participantIds = req.query.participantIds ? 
+      (req.query.participantIds as string).split(',').map(id => parseInt(id)) : 
+      undefined;
+
+    try {
+      // Get dietary preferences for all participants
+      let participantPreferences: number[] = [];
+      if (participantIds?.length) {
+        const familyMemberPreferences = await db.query.familyMembers.findMany({
+          where: eq(familyMembers.userId, user.id),
+          with: {
+            dietaryPreferences: {
+              with: {
+                dietaryPreference: true,
+              },
+            },
+          },
+        });
+
+        participantPreferences = familyMemberPreferences
+          .filter(member => participantIds.includes(member.id))
+          .flatMap(member => member.dietaryPreferences.map(dp => dp.dietaryPreferenceId));
+      }
+
+      // Get recipes that are compatible with all participant preferences
+      const userRecipes = await db.query.recipes.findMany({
+        where: eq(recipes.userId, user.id),
+        with: {
+          ingredients: {
+            with: {
+              ingredient: true,
+            },
+          },
+          dietaryPreferences: {
+            with: {
+              dietaryPreference: true,
+            },
+          },
+        },
+      });
+
+      // Filter recipes based on dietary preferences
+      const compatibleRecipes = participantPreferences.length > 0
+        ? userRecipes.filter(recipe =>
+            participantPreferences.every(prefId =>
+              recipe.dietaryPreferences.some(dp =>
+                dp.dietaryPreferenceId === prefId && dp.isCompatible
+              )
+            )
+          )
+        : userRecipes;
+
+      res.json(compatibleRecipes);
+    } catch (error) {
+      console.error("Error fetching recipe suggestions:", error);
+      res.status(500).send("Failed to fetch recipe suggestions");
+    }
+  });
+
+  // Add new endpoint for recipe capture
+  app.post("/api/recipes/capture", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const capturedRecipe = {
+        title: req.body.name,
+        description: req.body.description || "",
+        ingredients: req.body.ingredients.map((ingredient: string) => ({
+          name: ingredient,
+          quantity: null,
+          unit: null,
+          notes: null
+        })),
+        instructions: req.body.instructions,
+        prepTime: req.body.prepTime ? parseInt(req.body.prepTime) : null,
+        cookTime: req.body.prepTime ? parseInt(req.body.cookTime) : null,
+        servings: req.body.servings ? parseInt(req.body.servings) : null,
+        sourceUrl: req.body.sourceUrl
+      };
+
+      const result = recipeSchema.safeParse(capturedRecipe);
+      if (!result.success) {
+        return res.status(400).send(
+          "Invalid recipe data: " + result.error.issues.map((i) => i.message).join(", ")
+        );
+      }
+
+      const recipe = await db.transaction(async (tx) => {
+        // Create the recipe first
+        const [recipe] = await tx
+          .insert(recipes)
+          .values({
+            ...capturedRecipe,
+            userId: user.id,
+          })
+          .returning();
+
+        // Process ingredients
+        for (const ingredient of capturedRecipe.ingredients) {
+          let [ingredientRecord] = await tx
+            .insert(ingredients)
+            .values({
+              name: ingredient.name.toLowerCase().trim(),
+            })
+            .onConflictDoUpdate({
+              target: ingredients.name,
+              set: { updatedAt: new Date() },
+            })
+            .returning();
+
+          // Create recipe-ingredient relationship
+          await tx.insert(recipeIngredients).values({
+            recipeId: recipe.id,
+            ingredientId: ingredientRecord.id,
+            quantity: ingredient.quantity,
+            unit: ingredient.unit,
+            notes: ingredient.notes,
+          });
+        }
+
+        return recipe;
+      });
+
+      res.json(recipe);
+    } catch (error) {
+      console.error("Error capturing recipe:", error);
+      res.status(500).send("Failed to capture recipe");
     }
   });
 
