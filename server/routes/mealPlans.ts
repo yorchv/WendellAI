@@ -2,20 +2,9 @@ import { Router } from "express";
 import { db } from "@db";
 import { mealPlans, familyMembers } from "@db/schema";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
+import { createMealPlanSchema, updateMealPlanSchema } from "../validators/mealPlans";
 
 const router = Router();
-
-const dateRangeSchema = z.object({
-  startDate: z.string().transform((val) => new Date(val)),
-  endDate: z.string().transform((val) => new Date(val)),
-}).refine(
-  (data) => {
-    const daysDiff = (data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24);
-    return daysDiff <= 30 && daysDiff >= 0;
-  },
-  "Date range must be between 0 and 30 days"
-);
 
 router.get("/", async (req, res) => {
   const user = req.user as { id: number } | undefined;
@@ -76,22 +65,16 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    const { createdAt, ...reqData } = req.body;
-    const transformedData = {
-      ...reqData,
-      weekStart: new Date(reqData.weekStart),
-      weekEnd: new Date(reqData.weekEnd),
-      days: reqData.days?.map(day => ({
-        ...day,
-        calendarDay: new Date(day.calendarDay).toISOString(),
-      })),
-    };
+    const result = createMealPlanSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ errors: result.error.issues });
+    }
 
     const [mealPlan] = await db
       .insert(mealPlans)
       .values({
         userId: user.id,
-        ...transformedData,
+        ...result.data,
       })
       .returning();
 
@@ -109,6 +92,11 @@ router.put("/:id", async (req, res) => {
   }
 
   try {
+    const result = updateMealPlanSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ errors: result.error.issues });
+    }
+
     const mealPlan = await db.query.mealPlans.findFirst({
       where: eq(mealPlans.id, parseInt(req.params.id)),
     });
@@ -121,20 +109,9 @@ router.put("/:id", async (req, res) => {
       return res.status(403).send("Not authorized to update this meal plan");
     }
 
-    const { createdAt, ...reqData } = req.body;
-    const transformedData = {
-      ...reqData,
-      weekStart: new Date(reqData.weekStart),
-      weekEnd: new Date(reqData.weekEnd),
-      days: reqData.days?.map(day => ({
-        ...day,
-        calendarDay: new Date(day.calendarDay).toISOString(),
-      })),
-    };
-
     const [updatedMealPlan] = await db
       .update(mealPlans)
-      .set(transformedData)
+      .set(result.data)
       .where(eq(mealPlans.id, parseInt(req.params.id)))
       .returning();
 
