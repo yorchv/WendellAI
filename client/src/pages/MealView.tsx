@@ -1,3 +1,4 @@
+
 import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,43 +39,41 @@ export default function MealView() {
   const mealType = params.type as MealType;
 
   const plan = mealPlans?.find(p => p.id === planId);
-  const dayMeal = plan?.meals?.find(m => m.day === day);
-  const mealData = dayMeal?.recipes[mealType];
+  const dayData = plan?.days?.find(d => d.dayName === day);
+  const mealData = dayData?.meals[mealType];
 
   const handleRemoveRecipe = async (recipeId: number) => {
     if (!plan || !mealData) return;
 
-    const updatedMeals = plan.meals?.map(meal => {
-      if (meal.day === day) {
+    const updatedDays = plan.days.map(d => {
+      if (d.dayName === day) {
         return {
-          ...meal,
-          recipes: {
-            ...meal.recipes,
+          ...d,
+          meals: {
+            ...d.meals,
             [mealType]: {
               recipeIds: mealData.recipeIds.filter(id => id !== recipeId),
-              participants: mealData.participants
+              participants: mealData.participants || []
             }
           }
         };
       }
-      return meal;
+      return d;
     });
 
-    if (updatedMeals) {
-      await updateMealPlan({ ...plan, meals: updatedMeals });
-    }
+    await updateMealPlan({ ...plan, days: updatedDays });
   };
 
   const handleAddRecipe = async (recipe: { id: number }) => {
     if (!plan) return;
 
-    const updatedMeals = plan.meals?.map(meal => {
-      if (meal.day === day) {
-        const currentMealData = meal.recipes[mealType] || { recipeIds: [], participants: [] };
+    const updatedDays = plan.days.map(d => {
+      if (d.dayName === day) {
+        const currentMealData = d.meals[mealType] || { recipeIds: [], participants: [] };
         return {
-          ...meal,
-          recipes: {
-            ...meal.recipes,
+          ...d,
+          meals: {
+            ...d.meals,
             [mealType]: {
               recipeIds: [...currentMealData.recipeIds, recipe.id],
               participants: currentMealData.participants
@@ -82,55 +81,42 @@ export default function MealView() {
           }
         };
       }
-      return meal;
+      return d;
     });
 
-    if (updatedMeals) {
-      await updateMealPlan({ ...plan, meals: updatedMeals });
-    }
+    await updateMealPlan({ ...plan, days: updatedDays });
     setIsSearchOpen(false);
   };
 
   const handleToggleParticipant = async (familyMemberId: number) => {
     if (!plan) return;
 
-    const updatedMeals = plan.meals?.map(meal => {
-      if (meal.day === day) {
-        const currentMealData = meal.recipes[mealType] || { recipeIds: [], participants: [] };
-        const updatedParticipants = currentMealData.participants || [];
-
-        const newParticipants = updatedParticipants.includes(familyMemberId)
-          ? updatedParticipants.filter(id => id !== familyMemberId)
-          : [...updatedParticipants, familyMemberId];
+    const updatedDays = plan.days.map(d => {
+      if (d.dayName === day) {
+        const currentMealData = d.meals[mealType] || { recipeIds: [], participants: [] };
+        const newParticipants = currentMealData.participants?.includes(familyMemberId)
+          ? currentMealData.participants.filter(id => id !== familyMemberId)
+          : [...(currentMealData.participants || []), familyMemberId];
 
         return {
-          ...meal,
-          recipes: {
-            ...meal.recipes,
+          ...d,
+          meals: {
+            ...d.meals,
             [mealType]: {
-              ...currentMealData,
+              recipeIds: currentMealData.recipeIds,
               participants: newParticipants
             }
           }
         };
       }
-      return meal;
+      return d;
     });
 
-    if (updatedMeals) {
-      await updateMealPlan({ ...plan, meals: updatedMeals });
-    }
+    await updateMealPlan({ ...plan, days: updatedDays });
   };
 
   const recipesMap = recipes?.reduce((acc, recipe) => {
-    acc[recipe.id] = {
-      id: recipe.id,
-      title: recipe.title,
-      description: recipe.description || undefined,
-      prepTime: recipe.prepTime || undefined,
-      cookTime: recipe.cookTime || undefined,
-      servings: recipe.servings || undefined
-    };
+    acc[recipe.id] = recipe;
     return acc;
   }, {} as Record<number, Recipe>) ?? {};
 
@@ -148,7 +134,9 @@ export default function MealView() {
         <h1 className="text-3xl font-bold">
           {day} {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
         </h1>
-        <p className="text-muted-foreground">{format(new Date(plan?.weekStart || new Date()), "MMMM d, yyyy")}</p>
+        <p className="text-muted-foreground">
+          {plan && format(new Date(plan.weekStart), "MMMM d, yyyy")}
+        </p>
       </div>
 
       <div className="space-y-6">
