@@ -50,7 +50,7 @@ function AppContent() {
         <Navigation user={user} />
         <main className="container mx-auto px-4 py-8">
           <Switch>
-            <Route path="/" component={Dashboard} />
+            <Route path="/" component={MealPlanner} />
             <Route path="/recipes" component={RecipesPage} />
             <Route path="/recipes/:id" component={RecipeView} />
             <Route path="/meal-planner" component={MealPlanner} />
