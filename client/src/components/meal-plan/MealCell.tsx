@@ -30,9 +30,11 @@ interface MealCellProps {
 
 export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
-  const mealData = meal?.[mealType];
-  const displayedRecipes = mealData?.recipeIds?.slice(0, 2) || [];
-  const remainingCount = (mealData?.recipeIds?.length || 0) - displayedRecipes.length;
+  const mealData = meal?.meals?.find(m => m.mealType === mealType) || meal?.[mealType];
+  const recipeIds = mealData?.recipes || mealData?.recipeIds || [];
+  const displayedRecipes = recipeIds.slice(0, 2);
+  const remainingCount = recipeIds.length - displayedRecipes.length;
+  const participants = mealData?.participants || [];
 
   const handleClick = () => {
     if (planId) {
