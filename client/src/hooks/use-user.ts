@@ -74,7 +74,7 @@ export function useUser() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (userData: UserCredentials) => handleRequest('/api/login', 'POST', userData),
+    mutationFn: (userData: UserCredentials) => handleRequest('/api/auth/login', 'POST', userData),
     onSuccess: (result) => {
       if (!result.ok) {
         toast({
@@ -89,7 +89,7 @@ export function useUser() {
   });
 
   const logoutMutation = useMutation({
-    mutationFn: () => handleRequest('/api/logout', 'POST'),
+    mutationFn: () => handleRequest('/api/auth/logout', 'POST'),
     onSuccess: (result) => {
       if (!result.ok) {
         toast({
@@ -104,7 +104,7 @@ export function useUser() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: (userData: UserCredentials) => handleRequest('/api/register', 'POST', userData),
+    mutationFn: (userData: UserCredentials) => handleRequest('/api/auth/register', 'POST', userData),
     onSuccess: (result) => {
       if (!result.ok) {
         toast({
