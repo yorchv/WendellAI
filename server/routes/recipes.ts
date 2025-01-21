@@ -3,7 +3,7 @@ import { Router } from "express";
 import { db } from "@db";
 import { recipes, ingredients, recipeIngredients } from "@db/schema";
 import { eq, and } from "drizzle-orm";
-import { generateRecipe } from "../perplexity";
+import { generateRecipe } from "../libraries/perplexity";
 import { analyzeRecipeImage } from "../claude";
 import { generateRecipeImage } from "../libraries/image-generation";
 import { z } from "zod";
