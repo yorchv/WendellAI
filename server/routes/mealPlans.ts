@@ -38,10 +38,10 @@ router.get("/", async (req, res) => {
 
     const enhancedMealPlans = userMealPlans.map(plan => ({
       ...plan,
-      meals: plan.meals?.map(meal => ({
-        ...meal,
-        recipes: meal.recipes ? Object.fromEntries(
-          Object.entries(meal.recipes || {}).map(([mealType, mealData]) => {
+      days: plan.days?.map(day => ({
+        ...day,
+        meals: Object.fromEntries(
+          Object.entries(day.meals || {}).map(([mealType, mealData]) => {
             if (!mealData) return [mealType, { recipeIds: [], participants: [] }];
 
             const participants = mealData.participants ?? familyMemberParticipations
@@ -58,7 +58,7 @@ router.get("/", async (req, res) => {
               participants 
             }];
           })
-        ) : {},
+        ),
       })),
     }));
 
