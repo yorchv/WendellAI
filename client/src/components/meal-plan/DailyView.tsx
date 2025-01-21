@@ -89,7 +89,7 @@ function getTimelineProgress(startTime: Date, mealTime: Date): number {
 
 export function DailyView({ planId, date, days, recipes, familyMembers, onAddRecipe }: DailyViewProps) {
   const dayOfWeek = format(date, 'EEEE') as DayType;
-  const dayData = days.find(day => day.dayName === dayOfWeek);
+  const dayData = days?.find(day => day.dayName === dayOfWeek);
 
 
   return (

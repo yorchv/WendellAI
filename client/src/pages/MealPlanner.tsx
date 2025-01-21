@@ -165,7 +165,7 @@ export default function MealPlanner() {
               <DailyView
                 planId={currentWeekPlan.id}
                 date={selectedDate}
-                meals={currentWeekPlan.meals}
+                days={currentWeekPlan.days}
                 recipes={recipesLookup}
                 familyMembers={familyMembersMap} // Added familyMembers prop
                 onAddRecipe={(day, mealType) => {
