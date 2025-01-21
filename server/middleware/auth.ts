@@ -8,6 +8,7 @@ import { users, type SelectUser } from "@db/schema";
 import { db } from "@db";
 import { eq } from "drizzle-orm";
 import { type Express } from "express";
+import connectPgSimple from "connect-pg-simple";
 
 const scryptAsync = promisify(scrypt);
 const crypto = {
@@ -35,7 +36,15 @@ declare global {
 }
 
 export function setupAuth(app: Express) {
+  const PgSession = connectPgSimple(session);
   const sessionSettings: session.SessionOptions = {
+    store: new PgSession({
+      conObject: {
+        connectionString: process.env.DATABASE_URL,
+      },
+      tableName: 'sessions',
+      createTableIfMissing: false,
+    }),
     secret: process.env.REPL_ID || "porygon-supremacy",
     resave: false,
     saveUninitialized: false,
