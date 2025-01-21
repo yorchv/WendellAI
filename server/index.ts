@@ -27,8 +27,7 @@ setupAuth(app);
 // Logger middleware
 app.use(loggerMiddleware);
 
-// Apply rate limiting to API routes
-app.use("/api", limiter);
+// Rate limiter removed from here as per instruction
 
 (async () => {
   app.use("/api", routes);
