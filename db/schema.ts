@@ -252,12 +252,13 @@ export const dayEnum = [
 export type DayType = typeof dayEnum[number];
 
 export type MealPlan = typeof mealPlans.$inferSelect & {
-  meals?: Array<{
-    day: DayType;
-    recipes: {
+  days?: Array<{
+    dayName: DayType;
+    calendarDay: string;
+    meals: {
       [key in MealType]?: {
         recipeIds: number[];
-        participants?: number[];
+        participants: number[];
       };
     };
   }>;
