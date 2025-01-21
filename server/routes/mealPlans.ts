@@ -41,8 +41,10 @@ router.get("/", async (req, res) => {
       ...plan,
       meals: plan.meals?.map(meal => ({
         ...meal,
-        recipes: Object.fromEntries(
-          Object.entries(meal.recipes).map(([mealType, mealData]) => {
+        recipes: meal.recipes ? Object.fromEntries(
+          Object.entries(meal.recipes || {}).map(([mealType, mealData]) => {
+            if (!mealData) return [mealType, { recipeIds: [], participants: [] }];
+            
             const participants = mealData.participants ?? familyMemberParticipations
               .filter(member => 
                 member.mealParticipations.some(mp => 
@@ -52,9 +54,12 @@ router.get("/", async (req, res) => {
               )
               .map(member => member.id);
 
-            return [mealType, { ...mealData, participants }];
+            return [mealType, { 
+              recipeIds: mealData.recipeIds || [],
+              participants 
+            }];
           })
-        ),
+        ) : {},
       })),
     }));
 
