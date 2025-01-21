@@ -72,3 +72,13 @@ export function generateMealsData(
     };
   });
 }
+import { addDays, format } from "date-fns";
+import { DayType, MealType, dayEnum } from "@db/schema";
+
+export function initializeMealPlanDays(weekStart: Date) {
+  return dayEnum.map((dayName, index) => ({
+    dayName,
+    calendarDay: format(addDays(weekStart, index), "yyyy-MM-dd"),
+    meals: {}
+  }));
+}

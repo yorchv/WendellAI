@@ -11,10 +11,14 @@ export function useMealPlans() {
 
   const createMealPlan = useMutation({
     mutationFn: async (mealPlan: Omit<MealPlan, "id" | "userId" | "createdAt">) => {
+      const weekStart = new Date(mealPlan.weekStart);
       const response = await fetch("/api/meal-plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mealPlan),
+        body: JSON.stringify({
+          ...mealPlan,
+          days: initializeMealPlanDays(weekStart)
+        }),
         credentials: "include",
       });
 
