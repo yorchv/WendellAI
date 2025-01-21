@@ -66,7 +66,7 @@ export default function AuthPage() {
           <div className="flex justify-center mb-4">
             <ChefHat className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-3xl">WendellAI</CardTitle>
+          <CardTitle className="text-3xl logo">WendellAI</CardTitle>
           <CardDescription>
             {isLogin
               ? "Welcome back! Sign in to your account"

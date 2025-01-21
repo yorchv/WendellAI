@@ -49,4 +49,8 @@
   .button {
     @apply bg-primary text-primary-foreground hover:opacity-90 transition-opacity;
   }
+
+  .logo {
+    @apply font-sans text-[#4CAF50];
+  }
 }
