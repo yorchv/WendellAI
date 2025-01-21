@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import { db } from "@db";
 import { mealPlans, familyMembers } from "@db/schema";
@@ -44,7 +43,7 @@ router.get("/", async (req, res) => {
         recipes: meal.recipes ? Object.fromEntries(
           Object.entries(meal.recipes || {}).map(([mealType, mealData]) => {
             if (!mealData) return [mealType, { recipeIds: [], participants: [] }];
-            
+
             const participants = mealData.participants ?? familyMemberParticipations
               .filter(member => 
                 member.mealParticipations.some(mp => 
@@ -82,6 +81,10 @@ router.post("/", async (req, res) => {
       ...reqData,
       weekStart: new Date(reqData.weekStart),
       weekEnd: new Date(reqData.weekEnd),
+      days: reqData.days?.map(day => ({
+        ...day,
+        calendarDay: new Date(day.calendarDay).toISOString(),
+      })),
     };
 
     const [mealPlan] = await db
@@ -123,6 +126,10 @@ router.put("/:id", async (req, res) => {
       ...reqData,
       weekStart: new Date(reqData.weekStart),
       weekEnd: new Date(reqData.weekEnd),
+      days: reqData.days?.map(day => ({
+        ...day,
+        calendarDay: new Date(day.calendarDay).toISOString(),
+      })),
     };
 
     const [updatedMealPlan] = await db
