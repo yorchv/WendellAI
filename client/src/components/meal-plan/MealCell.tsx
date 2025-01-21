@@ -30,9 +30,9 @@ interface MealCellProps {
 
 export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
-  const mealData = meal?.meals?.find(m => m.mealType === mealType);
-  const displayedRecipes = mealData?.recipes?.slice(0, 2) || [];
-  const remainingCount = (mealData?.recipes?.length || 0) - displayedRecipes.length;
+  const mealData = meal?.[mealType];
+  const displayedRecipes = mealData?.recipeIds?.slice(0, 2) || [];
+  const remainingCount = (mealData?.recipeIds?.length || 0) - displayedRecipes.length;
 
   const handleClick = () => {
     if (planId) {
@@ -43,7 +43,7 @@ export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, 
   return (
     <Card className="h-32">
       <CardContent className="p-4 h-full">
-        {(meal?.meals?.find(m => m.mealType === mealType)?.recipes?.length || 0) > 0 ? (
+        {(mealData?.recipeIds?.length || 0) > 0 ? (
           <div 
             className="space-y-2 cursor-pointer hover:bg-accent/50 h-full"
             onClick={handleClick}
