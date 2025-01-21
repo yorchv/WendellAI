@@ -5,7 +5,7 @@ import { recipes, ingredients, recipeIngredients } from "@db/schema";
 import { eq, and } from "drizzle-orm";
 import { generateRecipe } from "../perplexity";
 import { analyzeRecipeImage } from "../claude";
-import { generateRecipeImage } from "../image-generation";
+import { generateRecipeImage } from "../libraries/image-generation";
 import { z } from "zod";
 
 const router = Router();

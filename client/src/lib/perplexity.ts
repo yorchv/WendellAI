@@ -1,3 +1,4 @@
+// server/libraries/perplexity.ts
 const PERPLEXITY_API_KEY = import.meta.env.VITE_PERPLEXITY_API_KEY;
 
 interface PerplexityResponse {
@@ -45,3 +46,19 @@ export async function generateRecipe(prompt: string) {
     sources: data.citations,
   };
 }
+
+
+// Example of a file using the updated import path (This file would need to exist in the original project)
+// server/someOtherFile.ts
+import { generateRecipe } from "../../../server/libraries/perplexity";
+
+async function myFunction() {
+    const recipe = await generateRecipe("Spaghetti recipe");
+    console.log(recipe);
+}
+
+myFunction();
+
+// Placeholder files -  These files would need to be moved to server/libraries
+// server/libraries/claude.ts
+// server/libraries/image-generation.ts
