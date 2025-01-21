@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MealPlan } from "@db/schema";
 import { format, startOfDay } from "date-fns";
+import { initializeMealPlanDays } from "@/lib/meal-planner";
 
 export function useMealPlans() {
   const queryClient = useQueryClient();

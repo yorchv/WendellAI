@@ -1,11 +1,9 @@
-import { MealPlan } from "@db/schema";
-import { startOfWeek, addDays, format } from "date-fns";
 
-export type DayType = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
-export type MealType = "breakfast" | "lunch" | "dinner";
+import { addDays, format, startOfWeek } from "date-fns";
+import { DayType, MealType, MealPlan, dayEnum, mealTypeEnum } from "@db/schema";
 
-export const DAYS: DayType[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-export const MEAL_TYPES: MealType[] = ["breakfast", "lunch", "dinner"];
+export const DAYS: DayType[] = [...dayEnum];
+export const MEAL_TYPES: MealType[] = [...mealTypeEnum];
 
 export interface Meal {
   mealType: MealType;
@@ -72,8 +70,6 @@ export function generateMealsData(
     };
   });
 }
-import { addDays, format } from "date-fns";
-import { DayType, MealType, dayEnum } from "@db/schema";
 
 export function initializeMealPlanDays(weekStart: Date) {
   return dayEnum.map((dayName, index) => ({
