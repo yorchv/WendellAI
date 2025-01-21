@@ -91,7 +91,7 @@ export default function Marketing() {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-6">
             <h1 className="text-5xl md:text-6xl font-heading tracking-tight">
-              Smart <span className="text-accent italic">Meal Planning</span> Assistant
+              Smart <span className="text-primary italic">Meal Planning</span> Assistant
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto font-serif">
               An open-source AI-powered meal planner built to make your cooking journey easier and more enjoyable.
