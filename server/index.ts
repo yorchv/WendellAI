@@ -2,7 +2,9 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import rateLimit from "express-rate-limit";
 import routes from "./routes/index";
+import { setupAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
+import { loggerMiddleware } from "./middleware/logger";
 
 const app = express();
 app.use(express.json({ limit: "50mb" }));
@@ -19,21 +21,14 @@ const limiter = rateLimit({
   },
 });
 
-// Apply rate limiting to all API routes
-// app.use("/api", limiter);
-
-// Handle 404 errors for API routes
-// app.use("/api/*", (req, res) => {
-//   res.status(404).json({
-//     status: 404,
-//     message: "API endpoint not found",
-//   });
-// });
-
-import { loggerMiddleware } from "./middleware/logger";
+// Setup auth first
+setupAuth(app);
 
 // Logger middleware
 app.use(loggerMiddleware);
+
+// Apply rate limiting to API routes
+app.use("/api", limiter);
 
 (async () => {
   app.use("/api", routes);

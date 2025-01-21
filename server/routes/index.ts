@@ -8,6 +8,7 @@ import familyRoutes from "./family";
 
 const router = Router();
 
+// These routes will be prefixed with /api automatically
 router.use("/auth", authRoutes);
 router.use("/recipes", recipeRoutes);
 router.use("/meal-plans", mealPlanRoutes);
