@@ -81,10 +81,11 @@ export function useMealPlans() {
 
     return {
       ...currentPlan,
-      meals: currentPlan.meals?.map(meal => ({
-        ...meal,
-        recipes: Object.fromEntries(
-          Object.entries(meal.recipes || {}).map(([key, value]) => [
+      days: currentPlan.days?.map(day => ({
+        ...day,
+        calendarDay: new Date(day.calendarDay).toISOString(),
+        meals: Object.fromEntries(
+          Object.entries(day.meals || {}).map(([key, value]) => [
             key,
             { recipeIds: value?.recipeIds || [], participants: value?.participants || [] }
           ])
