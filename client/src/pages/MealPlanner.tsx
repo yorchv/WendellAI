@@ -156,7 +156,7 @@ export default function MealPlanner() {
                 planId={currentWeekPlan.id}
                 weekStart={weekStart}
                 weekEnd={weekEnd}
-                meals={currentWeekPlan.meals}
+                days={currentWeekPlan.days}
                 recipes={recipesLookup}
                 familyMembers={familyMembersMap} // Added familyMembers prop
                 onAddRecipe={(day, mealType) => {
