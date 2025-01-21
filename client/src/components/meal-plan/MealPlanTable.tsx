@@ -93,7 +93,8 @@ export function MealPlanTable({
               <TableRow key={mealType}>
                 <TableCell className="font-medium capitalize bg-muted/50">{mealType}</TableCell>
                 {days.map((day) => {
-                  const mealData = meals[day]?.[mealType];
+                  const dayData = days.find(d => d.dayName === day);
+                  const mealData = dayData?.meals[mealType];
 
                   return (
                     <TableCell 
