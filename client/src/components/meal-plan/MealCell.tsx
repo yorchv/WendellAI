@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Plus, Users } from "lucide-react";
 import { useLocation } from "wouter";
@@ -16,22 +17,18 @@ interface MealCellProps {
   planId: number | undefined;
   day: DayType;
   mealType: MealType;
-  meal?: {
-    meals: Array<{
-      mealType: MealType;
-      recipes: number[];
-      participants: number[];
-    }>;
+  mealData?: {
+    recipeIds: number[];
+    participants: number[];
   };
   recipes: Record<number, Recipe>;
   familyMembers: Record<number, { id: number; name: string }>;
   onAddNew?: () => void;
 }
 
-export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, onAddNew }: MealCellProps) {
+export function MealCell({ planId, day, mealType, mealData, recipes, familyMembers, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
-  const mealData = meal?.meals?.find(m => m.mealType === mealType) || meal?.[mealType];
-  const recipeIds = mealData?.recipes || mealData?.recipeIds || [];
+  const recipeIds = mealData?.recipeIds || [];
   const displayedRecipes = recipeIds.slice(0, 2);
   const remainingCount = recipeIds.length - displayedRecipes.length;
   const participants = mealData?.participants || [];
@@ -45,7 +42,7 @@ export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, 
   return (
     <Card className="h-32">
       <CardContent className="p-4 h-full">
-        {(mealData?.recipeIds?.length || 0) > 0 ? (
+        {recipeIds.length > 0 ? (
           <div 
             className="space-y-2 cursor-pointer hover:bg-accent/50 h-full"
             onClick={handleClick}
@@ -67,14 +64,14 @@ export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, 
                     )}
                     <div className="flex items-center gap-1 group relative">
                       <Users className="h-3 w-3 flex-shrink-0" />
-                      <span>{mealData?.participants?.length || 0}</span>
-                      {(mealData?.participants?.length || 0) > 0 && (
+                      <span>{participants.length}</span>
+                      {participants.length > 0 && (
                         <div className="absolute bottom-full mb-2 hidden group-hover:block bg-popover text-popover-foreground rounded-md shadow-md p-2 text-xs w-max">
-                          {mealData.participants.slice(0, 5).map((id) => (
-                            <div key={id}>{familyMembers?.[id]?.name || `User ${id}`}</div>
+                          {participants.slice(0, 5).map((id) => (
+                            <div key={id}>{familyMembers[id]?.name || `User ${id}`}</div>
                           ))}
-                          {mealData.participants.length > 5 && (
-                            <div className="text-muted-foreground">+{mealData.participants.length - 5} more eaters in this meal</div>
+                          {participants.length > 5 && (
+                            <div className="text-muted-foreground">+{participants.length - 5} more eaters in this meal</div>
                           )}
                         </div>
                       )}
