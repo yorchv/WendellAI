@@ -105,7 +105,7 @@ export function MealPlanTable({
                         planId={planId}
                         day={day}
                         mealType={mealType}
-                        meal={days.find(d => d.dayName === day)?.meals[mealType]}
+                        mealData={days.find(d => d.dayName === day)?.meals[mealType]}
                         recipes={recipes}
                         familyMembers={familyMembers}
                         onAddNew={() => onAddRecipe?.(day, mealType)}
