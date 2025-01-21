@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import rateLimit from "express-rate-limit";
 import routes from "./routes/index";
-import { setupAuth } from "./auth";
+import { setupAuth } from "./middleware/auth";
 import { setupVite, serveStatic, log } from "./vite";
 import { loggerMiddleware } from "./middleware/logger";
 
