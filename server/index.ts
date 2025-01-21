@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import rateLimit from "express-rate-limit";
-import routes from "./routes";
+import routes from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
@@ -29,6 +29,7 @@ const limiter = rateLimit({
 //   });
 // });
 
+// Logger middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
