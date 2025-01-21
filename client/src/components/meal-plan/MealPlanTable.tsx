@@ -18,12 +18,15 @@ interface MealPlanTableProps {
   planId: number | undefined;
   weekStart: Date;
   weekEnd: Date;
-  meals: Array<{
-    day: DayType;
-    recipes: Record<MealType, {
-      recipeIds: number[];
-      participants: number[];
-    }>;
+  days: Array<{
+    dayName: DayType;
+    calendarDay: string;
+    meals: {
+      [key in MealType]?: {
+        recipeIds: number[];
+        participants: number[];
+      };
+    };
   }>;
   recipes: Record<number, Recipe>;
   familyMembers: Record<number, { id: number; name: string }>;
@@ -101,7 +104,7 @@ export function MealPlanTable({
                         planId={planId}
                         day={day}
                         mealType={mealType}
-                        meal={meals.find(m => m.day === day)?.recipes[mealType]}
+                        meal={days.find(d => d.dayName === day)?.meals[mealType]}
                         recipes={recipes}
                         familyMembers={familyMembers}
                         onAddNew={() => onAddRecipe?.(day, mealType)}
