@@ -13,6 +13,5 @@ router.use("/auth", authRoutes);
 router.use("/recipes", recipeRoutes);
 router.use("/meal-plans", mealPlanRoutes);
 router.use("/shopping-list", shoppingListRoutes);
-router.use("/family", familyRoutes);
-
+router.use("/family-members", familyRoutes);
 export default router;
