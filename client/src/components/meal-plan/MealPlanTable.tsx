@@ -38,7 +38,7 @@ export function MealPlanTable({
   planId,   
   weekStart, 
   weekEnd, 
-  meals, 
+  days, 
   recipes,
   familyMembers,
   onAddRecipe,
@@ -50,7 +50,7 @@ export function MealPlanTable({
     recipeIds: number[];
   } | null>(null);
 
-  const days: DayType[] = [
+  const daysOfWeek: DayType[] = [
     "Monday",
     "Tuesday",
     "Wednesday",
@@ -69,7 +69,7 @@ export function MealPlanTable({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[14.28%] bg-muted">Meal</TableHead>
-              {days.map((day) => (
+              {daysOfWeek.map((day) => (
                 <TableHead 
                   key={day} 
                   className={`w-[14.28%] text-center bg-muted ${
@@ -80,7 +80,7 @@ export function MealPlanTable({
                   <br />
                   <span className="text-xs text-muted-foreground">
                     {format(
-                      new Date(weekStart.getTime() + days.indexOf(day) * 24 * 60 * 60 * 1000),
+                      new Date(weekStart.getTime() + daysOfWeek.indexOf(day) * 24 * 60 * 60 * 1000),
                       "MMM d"
                     )}
                   </span>
@@ -92,7 +92,7 @@ export function MealPlanTable({
             {mealTypes.map((mealType) => (
               <TableRow key={mealType}>
                 <TableCell className="font-medium capitalize bg-muted/50">{mealType}</TableCell>
-                {days.map((day) => {
+                {daysOfWeek.map((day) => {
                   const dayData = days.find(d => d.dayName === day);
                   const mealData = dayData?.meals[mealType];
 
@@ -105,7 +105,7 @@ export function MealPlanTable({
                         planId={planId}
                         day={day}
                         mealType={mealType}
-                        mealData={days.find(d => d.dayName === day)?.meals[mealType]}
+                        mealData={dayData?.meals[mealType]}
                         recipes={recipes}
                         familyMembers={familyMembers}
                         onAddNew={() => onAddRecipe?.(day, mealType)}
