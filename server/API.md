@@ -36,3 +36,51 @@
 ### Family Member Dietary Preferences
 - `POST /api/family-members/:familyMemberId/dietary-preferences` - Add dietary preference to family member
 - `DELETE /api/family-members/:familyMemberId/dietary-preferences/:preferenceId` - Remove dietary preference from family member
+# API Documentation
+
+## Route Structure
+
+The API routes are organized into the following domains:
+
+- `/api/auth`: Authentication routes
+- `/api/recipes`: Recipe management
+- `/api/meal-plans`: Meal planning
+- `/api/shopping-list`: Shopping list management
+- `/api/family`: Family member and dietary preferences management
+
+### Authentication Routes (`/api/auth`)
+- POST `/register`: Register a new user
+- POST `/login`: Login user
+- POST `/logout`: Logout user
+- GET `/user`: Get current user information
+
+### Recipe Routes (`/api/recipes`)
+- GET `/`: Get all user recipes
+- GET `/:id`: Get specific recipe
+- POST `/generate`: Generate recipe using AI
+- POST `/analyze-image`: Analyze recipe from image
+- POST `/:id/generate-image`: Generate image for recipe
+- POST `/`: Create new recipe
+
+### Meal Plan Routes (`/api/meal-plans`)
+- GET `/`: Get all meal plans
+- POST `/`: Create new meal plan
+- PUT `/:id`: Update meal plan
+- DELETE `/:id`: Delete meal plan
+
+### Shopping List Routes (`/api/shopping-list`)
+- GET `/`: Get shopping list items
+- POST `/`: Add shopping list item
+- PUT `/:id`: Update shopping list item
+
+### Family Routes (`/api/family`)
+- GET `/`: Get family members
+- POST `/`: Create family member
+- GET `/dietary-preferences`: Get all dietary preferences
+- POST `/dietary-preferences`: Create dietary preference
+- POST `/:familyMemberId/dietary-preferences`: Add dietary preference to family member
+- DELETE `/:familyMemberId/dietary-preferences/:preferenceId`: Remove dietary preference
+- GET `/:familyMemberId/meal-participation`: Get meal participation
+- POST `/:familyMemberId/meal-participation`: Set meal participation
+
+Each route handles authentication and performs proper validation of input data. Error responses include appropriate status codes and messages.
