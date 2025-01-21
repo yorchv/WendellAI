@@ -43,7 +43,7 @@ async function handleRequest(
 }
 
 async function fetchUser(): Promise<User | null> {
-  const response = await fetch('/api/user', {
+  const response = await fetch('/api/auth/user', {
     credentials: 'include'
   });
 
