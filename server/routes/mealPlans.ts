@@ -31,16 +31,13 @@ router.get("/", async (req, res) => {
         ...day,
         meals: Object.fromEntries(
           Object.entries(day.meals || {}).map(([mealType, mealData]) => {
-            if (!mealData) return [mealType, { recipeIds: [], participants: [] }];
+            if (!mealData) {
+              // When a new meal is created, include all family members
+              const allFamilyMemberIds = familyMemberParticipations.map(member => member.id);
+              return [mealType, { recipeIds: [], participants: allFamilyMemberIds }];
+            }
 
-            const participants = mealData.participants ?? familyMemberParticipations
-              .filter(member => 
-                member.mealParticipations.some(mp => 
-                  mp.defaultParticipation && 
-                  (!mp.defaultMeals || mp.defaultMeals.includes(mealType as MealType))
-                )
-              )
-              .map(member => member.id);
+            const participants = mealData.participants ?? familyMemberParticipations.map(member => member.id);
 
             return [mealType, { 
               recipeIds: mealData.recipeIds || [],
