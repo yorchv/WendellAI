@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Users, ChefHat, ArrowLeft, PlayCircle } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { RecipeManager } from "@/components/RecipeManager";
+import { GenerateRecipeImage } from "@/components/GenerateRecipeImage";
 
 interface RecipeWithIngredients extends Recipe {
   ingredients: (RecipeIngredient & {
@@ -66,18 +67,31 @@ export default function RecipeView() {
       </div>
 
       <div className="space-y-8">
-        {recipe.image && (
-          <div className="relative h-64 md:h-96 rounded-xl overflow-hidden">
-            <img
-              src={recipe.image}
-              alt={recipe.title}
-              className="object-cover w-full h-full"
-            />
-          </div>
-        )}
+        <div className="relative">
+          {recipe.image ? (
+            <div className="relative h-64 md:h-96 rounded-xl overflow-hidden">
+              <img
+                src={recipe.image}
+                alt={recipe.title}
+                className="object-cover w-full h-full"
+              />
+            </div>
+          ) : (
+            <div className="relative h-64 md:h-96 rounded-xl bg-secondary/10 flex flex-col items-center justify-center">
+              <p className="text-muted-foreground mb-4">No image available</p>
+              <GenerateRecipeImage
+                recipeId={recipe.id}
+                onImageGenerated={(imageUrl) => {
+                  // Refetch the recipe data to show the new image
+                  window.location.reload();
+                }}
+              />
+            </div>
+          )}
+        </div>
 
         <div className="space-y-4">
-          <h1 className="text-4xl font-bold">{recipe.title}</h1>
+          <h1 className="text-4xl font-heading font-bold">{recipe.title}</h1>
 
           <div className="flex items-center gap-6 text-muted-foreground">
             {(recipe.prepTime || recipe.cookTime) && (
@@ -97,18 +111,18 @@ export default function RecipeView() {
           </div>
 
           {recipe.description && (
-            <p className="text-muted-foreground">{recipe.description}</p>
+            <p className="text-muted-foreground font-serif">{recipe.description}</p>
           )}
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
           <Card>
             <CardContent className="pt-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-heading font-semibold mb-4 flex items-center gap-2">
                 <ChefHat className="h-5 w-5" />
                 Ingredients
               </h2>
-              <ul className="space-y-2">
+              <ul className="space-y-2 font-serif">
                 {recipe.ingredients.map((ingredient, index) => (
                   <li key={index} className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-primary" />
@@ -120,7 +134,7 @@ export default function RecipeView() {
                       )}
                       {ingredient.ingredient.name}
                       {ingredient.notes && (
-                        <span className="text-sm text-muted-foreground ml-2">
+                        <span className="text-sm text-muted-foreground ml-2 italic">
                           ({ingredient.notes})
                         </span>
                       )}
@@ -133,8 +147,8 @@ export default function RecipeView() {
 
           <Card>
             <CardContent className="pt-6">
-              <h2 className="text-xl font-semibold mb-4">Instructions</h2>
-              <ol className="space-y-4">
+              <h2 className="text-xl font-heading font-semibold mb-4">Instructions</h2>
+              <ol className="space-y-4 font-serif">
                 {recipe.instructions.map((step, index) => (
                   <li key={index} className="flex gap-4">
                     <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium">

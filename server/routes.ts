@@ -25,6 +25,7 @@ import { eq, and, between } from "drizzle-orm";
 import { z } from "zod";
 import { generateRecipe } from "./perplexity";
 import { analyzeRecipeImage } from "./claude";
+import { generateRecipeImage } from "./image-generation";
 
 
 // Schema for waitlist email validation
@@ -1512,6 +1513,42 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error fetching recipe suggestions:", error);
       res.status(500).send("Failed to fetch recipe suggestions");
+    }
+  });
+
+  // Add new endpoint for recipe image generation
+  app.post("/api/recipes/:id/generate-image", async (req, res) => {
+    const user = req.user as { id: number } | undefined;
+    if (!user?.id) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const recipe = await db.query.recipes.findFirst({
+        where: eq(recipes.id, parseInt(req.params.id)),
+      });
+
+      if (!recipe) {
+        return res.status(404).send("Recipe not found");
+      }
+
+      if (recipe.userId !== user.id) {
+        return res.status(403).send("Not authorized to modify this recipe");
+      }
+
+      const imageUrl = await generateRecipeImage(recipe.title, recipe.description || "");
+
+      // Update the recipe with the generated image URL
+      const [updatedRecipe] = await db
+        .update(recipes)
+        .set({ imageUrl })
+        .where(eq(recipes.id, parseInt(req.params.id)))
+        .returning();
+
+      res.json({ imageUrl: updatedRecipe.imageUrl });
+    } catch (error) {
+      console.error("Error generating recipe image:", error);
+      res.status(500).send("Failed to generate recipe image");
     }
   });
 

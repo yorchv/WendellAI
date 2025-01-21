@@ -79,7 +79,7 @@ export default function Marketing() {
       {/* Navigation */}
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-primary">WendellAI</div>
+          <div className="text-2xl font-heading text-primary">WendellAI</div>
           <div className="text-sm text-muted-foreground bg-secondary/20 px-3 py-1.5 rounded-md">
             Currently in closed beta
           </div>
@@ -90,10 +90,10 @@ export default function Marketing() {
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-6">
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-              Smart <span className="text-primary">Meal Planning</span> Assistant
+            <h1 className="text-5xl md:text-6xl font-heading tracking-tight">
+              Smart <span className="text-accent italic">Meal Planning</span> Assistant
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto font-serif">
               An open-source AI-powered meal planner built to make your cooking journey easier and more enjoyable.
             </p>
 
@@ -130,21 +130,21 @@ export default function Marketing() {
             </div>
 
             {/* Feature Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
-              <div className="p-4 rounded-lg bg-secondary/20">
-                <ChefHat className="h-8 w-8 text-primary mx-auto mb-2" />
-                <h3 className="font-semibold mb-1">AI Recipe Generation</h3>
-                <p className="text-sm text-muted-foreground">Generate personalized recipes based on your preferences</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-12">
+              <div className="p-6 bg-card">
+                <ChefHat className="h-8 w-8 text-primary mx-auto mb-4" />
+                <h3 className="font-heading text-xl mb-2">AI Recipe Generation</h3>
+                <p className="text-muted-foreground font-serif">Generate personalized recipes based on your preferences</p>
               </div>
-              <div className="p-4 rounded-lg bg-secondary/20">
-                <ShoppingCart className="h-8 w-8 text-primary mx-auto mb-2" />
-                <h3 className="font-semibold mb-1">Smart Shopping Lists</h3>
-                <p className="text-sm text-muted-foreground">Automatically create organized shopping lists</p>
+              <div className="p-6 bg-card">
+                <ShoppingCart className="h-8 w-8 text-primary mx-auto mb-4" />
+                <h3 className="font-heading text-xl mb-2">Smart Shopping Lists</h3>
+                <p className="text-muted-foreground font-serif">Automatically create organized shopping lists</p>
               </div>
-              <div className="p-4 rounded-lg bg-secondary/20">
-                <Heart className="h-8 w-8 text-primary mx-auto mb-2" />
-                <h3 className="font-semibold mb-1">Family Friendly</h3>
-                <p className="text-sm text-muted-foreground">Manage preferences and dietary restrictions for the whole family</p>
+              <div className="p-6 bg-card">
+                <Heart className="h-8 w-8 text-primary mx-auto mb-4" />
+                <h3 className="font-heading text-xl mb-2">Family Friendly</h3>
+                <p className="text-muted-foreground font-serif">Manage preferences and dietary restrictions for the whole family</p>
               </div>
             </div>
           </div>
@@ -152,9 +152,9 @@ export default function Marketing() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 bg-secondary/20">
+      <section className="py-20 bg-secondary/10">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
+          <h2 className="text-3xl font-heading text-center mb-12">
             A Different Approach to Meal Planning
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -190,10 +190,10 @@ export default function Marketing() {
                 description: "Plan ahead and make cooking fit your schedule."
               }
             ].map((benefit, i) => (
-              <div key={i} className="flex flex-col items-center text-center p-6 rounded-lg bg-card">
+              <div key={i} className="flex flex-col items-center text-center p-6 bg-card">
                 <benefit.icon className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
-                <p className="text-muted-foreground">{benefit.description}</p>
+                <h3 className="text-xl font-heading mb-2">{benefit.title}</h3>
+                <p className="text-muted-foreground font-serif">{benefit.description}</p>
               </div>
             ))}
           </div>
@@ -203,16 +203,16 @@ export default function Marketing() {
       {/* Why Wendell Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-8">Why Wendell?</h2>
-          <div className="prose prose-lg mx-auto text-muted-foreground">
-            <blockquote className="text-xl italic mb-8 px-8 border-l-4 border-primary">
+          <h2 className="text-3xl font-heading mb-8">Why Wendell?</h2>
+          <div className="prose prose-lg mx-auto">
+            <blockquote className="text-xl italic mb-8 px-8 border-l-4 border-primary font-serif">
               "Eating is an agricultural act. Eating ends the annual drama of the food economy that begins with planting and birth."
-              <footer className="text-sm mt-2">— Wendell Berry</footer>
+              <footer className="text-sm mt-2 font-sans">— Wendell Berry</footer>
             </blockquote>
-            <p className="mb-8">
+            <p className="mb-8 font-serif">
               Named in honor of Wendell Berry, this project embraces his philosophy of holistic integration between food systems and nature. His teachings about mindful consumption, sustainable practices, and the importance of understanding where our food comes from deeply inspire our approach to meal planning.
             </p>
-            <p>
+            <p className="font-serif">
               Built by Valboa, a software engineer tackling the real challenges his own family faces with meal planning and dietary management. This open-source project combines AI technology with mindful eating principles to create a more sustainable and conscious approach to family meal planning.
             </p>
           </div>
@@ -222,10 +222,10 @@ export default function Marketing() {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
+          <h2 className="text-3xl font-heading mb-4">
             Join Our Growing Community
           </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto font-serif">
             An open-source project combining AI technology with mindful meal planning principles.
           </p>
           <Button size="lg" onClick={() => document.querySelector('.waitlist-form')?.scrollIntoView({ behavior: 'smooth' })}>
@@ -246,7 +246,7 @@ export default function Marketing() {
                 <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
               </a>
             </div>
-            <div className="text-center text-sm text-muted-foreground">
+            <div className="text-center text-sm text-muted-foreground font-serif">
               © {new Date().getFullYear()} WendellAI. An open source project built in public.
             </div>
           </div>
