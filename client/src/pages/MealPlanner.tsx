@@ -49,22 +49,27 @@ export default function MealPlanner() {
 
   const handleRecipeSelection = async (day: DayType, mealType: MealType, recipeId: number) => {
     try {
-      const mealsData = DAYS.map(d => {
-        const existingDayMeal = currentWeekPlan?.meals?.find(m => m.day === d);
-        const existingMeals = existingDayMeal?.meals || [];
-
+      const updatedDays = currentWeekPlan?.days?.map(d => {
+        if (d.dayName !== day) return d;
+        
+        const currentMeal = d.meals?.[mealType] || { recipeIds: [], participants: [] };
         return {
-          day: d,
-          meals: MEAL_TYPES.map(type => ({
-            mealType: type,
-            recipes: type === mealType && d === day ?
-              [...(existingMeals.find(m => m.mealType === type)?.recipes || []), recipeId] :
-              existingMeals.find(m => m.mealType === type)?.recipes || [],
-            participants: existingMeals.find(m => m.mealType === type)?.participants || []
-          }))
+          ...d,
+          meals: {
+            ...d.meals,
+            [mealType]: {
+              recipeIds: [...(currentMeal.recipeIds || []), recipeId],
+              participants: currentMeal.participants || []
+            }
+          }
         };
-      });
-      const mealPlanData = { weekStart, weekEnd, meals: mealsData };
+      }) || [];
+
+      const mealPlanData = {
+        weekStart,
+        weekEnd,
+        days: updatedDays.length ? updatedDays : initializeMealPlanDays(weekStart)
+      };
 
       if (currentWeekPlan) {
         await updateMealPlan({ ...currentWeekPlan, ...mealPlanData });
