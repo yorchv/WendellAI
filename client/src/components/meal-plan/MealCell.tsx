@@ -17,8 +17,11 @@ interface MealCellProps {
   day: DayType;
   mealType: MealType;
   meal?: {
-    recipeIds: number[];
-    participants: number[];
+    meals: Array<{
+      mealType: MealType;
+      recipes: number[];
+      participants: number[];
+    }>;
   };
   recipes: Record<number, Recipe>;
   familyMembers: Record<number, { id: number; name: string }>;
@@ -27,8 +30,9 @@ interface MealCellProps {
 
 export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
-  const displayedRecipes = meal?.recipeIds?.slice(0, 2) || [];
-  const remainingCount = (meal?.recipeIds?.length || 0) - displayedRecipes.length;
+  const mealData = meal?.meals?.find(m => m.mealType === mealType);
+  const displayedRecipes = mealData?.recipes?.slice(0, 2) || [];
+  const remainingCount = (mealData?.recipes?.length || 0) - displayedRecipes.length;
 
   const handleClick = () => {
     if (planId) {
@@ -39,7 +43,7 @@ export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, 
   return (
     <Card className="h-32">
       <CardContent className="p-4 h-full">
-        {(meal?.recipeIds?.length || 0) > 0 ? (
+        {(meal?.meals?.find(m => m.mealType === mealType)?.recipes?.length || 0) > 0 ? (
           <div 
             className="space-y-2 cursor-pointer hover:bg-accent/50 h-full"
             onClick={handleClick}
@@ -61,14 +65,14 @@ export function MealCell({ planId, day, mealType, meal, recipes, familyMembers, 
                     )}
                     <div className="flex items-center gap-1 group relative">
                       <Users className="h-3 w-3 flex-shrink-0" />
-                      <span>{meal?.participants?.length || 0}</span>
-                      {(meal?.participants?.length || 0) > 0 && (
+                      <span>{mealData?.participants?.length || 0}</span>
+                      {(mealData?.participants?.length || 0) > 0 && (
                         <div className="absolute bottom-full mb-2 hidden group-hover:block bg-popover text-popover-foreground rounded-md shadow-md p-2 text-xs w-max">
-                          {meal.participants.slice(0, 5).map((id) => (
+                          {mealData.participants.slice(0, 5).map((id) => (
                             <div key={id}>{familyMembers?.[id]?.name || `User ${id}`}</div>
                           ))}
-                          {meal.participants.length > 5 && (
-                            <div className="text-muted-foreground">+{meal.participants.length - 5} more eaters in this meal</div>
+                          {mealData.participants.length > 5 && (
+                            <div className="text-muted-foreground">+{mealData.participants.length - 5} more eaters in this meal</div>
                           )}
                         </div>
                       )}
