@@ -10,6 +10,7 @@ interface Recipe {
   prepTime?: number;
   cookTime?: number;
   servings?: number;
+  image?: string;
 }
 
 interface MealCellProps {
@@ -48,17 +49,32 @@ export function MealCell({ planId, day, mealType, mealData, recipes, onAddNew }:
               const recipe = recipes[id];
               if (!recipe) return null;
               return (
-                <div key={id} className="text-sm mb-1 last:mb-0">
-                  <div className="font-medium truncate">{recipe.title}</div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {(recipe.prepTime || recipe.cookTime) && (
-                      <div className="flex items-center gap-1 truncate">
-                        <Clock className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">
-                          {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
-                        </span>
+                <div key={id} className="text-sm mb-1 last:mb-0 flex gap-2">
+                  <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
+                    {recipe.image ? (
+                      <img 
+                        src={recipe.image} 
+                        alt={recipe.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <span className="text-muted-foreground text-xs">No img</span>
                       </div>
                     )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{recipe.title}</div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {(recipe.prepTime || recipe.cookTime) && (
+                        <div className="flex items-center gap-1 truncate">
+                          <Clock className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">
+                            {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
