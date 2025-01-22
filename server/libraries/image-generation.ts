@@ -2,17 +2,20 @@
 import OpenAI from 'openai';
 import { env } from 'process';
 import { v4 as uuidv4 } from 'uuid';
-import { Client } from '@replit/object-storage';
+import { createClient } from '@supabase/supabase-js';
 
 if (!env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY environment variable is required');
+}
+if (!env.SUPABASE_URL || !env.SUPABASE_KEY) {
+  throw new Error('SUPABASE_URL and SUPABASE_KEY environment variables are required');
 }
 
 const openai = new OpenAI({
   apiKey: env.OPENAI_API_KEY,
 });
 
-const storage = new Client();
+const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
 export async function generateRecipeImage(title: string, description: string, userId: number): Promise<string> {
   try {
@@ -33,13 +36,22 @@ export async function generateRecipeImage(title: string, description: string, us
     const uuid = uuidv4();
     const objectKey = `recipes/${userId}/${uuid}.png`;
     
-    const { ok, error } = await storage.uploadFromBytes(objectKey, buffer);
-    if (!ok) {
-      throw new Error(`Failed to upload image: ${error}`);
+    const { data, error } = await supabase.storage
+      .from('recipes')
+      .upload(`${userId}/${uuid}.png`, buffer, {
+        contentType: 'image/png',
+        cacheControl: '31536000'
+      });
+      
+    if (error) {
+      throw new Error(`Failed to upload image: ${error.message}`);
     }
 
-    const imageUrl = await storage.getSignedDownloadURL({ key: objectKey, expiresIn: 31536000 }); // 1 year expiry
-    return imageUrl;
+    const { data: { publicUrl } } = supabase.storage
+      .from('recipes')
+      .getPublicUrl(`${userId}/${uuid}.png`);
+      
+    return publicUrl;
   } catch (error) {
     console.error('Error generating image:', error);
     throw new Error('Failed to generate recipe image');
