@@ -248,12 +248,10 @@ export default function MealView() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex space-x-4 text-sm text-muted-foreground">
-                    {(recipe.prepTime || recipe.cookTime) && (
+                    {recipe.servings && (
                       <div className="flex items-center">
                         <Clock className="mr-1 h-4 w-4" />
-                        {recipe.prepTime && `${recipe.prepTime} min prep`}
-                        {recipe.prepTime && recipe.cookTime && " + "}
-                        {recipe.cookTime && `${recipe.cookTime} min cook`}
+                        Reserved for cooking mode
                       </div>
                     )}
                     {recipe.servings && (

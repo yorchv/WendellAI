@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import type { MealType, DayType } from "@db/schema";
@@ -107,12 +106,8 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
         {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
           const mealData = dayData?.meals[mealType] || { recipeIds: [], participants: [] };
           const mealRecipes = mealData.recipeIds?.map(id => recipes[id]).filter(Boolean) || [];
-          const totalPrepTime = calculateTotalPrepTime(mealRecipes);
           const mealTime = DEFAULT_MEAL_TIMES[mealType];
           const mealTimeDate = getMealTimeDate(mealTime);
-          const startTime = totalPrepTime > 0 ? getSuggestedStartTime(mealTime, totalPrepTime) : null;
-          const status = startTime ? getPreparationStatus(startTime, mealTimeDate) : null;
-          const progress = startTime ? getTimelineProgress(startTime, mealTimeDate) : 0;
 
           return (
             <div key={mealType} className="p-4 space-y-3">
@@ -152,39 +147,9 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
                   />
                 </div>
                 <div>
-                  {totalPrepTime > 0 ? (
-                    <div className="space-y-2">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                        <div className="flex items-center text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
-                          <Clock className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                          {totalPrepTime}m
-                        </div>
-                        {status && (
-                          <div className={`text-xs sm:text-sm flex items-center whitespace-nowrap ${
-                            status.variant === 'destructive' ? 'text-destructive' : 
-                            status.variant === 'warning' ? 'text-orange-500' :
-                            'text-muted-foreground'
-                          }`}>
-                            <AlertCircle className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                            {status.status}
-                          </div>
-                        )}
-                      </div>
-                      <Progress value={progress} className="h-1.5 sm:h-2" />
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <div className="whitespace-nowrap">
-                          {startTime && format(startTime, 'h:mm a')}
-                        </div>
-                        <div className="whitespace-nowrap">
-                          {format(mealTimeDate, 'h:mm a')}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">
-                      No preparation time needed
-                    </span>
-                  )}
+                  <span className="text-sm text-muted-foreground">
+                    No preparation time needed
+                  </span>
                 </div>
               </div>
             </div>
