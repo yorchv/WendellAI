@@ -37,7 +37,7 @@ export async function generateRecipeImage(title: string, description: string, us
     const objectKey = `recipes/${userId}/${uuid}.png`;
     
     const { data, error } = await supabase.storage
-      .from('recipes')
+      .from('recipe_images')
       .upload(`${userId}/${uuid}.png`, buffer, {
         contentType: 'image/png',
         cacheControl: '31536000'
@@ -48,7 +48,7 @@ export async function generateRecipeImage(title: string, description: string, us
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('recipes')
+      .from('recipe_images')
       .getPublicUrl(`${userId}/${uuid}.png`);
       
     return publicUrl;
