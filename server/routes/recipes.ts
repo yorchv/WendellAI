@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import { db } from "@db";
 import { recipes, ingredients, recipeIngredients } from "@db/schema";
@@ -79,9 +78,12 @@ router.post("/generate", async (req, res) => {
 
   const result = generateRecipeSchema.safeParse(req.body);
   if (!result.success) {
-    return res.status(400).send(
-      "Invalid input: " + result.error.issues.map((i) => i.message).join(", ")
-    );
+    return res
+      .status(400)
+      .send(
+        "Invalid input: " +
+          result.error.issues.map((i) => i.message).join(", "),
+      );
   }
 
   try {
@@ -126,7 +128,7 @@ router.post("/:id/generate-image", async (req, res) => {
 
   try {
     const recipe = await db.query.recipes.findFirst({
-      where: eq(recipes.id, parseInt(req.params.id))
+      where: eq(recipes.id, parseInt(req.params.id)),
     });
 
     if (!recipe) {
@@ -137,7 +139,12 @@ router.post("/:id/generate-image", async (req, res) => {
       return res.status(403).send("Not authorized to modify this recipe");
     }
 
-    const imageUrl = await generateRecipeImage(recipe.title, recipe.description || "");
+    const imageUrl = await generateRecipeImage(
+      recipe.title,
+      recipe.description || "",
+    );
+
+    console.log(imageUrl);
 
     const [updatedRecipe] = await db
       .update(recipes)
