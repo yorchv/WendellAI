@@ -110,7 +110,13 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
                             </div>
                           )}
                         </div>
-                        <span className="text-sm">{recipe.title}</span>
+                        <Button 
+                          variant="link" 
+                          className="text-sm p-0 h-auto" 
+                          onClick={() => navigate(`/recipes/${recipe.id}`)}
+                        >
+                          {recipe.title}
+                        </Button>
                       </div>
                       <Button
                         variant="ghost"
