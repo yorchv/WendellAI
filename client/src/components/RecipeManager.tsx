@@ -8,150 +8,132 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
+import { Plus, Image as ImageIcon } from "lucide-react";
 import { useRecipes } from "@/hooks/use-recipes";
 import { useToast } from "@/hooks/use-toast";
-import { ManualRecipeForm } from "./ManualRecipeForm";
-import { AIRecipeGenerator } from "./AIRecipeGenerator";
-import { ImageUploadRecipe } from "./ImageUploadRecipe";
-import type { RecipeFormData } from "./ManualRecipeForm";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
-interface RecipeManagerProps {
+interface Props {
   recipe?: Recipe & {
     ingredients: (RecipeIngredient & {
       ingredient: Ingredient;
     })[];
   };
-  mode: "create" | "edit";
-  onClose?: () => void;
+  mode?: "create" | "edit";
 }
 
-export function RecipeManager({ recipe, mode, onClose }: RecipeManagerProps) {
+export function RecipeManager({ recipe, mode = "create" }: Props) {
   const [open, setOpen] = useState(false);
-  const { createRecipe, updateRecipe, deleteRecipe } = useRecipes();
+  const [recipeInput, setRecipeInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const { createRecipe } = useRecipes();
   const { toast } = useToast();
 
-  const handleSubmit = async (data: RecipeFormData) => {
+  const handleSubmit = async () => {
     try {
-      const payload = {
-        title: data.title,
-        description: data.description,
-        instructions: data.instructions,
-        prepTime: data.prepTime,
-        cookTime: data.cookTime,
-        servings: data.servings,
-        image: data.image,
-        sources: data.sources,
-        ingredients: data.ingredients.map(ing => ({
-          name: ing.name,
-          quantity: ing.quantity,
-          unit: ing.unit,
-          notes: ing.notes,
-        })),
-      };
+      setIsLoading(true);
+      let endpoint = "/api/recipes";
+      let payload: any = { prompt: recipeInput };
 
-      if (mode === "create") {
-        await createRecipe(payload);
-        toast({
-          title: "Success",
-          description: "Recipe created successfully",
-        });
-      } else if (recipe?.id) {
-        await updateRecipe(recipe.id, payload);
-        toast({
-          title: "Success",
-          description: "Recipe updated successfully",
-        });
+      if (imageFile) {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64Image = reader.result?.toString().split(",")[1];
+          if (base64Image) {
+            endpoint = "/api/recipes/analyze-image";
+            payload = { 
+              image: base64Image,
+              mediaType: imageFile.type
+            };
+          }
+        };
+        reader.readAsDataURL(imageFile);
       }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to process recipe");
+      }
+
+      const recipeData = await response.json();
+      await createRecipe(recipeData);
       setOpen(false);
-      onClose?.();
+      toast({
+        title: "Success",
+        description: "Recipe created successfully",
+      });
     } catch (error) {
-      console.error('Recipe submission error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save recipe",
+        description: error instanceof Error ? error.message : "Failed to create recipe",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!recipe) return;
-    try {
-      await deleteRecipe(recipe.id);
-      toast({
-        title: "Success",
-        description: "Recipe deleted successfully",
-      });
-      setOpen(false);
-      onClose?.();
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong",
-      });
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setRecipeInput(`Processing image: ${file.name}`);
     }
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={(newOpen) => {
-        setOpen(newOpen);
-        if (!newOpen && !mode.includes("create")) {
-          onClose?.();
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={mode === "create" ? "default" : "ghost"}>
-          {mode === "create" ? (
-            <>
-              <Plus className="h-4 w-4 mr-2" />
-              New Recipe
-            </>
-          ) : (
-            "Edit Recipe"
-          )}
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Recipe
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {mode === "create" ? "Create New Recipe" : "Edit Recipe"}
-          </DialogTitle>
+          <DialogTitle>Create Recipe</DialogTitle>
         </DialogHeader>
-
-        {mode === "create" ? (
-          <Tabs defaultValue="manual">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="manual">Manual Creation</TabsTrigger>
-              <TabsTrigger value="ai">AI Assisted</TabsTrigger>
-              <TabsTrigger value="image">Upload Image</TabsTrigger>
-            </TabsList>
-            <TabsContent value="manual">
-              <ManualRecipeForm
-                mode={mode}
-                onSubmit={handleSubmit}
-              />
-            </TabsContent>
-            <TabsContent value="ai">
-              <AIRecipeGenerator onGenerate={handleSubmit} />
-            </TabsContent>
-            <TabsContent value="image">
-              <ImageUploadRecipe onRecipeGenerated={handleSubmit} />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <ManualRecipeForm
-            recipe={recipe}
-            mode={mode}
-            onSubmit={handleSubmit}
-            onDelete={handleDelete}
-          />
-        )}
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Textarea
+              placeholder="Type or paste your recipe here, or enter a prompt to generate a new recipe..."
+              value={recipeInput}
+              onChange={(e) => setRecipeInput(e.target.value)}
+              className="min-h-[200px]"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="image-upload"
+            />
+            <Button
+              variant="outline"
+              onClick={() => document.getElementById("image-upload")?.click()}
+              type="button"
+            >
+              <ImageIcon className="h-4 w-4 mr-2" />
+              Upload Image
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={isLoading || !recipeInput.trim()}
+            >
+              {isLoading ? "Processing..." : "Create Recipe"}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
