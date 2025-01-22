@@ -34,22 +34,24 @@ export function RecipeManager({ recipe, mode = "create" }: Props) {
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      let endpoint = "/api/recipes";
-      let payload: any = { prompt: recipeInput };
+      let endpoint;
+      let payload: any;
 
       if (imageFile) {
         const reader = new FileReader();
-        reader.onload = async () => {
-          const base64Image = reader.result?.toString().split(",")[1];
-          if (base64Image) {
-            endpoint = "/api/recipes/analyze-image";
-            payload = { 
-              image: base64Image,
-              mediaType: imageFile.type
-            };
-          }
+        const imageData = await new Promise((resolve) => {
+          reader.onload = () => resolve(reader.result?.toString().split(",")[1]);
+          reader.readAsDataURL(imageFile);
+        });
+        
+        endpoint = "/api/recipes/analyze-image";
+        payload = { 
+          image: imageData,
+          mediaType: imageFile.type
         };
-        reader.readAsDataURL(imageFile);
+      } else {
+        endpoint = "/api/recipes/generate";
+        payload = { prompt: recipeInput };
       }
 
       const response = await fetch(endpoint, {
