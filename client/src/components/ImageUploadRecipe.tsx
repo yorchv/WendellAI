@@ -88,7 +88,9 @@ export function ImageUploadRecipe({ onRecipeGenerated }: ImageUploadRecipeProps)
           accept="image/*"
           onChange={handleImageUpload}
           disabled={isLoading}
+          aria-label="Upload Recipe Image"
         />
+        <Label htmlFor="recipe-image">Upload Recipe Image</Label>
       </div>
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
