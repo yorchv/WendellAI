@@ -14,8 +14,8 @@ const anthropic = new Anthropic({
 
 export async function formatRecipeResponse(text: string) {
   try {
-    const systemInstructions =
-      "You are a JSON formatting assistant. Your responses must contain ONLY valid JSON, with no additional text or explanation. Format the recipe into this structure: { title: string, description: string, ingredients: { name: string, quantity?: number, unit?: string, notes?: string }[], instructions: string[], prepTime?: number, cookTime?: number, servings?: number, sources?: string[] }";
+    const systemInstructions = 
+      "You are a JSON formatting assistant. Your responses must contain ONLY valid JSON, with no additional text or explanation. Format the recipe into this structure, ensuring all fields are present: { title: string, description: string, ingredients: [{ name: string, quantity: number | null, unit: string | null, notes: string | null }], instructions: string[], prepTime: number | null, cookTime: number | null, servings: number | null }";
 
     const response = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20241022",
