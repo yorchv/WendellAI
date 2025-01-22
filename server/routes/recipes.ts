@@ -148,11 +148,11 @@ router.post("/:id/generate-image", async (req, res) => {
 
     const [updatedRecipe] = await db
       .update(recipes)
-      .set({ imageUrl })
+      .set({ image: imageUrl })
       .where(eq(recipes.id, parseInt(req.params.id)))
       .returning();
 
-    res.json({ imageUrl: updatedRecipe.imageUrl });
+    res.json({ imageUrl: updatedRecipe.image });
   } catch (error) {
     console.error("Error generating recipe image:", error);
     res.status(500).send("Failed to generate recipe image");
