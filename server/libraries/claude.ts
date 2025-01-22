@@ -13,7 +13,7 @@ const anthropic = new Anthropic({
 
 export async function formatRecipeResponse(text: string) {
   try {
-    const systemInstructions = 
+    const systemInstructions =
       "You are a JSON formatting assistant. Your responses must contain ONLY valid JSON, with no additional text or explanation. Format the recipe into this structure, ensuring all fields are present: { title: string, description: string, ingredients: [{ name: string, quantity: number | null, unit: string | null, notes: string | null }], instructions: string[], prepTime: number | null, cookTime: number | null, servings: number | null }";
 
     const response = await anthropic.messages.create({
@@ -39,6 +39,7 @@ export async function formatRecipeResponse(text: string) {
       const errorMessage = result.error.errors
         .map((err) => err.message)
         .join(", ");
+      console.log(JSON.stringify(result.error.errors));
       throw new Error(`Invalid recipe format: ${errorMessage}`);
     }
 
@@ -60,7 +61,10 @@ export async function formatRecipeResponse(text: string) {
   }
 }
 
-export async function analyzeRecipeImage(base64Image: string, mediaType: string) {
+export async function analyzeRecipeImage(
+  base64Image: string,
+  mediaType: string,
+) {
   try {
     const formattedBase64 = base64Image.includes("base64,")
       ? base64Image.split("base64,")[1]
@@ -99,25 +103,25 @@ export async function analyzeRecipeImage(base64Image: string, mediaType: string)
 
     const recipeData = {
       ...rawData,
-      ingredients: Array.isArray(rawData.ingredients) 
-        ? rawData.ingredients.map(ing => 
-            typeof ing === 'string' 
+      ingredients: Array.isArray(rawData.ingredients)
+        ? rawData.ingredients.map((ing) =>
+            typeof ing === "string"
               ? { name: ing, quantity: null, unit: null, notes: null }
-              : ing
+              : ing,
           )
         : [],
       prepTime: rawData.prepTime || null,
       cookTime: rawData.cookTime || null,
       servings: rawData.servings || null,
-      sources: rawData.sources || null
+      sources: rawData.sources || null,
     };
 
     const result = recipePreviewSchema.safeParse(recipeData);
 
     if (!result.success) {
       const errorDetails = result.error.errors
-        .map(err => `"${err.path.join('.')}" ${err.message}`)
-        .join('\n');
+        .map((err) => `"${err.path.join(".")}" ${err.message}`)
+        .join("\n");
       console.error("Validation error:", result.error);
       throw new Error(`Recipe validation failed:\n${errorDetails}`);
     }
