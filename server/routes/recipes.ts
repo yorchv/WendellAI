@@ -6,6 +6,7 @@ import { generateRecipe } from "../libraries/perplexity";
 import { analyzeRecipeImage } from "../libraries/claude";
 import { generateRecipeImage } from "../libraries/image-generation";
 import { z } from "zod";
+import { createRecipeSchema } from "../validators/recipes";
 
 const router = Router();
 
