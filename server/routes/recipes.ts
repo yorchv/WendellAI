@@ -1,3 +1,4 @@
+
 import { Router } from "express";
 import { db } from "@db";
 import { recipes, ingredients, recipeIngredients } from "@db/schema";
@@ -53,9 +54,10 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    const { ingredients, ...recipeData } = result.data;
+    const { ingredients: ingredientsList, ...recipeData } = result.data;
     
     const [recipe] = await db.transaction(async (tx) => {
+      // Create recipe first
       const [newRecipe] = await tx
         .insert(recipes)
         .values({
@@ -64,8 +66,10 @@ router.post("/", async (req, res) => {
         })
         .returning();
 
+      // Process ingredients
       const ingredientRows = await Promise.all(
-        ingredients.map(async (ing) => {
+        ingredientsList.map(async (ing) => {
+          // Insert or update ingredient first
           const [ingredient] = await tx
             .insert(ingredients)
             .values({
@@ -77,21 +81,26 @@ router.post("/", async (req, res) => {
             })
             .returning();
 
+          // Create the recipe-ingredient relationship
           return {
             recipeId: newRecipe.id,
             ingredientId: ingredient.id,
-            quantity: ing.quantity,
-            unit: ing.unit,
-            notes: ing.notes,
+            quantity: ing.quantity || null,
+            unit: ing.unit || null,
+            notes: ing.notes || null,
           };
         })
       );
 
-      await tx.insert(recipeIngredients).values(ingredientRows);
+      // Insert all recipe-ingredient relationships
+      if (ingredientRows.length > 0) {
+        await tx.insert(recipeIngredients).values(ingredientRows);
+      }
 
       return [newRecipe];
     });
 
+    // Fetch the complete recipe with ingredients
     const fullRecipe = await db.query.recipes.findFirst({
       where: eq(recipes.id, recipe.id),
       with: {
@@ -106,7 +115,7 @@ router.post("/", async (req, res) => {
     res.json(fullRecipe);
   } catch (error) {
     console.error("Error creating recipe:", error);
-    res.status(500).send("Failed to create recipe");
+    res.status(500).json({ error: "Failed to create recipe", details: error instanceof Error ? error.message : "Unknown error" });
   }
 });
 
