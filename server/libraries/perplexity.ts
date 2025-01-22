@@ -34,7 +34,7 @@ export const recipePreviewSchema = z.object({
   cookTime: z.number().nullable(),
   servings: z.number().nullable(),
   image: z.string().optional(),
-  sources: z.array(z.string()).nullable()
+  sources: z.array(z.string()).nullable().optional()
 });
 
 export type RecipePreview = z.infer<typeof recipePreviewSchema>;
