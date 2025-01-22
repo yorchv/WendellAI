@@ -33,11 +33,10 @@ export async function generateRecipeImage(title: string, description: string, us
     const uuid = uuidv4();
     const objectKey = `recipes/${userId}/${uuid}.png`;
     
-    await storage.uploadObject({
-      key: objectKey,
-      data: buffer,
-      contentType: 'image/png'
-    });
+    const { ok, error } = await storage.uploadFromBytes(objectKey, buffer);
+    if (!ok) {
+      throw new Error(`Failed to upload image: ${error}`);
+    }
 
     const imageUrl = await storage.getSignedDownloadURL({ key: objectKey, expiresIn: 31536000 }); // 1 year expiry
     return imageUrl;
