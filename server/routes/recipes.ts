@@ -37,6 +37,78 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/", async (req, res) => {
+  const user = req.user as { id: number } | undefined;
+  if (!user?.id) {
+    return res.status(401).send("Not authenticated");
+  }
+
+  const result = createRecipeSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({
+      error: "Invalid input",
+      details: result.error.issues
+    });
+  }
+
+  try {
+    const { ingredients, ...recipeData } = result.data;
+    
+    const [recipe] = await db.transaction(async (tx) => {
+      const [newRecipe] = await tx
+        .insert(recipes)
+        .values({
+          ...recipeData,
+          userId: user.id,
+        })
+        .returning();
+
+      const ingredientRows = await Promise.all(
+        ingredients.map(async (ing) => {
+          const [ingredient] = await tx
+            .insert(ingredients)
+            .values({
+              name: ing.name,
+            })
+            .onConflictDoUpdate({
+              target: ingredients.name,
+              set: { name: ing.name },
+            })
+            .returning();
+
+          return {
+            recipeId: newRecipe.id,
+            ingredientId: ingredient.id,
+            quantity: ing.quantity,
+            unit: ing.unit,
+            notes: ing.notes,
+          };
+        })
+      );
+
+      await tx.insert(recipeIngredients).values(ingredientRows);
+
+      return [newRecipe];
+    });
+
+    const fullRecipe = await db.query.recipes.findFirst({
+      where: eq(recipes.id, recipe.id),
+      with: {
+        ingredients: {
+          with: {
+            ingredient: true,
+          },
+        },
+      },
+    });
+
+    res.json(fullRecipe);
+  } catch (error) {
+    console.error("Error creating recipe:", error);
+    res.status(500).send("Failed to create recipe");
+  }
+});
+
 router.get("/:id", async (req, res) => {
   const user = req.user as { id: number } | undefined;
   if (!user?.id) {
