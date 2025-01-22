@@ -135,17 +135,15 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <MealCell
-                    planId={planId}
-                    day={dayOfWeek}
-                    mealType={mealType}
-                    mealData={mealData}
-                    recipes={recipes}
-                    onAddNew={() => onAddRecipe?.(dayOfWeek, mealType)}
-                  />
-                </div>
+              <div>
+                <MealCell
+                  planId={planId}
+                  day={dayOfWeek}
+                  mealType={mealType}
+                  mealData={mealData}
+                  recipes={recipes}
+                  onAddNew={() => onAddRecipe?.(dayOfWeek, mealType)}
+                />
               </div>
             </div>
           );
