@@ -1,10 +1,11 @@
 import { Card } from "@/components/ui/card";
-import { format, addMinutes, differenceInMinutes } from "date-fns";
+import { format } from "date-fns";
 import type { MealType, DayType } from "@db/schema";
-import { MealCell } from "./MealCell";
-import { Clock, AlertCircle, Users } from "lucide-react";
+import { Clock, AlertCircle, Users, Plus, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 interface Recipe {
   id: number;
@@ -31,66 +32,19 @@ interface DailyViewProps {
   recipes: Record<number, Recipe>;
   familyMembers: Record<number, { id: number; name: string }>;
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
+  onRemoveRecipe?: (id: number) => void; // Added for removing recipes
 }
 
-const DEFAULT_MEAL_TIMES = {
-  breakfast: { hour: 8, minute: 0 },
-  lunch: { hour: 12, minute: 30 },
-  dinner: { hour: 18, minute: 30 },
-};
-
-function calculateTotalPrepTime(recipes: Recipe[]): number {
-  return recipes.reduce((total, recipe) => {
-    const prepTime = recipe.prepTime || 0;
-    const cookTime = recipe.cookTime || 0;
-    return total + prepTime + cookTime;
-  }, 0);
-}
-
-function getMealTimeDate(mealTime: { hour: number; minute: number }): Date {
-  const date = new Date();
-  date.setHours(mealTime.hour, mealTime.minute, 0, 0);
-  return date;
-}
-
-function getSuggestedStartTime(mealTime: { hour: number; minute: number }, totalPrepTime: number): Date {
-  return addMinutes(getMealTimeDate(mealTime), -totalPrepTime);
-}
-
-function getPreparationStatus(startTime: Date, mealTime: Date) {
-  const now = new Date();
-  const minutesToStart = differenceInMinutes(startTime, now);
-  const minutesToMeal = differenceInMinutes(mealTime, now);
-
-  if (minutesToMeal < 0) {
-    return { status: "Past meal time", variant: "muted" };
-  }
-
-  if (minutesToStart <= 0) {
-    return { status: "Time to start cooking!", variant: "destructive" };
-  }
-
-  if (minutesToStart <= 30) {
-    return { status: "Starting soon", variant: "warning" };
-  }
-
-  return { status: "Coming up", variant: "default" };
-}
-
-function getTimelineProgress(startTime: Date, mealTime: Date): number {
-  const now = new Date();
-  const totalDuration = differenceInMinutes(mealTime, startTime);
-  const elapsed = differenceInMinutes(now, startTime);
-
-  if (elapsed < 0) return 0;
-  if (elapsed > totalDuration) return 100;
-
-  return Math.round((elapsed / totalDuration) * 100);
-}
-
-export function DailyView({ planId, date, days, recipes, familyMembers, onAddRecipe }: DailyViewProps) {
+export function DailyView({ planId, date, days, recipes, familyMembers, onAddRecipe, onRemoveRecipe }: DailyViewProps) {
+  const [, navigate] = useLocation();
   const dayOfWeek = format(date, 'EEEE') as DayType;
   const dayData = days?.find(day => day.dayName === dayOfWeek);
+
+  const handleMealClick = (mealType: MealType) => {
+    if (planId) {
+      navigate(`/meal/${planId}/${dayOfWeek}/${mealType}`);
+    }
+  };
 
   return (
     <Card className="w-full">
@@ -105,16 +59,17 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
       <div className="divide-y">
         {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
           const mealData = dayData?.meals[mealType] || { recipeIds: [], participants: [] };
-          const mealRecipes = mealData.recipeIds?.map(id => recipes[id]).filter(Boolean) || [];
-          const mealTime = DEFAULT_MEAL_TIMES[mealType];
-          const mealTimeDate = getMealTimeDate(mealTime);
 
           return (
             <div key={mealType} className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="font-medium capitalize text-lg text-muted-foreground">
+                <Button
+                  variant="link"
+                  className="p-0 font-medium capitalize text-lg"
+                  onClick={() => handleMealClick(mealType)}
+                >
                   {mealType}
-                </div>
+                </Button>
                 {mealData.participants.length > 0 && (
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
@@ -135,15 +90,32 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
                   </div>
                 )}
               </div>
-              <div>
-                <MealCell
-                  planId={planId}
-                  day={dayOfWeek}
-                  mealType={mealType}
-                  mealData={mealData}
-                  recipes={recipes}
-                  onAddNew={() => onAddRecipe?.(dayOfWeek, mealType)}
-                />
+              <div className="space-y-2">
+                {mealData.recipeIds.map((id) => {
+                  const recipe = recipes[id];
+                  return recipe ? (
+                    <div key={id} className="flex items-center justify-between py-1">
+                      <span className="text-sm">{recipe.title}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => onRemoveRecipe?.(id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : null;
+                })}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full flex items-center gap-2"
+                  onClick={() => onAddRecipe?.(dayOfWeek, mealType)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Recipe
+                </Button>
               </div>
             </div>
           );
