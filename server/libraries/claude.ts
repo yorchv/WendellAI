@@ -1,4 +1,3 @@
-
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { recipePreviewSchema } from "./perplexity";
@@ -97,7 +96,7 @@ export async function analyzeRecipeImage(base64Image: string, mediaType: string)
 
     const parsed = JSON.parse(formattedJson);
     const rawData = Array.isArray(parsed) ? parsed[0] : parsed;
-    
+
     const recipeData = {
       ...rawData,
       ingredients: Array.isArray(rawData.ingredients) 
@@ -117,10 +116,10 @@ export async function analyzeRecipeImage(base64Image: string, mediaType: string)
 
     if (!result.success) {
       const errorDetails = result.error.errors
-        .map(err => `${err.path.join('.')}: ${err.message}`)
-        .join('; ');
+        .map(err => `"${err.path.join('.')}" ${err.message}`)
+        .join('\n');
       console.error("Validation error:", result.error);
-      throw new Error(`Invalid recipe format after image analysis: ${errorDetails}`);
+      throw new Error(`Recipe validation failed:\n${errorDetails}`);
     }
 
     return result.data;
