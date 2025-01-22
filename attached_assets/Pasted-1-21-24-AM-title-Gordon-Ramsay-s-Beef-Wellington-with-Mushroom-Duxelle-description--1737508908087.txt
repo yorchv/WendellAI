@@ -1,0 +1,89 @@
+1:21:24 AM [{
+  "title": "Gordon Ramsay's Beef Wellington with Mushroom Duxelle",
+  "description": "A classic Beef Wellington with a rich mushroom duxelle and crispy puff pastry, perfect for special occasions.",
+  "ingredients": [
+    {
+      "name": "beef fillet",
+      "quantity": 700,
+      "unit": "g",
+      "notes": "whole, cleaned (can use up to 1500g)"
+    },
+    {
+      "name": "English mustard",
+      "quantity": 1,
+      "unit": "tbsp",
+      "notes": "1-2 tbsp as needed"
+    },
+    {
+      "name": "chestnut mushrooms",
+      "quantity": 700,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "name": "garlic",
+      "quantity": 1,
+      "unit": "clove",
+      "notes": null
+    },
+    {
+      "name": "chestnuts",
+      "quantity": null,
+      "unit": null,
+      "notes": "a handful, optional"
+    },
+    {
+      "name": "Parma ham",
+      "quantity": 8,
+      "unit": "slices",
+      "notes": null
+    },
+    {
+      "name": "thyme",
+      "quantity": 1,
+      "unit": "sprig",
+      "notes": null
+    },
+    {
+      "name": "puff pastry",
+      "quantity": 500,
+      "unit": "g",
+      "notes": "rolled or sheet (can use up to 1500g)"
+    },
+    {
+      "name": "egg yolks",
+      "quantity": 2,
+      "unit": null,
+      "notes": "2-4 for egg wash"
+    },
+    {
+      "name": "salt and pepper",
+      "quantity": null,
+      "unit": null,
+      "notes": "to taste"
+    }
+  ],
+  "instructions": [
+    "Season the beef with salt and pepper",
+    "Heat olive oil in a frying pan and sear the beef on all sides",
+    "Baste the beef with English mustard",
+    "Blend mushrooms, garlic, salt, and pepper (and chestnuts if using) to a paste",
+    "Cook mushroom paste in a hot dry pan to remove moisture, then cool",
+    "Lay out Parma ham slices overlapping on cling film",
+    "Sprinkle black pepper and spread mushroom duxelle on ham",
+    "Place beef on top and wrap tightly in cling film, twist ends to secure",
+    "Chill for 15 minutes",
+    "Wrap beef in puff pastry, sealing edges",
+    "Chill wrapped Wellington for 5 minutes",
+    "Brush pastry with egg yolk",
+    "Optional: mark decorative pattern on pastry",
+    "Bake at 200°C (400°F) for 35 minutes",
+    "Rest for 10 minutes before serving"
+  ],
+  "prepTime": 45,
+  "cookTime": 35,
+  "servings": 6
+}] Claude formatted response:
+1:21:24 AM [Invalid recipe format: Required] Error formatting recipe with Claude:
+Recipe generation error: Recipe formatting failed: Invalid recipe format: Required
+1:21:25 AM [express] POST /api/recipes/generate 500 in 15452ms
