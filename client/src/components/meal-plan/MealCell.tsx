@@ -1,6 +1,5 @@
-
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Plus, Users } from "lucide-react";
+import { Clock, Plus } from "lucide-react";
 import { useLocation } from "wouter";
 import type { MealType, DayType } from "@/lib/meal-planner";
 
@@ -22,16 +21,14 @@ interface MealCellProps {
     participants: number[];
   };
   recipes: Record<number, Recipe>;
-  familyMembers: Record<number, { id: number; name: string }>;
   onAddNew?: () => void;
 }
 
-export function MealCell({ planId, day, mealType, mealData, recipes, familyMembers, onAddNew }: MealCellProps) {
+export function MealCell({ planId, day, mealType, mealData, recipes, onAddNew }: MealCellProps) {
   const [, navigate] = useLocation();
   const recipeIds = mealData?.recipeIds || [];
   const displayedRecipes = recipeIds.slice(0, 2);
   const remainingCount = recipeIds.length - displayedRecipes.length;
-  const participants = mealData?.participants || [];
 
   const handleClick = () => {
     if (planId) {
@@ -62,20 +59,6 @@ export function MealCell({ planId, day, mealType, mealData, recipes, familyMembe
                         </span>
                       </div>
                     )}
-                    <div className="flex items-center gap-1 group relative">
-                      <Users className="h-3 w-3 flex-shrink-0" />
-                      <span>{participants.length}</span>
-                      {participants.length > 0 && (
-                        <div className="absolute bottom-full mb-2 hidden group-hover:block bg-popover text-popover-foreground rounded-md shadow-md p-2 text-xs w-max">
-                          {participants.slice(0, 5).map((id) => (
-                            <div key={id}>{familyMembers[id]?.name || `User ${id}`}</div>
-                          ))}
-                          {participants.length > 5 && (
-                            <div className="text-muted-foreground">+{participants.length - 5} more eaters in this meal</div>
-                          )}
-                        </div>
-                      )}
-                    </div>
                   </div>
                 </div>
               );

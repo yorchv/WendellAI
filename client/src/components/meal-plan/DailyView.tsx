@@ -1,9 +1,11 @@
+
 import { Card } from "@/components/ui/card";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import type { MealType, DayType } from "@db/schema";
 import { MealCell } from "./MealCell";
-import { Clock, AlertCircle } from "lucide-react";
+import { Clock, AlertCircle, Users } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface Recipe {
   id: number;
@@ -91,7 +93,6 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
   const dayOfWeek = format(date, 'EEEE') as DayType;
   const dayData = days?.find(day => day.dayName === dayOfWeek);
 
-
   return (
     <Card className="w-full">
       <div className="p-4 border-b">
@@ -115,8 +116,29 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
 
           return (
             <div key={mealType} className="p-4 space-y-3">
-              <div className="font-medium capitalize text-lg text-muted-foreground">
-                {mealType}
+              <div className="flex items-center justify-between">
+                <div className="font-medium capitalize text-lg text-muted-foreground">
+                  {mealType}
+                </div>
+                {mealData.participants.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex -space-x-2">
+                      {mealData.participants.slice(0, 3).map((id) => (
+                        <Avatar key={id} className="h-6 w-6 border-2 border-background">
+                          <AvatarFallback className="text-xs">
+                            {familyMembers[id]?.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                      {mealData.participants.length > 3 && (
+                        <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-xs border-2 border-background">
+                          +{mealData.participants.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -126,7 +148,6 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
                     mealType={mealType}
                     mealData={mealData}
                     recipes={recipes}
-                    familyMembers={familyMembers}
                     onAddNew={() => onAddRecipe?.(dayOfWeek, mealType)}
                   />
                 </div>
