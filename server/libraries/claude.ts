@@ -33,7 +33,8 @@ export async function formatRecipeResponse(text: string) {
     log("Claude formatted response:", formattedJson);
 
     const parsed = JSON.parse(formattedJson);
-    const result = recipePreviewSchema.safeParse(parsed);
+    const recipeData = Array.isArray(parsed) ? parsed[0] : parsed;
+    const result = recipePreviewSchema.safeParse(recipeData);
 
     if (!result.success) {
       const errorMessage = result.error.errors
