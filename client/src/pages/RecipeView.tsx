@@ -69,12 +69,20 @@ export default function RecipeView() {
       <div className="space-y-8">
         <div className="relative">
           {recipe.image ? (
-            <div className="relative h-64 md:h-96 rounded-xl overflow-hidden">
+            <div className="relative h-64 md:h-96 rounded-xl overflow-hidden group">
               <img
                 src={recipe.image}
                 alt={recipe.title}
                 className="object-cover w-full h-full"
               />
+              <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <GenerateRecipeImage
+                  recipeId={recipe.id}
+                  onImageGenerated={(imageUrl) => {
+                    window.location.reload();
+                  }}
+                />
+              </div>
             </div>
           ) : (
             <div className="relative h-64 md:h-96 rounded-xl bg-secondary/10 flex flex-col items-center justify-center">
