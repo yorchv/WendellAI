@@ -66,7 +66,11 @@ export function RecipeManager({ recipe, mode = "create" }: Props) {
       }
 
       const recipeData = await response.json();
-      await createRecipe(recipeData);
+      await createRecipe({
+        ...recipeData,
+        image: null,
+        sources: recipeData.sources || null
+      });
       setOpen(false);
       toast({
         title: "Success",
