@@ -116,8 +116,11 @@ export async function analyzeRecipeImage(base64Image: string, mediaType: string)
     const result = recipePreviewSchema.safeParse(recipeData);
 
     if (!result.success) {
+      const errorDetails = result.error.errors
+        .map(err => `${err.path.join('.')}: ${err.message}`)
+        .join('; ');
       console.error("Validation error:", result.error);
-      throw new Error("Invalid recipe format after image analysis");
+      throw new Error(`Invalid recipe format after image analysis: ${errorDetails}`);
     }
 
     return result.data;
