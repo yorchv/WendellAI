@@ -144,8 +144,6 @@ router.post("/:id/generate-image", async (req, res) => {
       recipe.description || "",
     );
 
-    console.log(imageUrl);
-
     const [updatedRecipe] = await db
       .update(recipes)
       .set({ image: imageUrl })
