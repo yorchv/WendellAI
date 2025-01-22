@@ -1,0 +1,51 @@
+8:45:08 PM [{
+  "title": "Traditional Carbonara",
+  "description": "An authentic Italian spaghetti carbonara made with guanciale, eggs, and Pecorino Romano cheese.",
+  "ingredients": [
+    {
+      "name": "Spaghetti",
+      "quantity": 350,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "name": "Guanciale",
+      "quantity": 200,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "name": "Eggs",
+      "quantity": 4,
+      "unit": "whole",
+      "notes": null
+    },
+    {
+      "name": "Pecorino Romano",
+      "quantity": 100,
+      "unit": "g",
+      "notes": "finely grated"
+    },
+    {
+      "name": "Black Pepper",
+      "quantity": null,
+      "unit": null,
+      "notes": "ground, to taste"
+    }
+  ],
+  "instructions": [
+    "Cut the guanciale into small pieces and cook in a skillet over medium heat for about 2-3 minutes, stirring occasionally. The more it cooks, the more its fat will melt and its meat will become crispy.",
+    "In a bowl, beat the eggs with a fork until they are well combined. Add the finely grated Pecorino Romano cheese and mix until you have a creamy sauce. Add freshly ground black pepper to taste.",
+    "Boil the water in a large pot. Add salt (depending on the saltiness of your guanciale) and cook the spaghetti until al dente.",
+    "Drain the spaghetti when it's ready and set it aside.",
+    "In the same skillet used for cooking the guanciale, add the pasta and toss to coat with the melted fat.",
+    "Remove the pan from heat. Add the egg and Pecorino Romano cream mixture to the pasta. Stir quickly to avoid scrambling the eggs.",
+    "If the sauce seems too runny, add some grated Pecorino Romano. If it's too sticky, add a little cooking water.",
+    "Serve immediately, topped with additional grated Pecorino Romano and freshly ground black pepper"
+  ],
+  "prepTime": 15,
+  "cookTime": 20,
+  "servings": 4
+}] Claude formatted response:
+8:45:08 PM [express] POST /api/recipes/generate 200 in 11245ms :: {"title":"Traditional Carbonara","…
+Error creating recipe: TypeError: Cannot read properties of undefined (reading 'name')
