@@ -146,11 +146,6 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
                     onAddNew={() => onAddRecipe?.(dayOfWeek, mealType)}
                   />
                 </div>
-                <div>
-                  <span className="text-sm text-muted-foreground">
-                    No preparation time needed
-                  </span>
-                </div>
               </div>
             </div>
           );

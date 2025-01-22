@@ -250,12 +250,6 @@ export default function MealView() {
                   <div className="flex space-x-4 text-sm text-muted-foreground">
                     {recipe.servings && (
                       <div className="flex items-center">
-                        <Clock className="mr-1 h-4 w-4" />
-                        Reserved for cooking mode
-                      </div>
-                    )}
-                    {recipe.servings && (
-                      <div className="flex items-center">
                         <Users className="mr-1 h-4 w-4" />
                         {recipe.servings} servings
                       </div>
