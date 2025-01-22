@@ -238,24 +238,45 @@ export default function MealView() {
             const recipe = recipesMap[id];
             return recipe ? (
               <Card key={id}>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg cursor-pointer" onClick={() => navigate(`/recipes/${id}`)}>
-                    {recipe.title}
-                  </CardTitle>
+                <CardHeader className="flex flex-row items-start justify-between gap-4">
+                  <div className="flex gap-4 flex-1 min-w-0">
+                    <div className="w-24 h-24 rounded-md overflow-hidden flex-shrink-0">
+                      {recipe.image ? (
+                        <img 
+                          src={recipe.image} 
+                          alt={recipe.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <span className="text-muted-foreground text-xs">No img</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-lg cursor-pointer mb-2" onClick={() => navigate(`/recipes/${id}`)}>
+                        {recipe.title}
+                      </CardTitle>
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                        {recipe.servings && (
+                          <div className="flex items-center">
+                            <Users className="mr-1 h-4 w-4" />
+                            {recipe.servings} servings
+                          </div>
+                        )}
+                        {(recipe.prepTime || recipe.cookTime) && (
+                          <div className="flex items-center">
+                            <Clock className="mr-1 h-4 w-4" />
+                            {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                   <Button variant="ghost" size="sm" onClick={() => handleRemoveRecipe(id)}>
                     Remove
                   </Button>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex space-x-4 text-sm text-muted-foreground">
-                    {recipe.servings && (
-                      <div className="flex items-center">
-                        <Users className="mr-1 h-4 w-4" />
-                        {recipe.servings} servings
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
               </Card>
             ) : null;
           })}
