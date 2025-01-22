@@ -2,22 +2,6 @@
 import { z } from "zod";
 import { formatRecipeResponse } from "./claude";
 
-export const recipePreviewSchema = z.object({
-  title: z.string(),
-  description: z.string().nullable(),
-  ingredients: z.array(z.object({
-    name: z.string(),
-    quantity: z.number().nullable(),
-    unit: z.string().nullable(),
-    notes: z.string().nullable()
-  })),
-  instructions: z.array(z.string()),
-  prepTime: z.number().nullable(),
-  cookTime: z.number().nullable(),
-  servings: z.number().nullable(),
-  sources: z.array(z.string()).nullable()
-});
-
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
 interface PerplexityResponse {
