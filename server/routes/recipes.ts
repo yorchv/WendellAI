@@ -126,7 +126,7 @@ router.post("/:id/generate-image", async (req, res) => {
 
   try {
     const recipe = await db.query.recipes.findFirst({
-      where: (recipes) => eq(recipes.id, parseInt(req.params.id))
+      where: eq(recipes.id, parseInt(req.params.id))
     });
 
     if (!recipe) {
