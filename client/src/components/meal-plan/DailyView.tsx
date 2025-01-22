@@ -14,6 +14,7 @@ interface Recipe {
   prepTime?: number;
   cookTime?: number;
   servings?: number;
+  image?: string;
 }
 
 interface DailyViewProps {
@@ -95,7 +96,22 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
                   const recipe = recipes[id];
                   return recipe ? (
                     <div key={id} className="flex items-center justify-between py-1">
-                      <span className="text-sm">{recipe.title}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
+                          {recipe.image ? (
+                            <img 
+                              src={recipe.image} 
+                              alt={recipe.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <span className="text-muted-foreground text-[8px]">No img</span>
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-sm">{recipe.title}</span>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
