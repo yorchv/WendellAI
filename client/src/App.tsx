@@ -28,11 +28,6 @@ function AppContent() {
   const { isAuthenticated, handleAuthRedirect } = useAuth();
   const { user } = useUser();
   const path = window.location.pathname;
-  const { initAnalytics } = useAnalytics();
-
-  useEffect(() => {
-    initAnalytics();
-  }, [initAnalytics]);
 
   if (!handleAuthRedirect(path)) {
     return null;

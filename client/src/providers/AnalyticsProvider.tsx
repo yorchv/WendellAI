@@ -9,7 +9,7 @@ type AnalyticsContextType = {
 const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined);
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
-  const initAnalytics = () => {
+  useEffect(() => {
     posthog.init(
       import.meta.env.VITE_POSTHOG_KEY,
       {
@@ -19,10 +19,10 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         }
       }
     );
-  };
+  }, []);
 
   return (
-    <AnalyticsContext.Provider value={{ initAnalytics }}>
+    <AnalyticsContext.Provider value={{}}>
       {children}
     </AnalyticsContext.Provider>
   );
