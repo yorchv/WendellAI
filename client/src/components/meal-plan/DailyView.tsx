@@ -63,10 +63,7 @@ export function DailyView({
 
   const handleMealClick = (mealType: MealType) => {
     if (planId) {
-      const params = new URLSearchParams();
-      params.set("day", dayOfWeek);
-      params.set("meal", mealType);
-      navigate(`/meal/${planId}?${params.toString()}`);
+      navigate(`/meal/${planId}/${dayOfWeek}/${mealType}`);
     }
   };
 
