@@ -10,6 +10,7 @@ export default function RecipeFormatter() {
   const [recipeText, setRecipeText] = useState("");
   const [formattedRecipe, setFormattedRecipe] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showForm, setShowForm] = useState(true);
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -39,6 +40,7 @@ export default function RecipeFormatter() {
 
       const recipe = await response.json();
       setFormattedRecipe(recipe);
+      setShowForm(false);
     } catch (error) {
       toast({
         title: "Error",
@@ -83,19 +85,34 @@ export default function RecipeFormatter() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea
-              placeholder="Paste your recipe here..."
-              className="min-h-[200px]"
-              value={recipeText}
-              onChange={(e) => setRecipeText(e.target.value)}
-            />
-            <Button 
-              className="w-full" 
-              onClick={handleFormatRecipe}
-              disabled={isLoading}
-            >
-              {isLoading ? "Formatting..." : "Format Recipe"}
-            </Button>
+            {showForm ? (
+              <>
+                <Textarea
+                  placeholder="Paste your recipe here..."
+                  className="min-h-[200px]"
+                  value={recipeText}
+                  onChange={(e) => setRecipeText(e.target.value)}
+                />
+                <Button 
+                  className="w-full" 
+                  onClick={handleFormatRecipe}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Formatting..." : "Format Recipe"}
+                </Button>
+              </>
+            ) : (
+              <Button
+                className="w-full mb-4"
+                onClick={() => {
+                  setRecipeText("");
+                  setFormattedRecipe("");
+                  setShowForm(true);
+                }}
+              >
+                Start Over
+              </Button>
+            )}
 
             {formattedRecipe && (
               <div className="mt-8 space-y-4">
