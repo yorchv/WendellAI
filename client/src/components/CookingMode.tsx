@@ -10,6 +10,26 @@ interface CookingModeProps {
 
 export function CookingMode({ instructions, onClose }: CookingModeProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null);
+
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          const wakeLock = await navigator.wakeLock.request('screen');
+          setWakeLock(wakeLock);
+        }
+      } catch (err) {
+        console.error('Wake Lock request failed:', err);
+      }
+    };
+    
+    requestWakeLock();
+
+    return () => {
+      wakeLock?.release().catch(console.error);
+    };
+  }, []);
 
   const goToNextStep = () => {
     if (currentStep < instructions.length - 1) {
