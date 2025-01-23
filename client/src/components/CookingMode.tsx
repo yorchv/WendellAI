@@ -49,7 +49,7 @@ export function CookingMode({ instructions, onClose }: CookingModeProps) {
           <div className="bg-primary/10 rounded-full px-4 py-1 text-primary font-medium">
             Step {currentStep + 1} of {instructions.length}
           </div>
-          <p className="text-2xl text-center font-serif">
+          <p className="text-2xl font-serif">
             {instructions[currentStep]}
           </p>
         </div>
