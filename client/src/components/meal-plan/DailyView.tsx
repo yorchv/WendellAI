@@ -54,7 +54,7 @@ export function DailyView({
     setSelectedDate,
     viewMode,
     setViewMode,
-    navigate,
+    navigate: calendarNavigate,
     goToToday
   } = useCalendarNavigation();
   const [, navigate] = useLocation();
