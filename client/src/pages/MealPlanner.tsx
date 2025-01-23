@@ -146,10 +146,6 @@ export default function MealPlanner() {
                 planId={currentWeekPlan.id}
                 weekStart={weekStart}
                 weekEnd={weekEnd}
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
-                viewMode={viewMode}
-                setViewMode={setViewMode}
                 days={currentWeekPlan.days}
                 recipes={recipesLookup}
                 familyMembers={familyMembersMap}
@@ -163,16 +159,10 @@ export default function MealPlanner() {
             ) : (
               <DailyView
                 planId={currentWeekPlan.id}
-                date={selectedDate}
                 days={currentWeekPlan.days}
                 recipes={recipesLookup}
                 familyMembers={familyMembersMap}
-                viewMode={viewMode}
                 weekStart={weekStart}
-                setViewMode={setViewMode}
-                setSelectedDate={setSelectedDate}
-                onNavigate={navigate}
-                goToToday={goToToday}
                 onAddRecipe={(day, mealType) => {
                   setSelectedDay(day);
                   setSelectedMeal(mealType);
