@@ -155,6 +155,10 @@ export default function MealPlanner() {
                   setIsSearchOpen(true);
                 }}
                 onDropRecipe={handleRecipeSelection}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
               />
             ) : (
               <DailyView
