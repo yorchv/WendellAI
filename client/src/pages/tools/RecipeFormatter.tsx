@@ -110,48 +110,28 @@ export default function RecipeFormatter() {
                     Copy
                   </Button>
                 </div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{formattedRecipe.title}</CardTitle>
-                    {formattedRecipe.description && (
-                      <p className="text-muted-foreground">{formattedRecipe.description}</p>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div>
-                      <h4 className="font-semibold mb-2">Ingredients</h4>
-                      <ul className="list-disc pl-4 space-y-1">
-                        {formattedRecipe.ingredients.map((ing, i) => (
-                          <li key={i}>
-                            {ing.quantity && `${ing.quantity} `}
-                            {ing.unit && `${ing.unit} `}
-                            {ing.name}
-                            {ing.notes && ` (${ing.notes})`}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Instructions</h4>
-                      <ol className="list-decimal pl-4 space-y-2">
-                        {formattedRecipe.instructions.map((step, i) => (
-                          <li key={i}>{step}</li>
-                        ))}
-                      </ol>
-                    </div>
-                    <div className="flex gap-4 text-sm text-muted-foreground">
-                      {formattedRecipe.prepTime && (
-                        <div>Prep Time: {formattedRecipe.prepTime} minutes</div>
-                      )}
-                      {formattedRecipe.cookTime && (
-                        <div>Cook Time: {formattedRecipe.cookTime} minutes</div>
-                      )}
-                      {formattedRecipe.servings && (
-                        <div>Servings: {formattedRecipe.servings}</div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                <RecipeCard 
+                  recipe={{
+                    ...formattedRecipe,
+                    id: 0,
+                    userId: 0,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    ingredients: formattedRecipe.ingredients.map(ing => ({
+                      recipeId: 0,
+                      ingredientId: 0,
+                      quantity: ing.quantity,
+                      unit: ing.unit,
+                      notes: ing.notes,
+                      ingredient: {
+                        id: 0,
+                        name: ing.name,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                      }
+                    }))
+                  }}
+                />
               </div>
             )}
           </CardContent>
