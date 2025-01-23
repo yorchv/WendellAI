@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RecipeCard } from "@/components/RecipeCard";
+import { RecipeDisplay } from "@/components/RecipeDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { ChefHat, Copy, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
@@ -128,7 +128,7 @@ export default function RecipeFormatter() {
                     Copy
                   </Button>
                 </div>
-                <RecipeCard 
+                <RecipeDisplay 
                   recipe={{
                     ...formattedRecipe,
                     id: 0,
