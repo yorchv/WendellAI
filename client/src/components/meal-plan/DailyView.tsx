@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CalendarNavigation } from "./CalendarNavigation";
+import { CalendarNavigationContainer } from "./CalendarNavigationContainer";
 import { useLocation } from "wouter";
 
 interface Recipe {
