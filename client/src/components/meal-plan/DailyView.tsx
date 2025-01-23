@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
 import type { MealType, DayType } from "@db/schema";
-import { Clock, AlertCircle, Users, Plus, X } from "lucide-react";
+import { Clock, AlertCircle, Users, Plus, X, CalendarDays } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
