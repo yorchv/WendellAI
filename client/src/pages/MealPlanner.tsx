@@ -22,7 +22,8 @@ import { MealPlanTable } from "@/components/meal-plan/MealPlanTable";
 import { DailyView } from "@/components/meal-plan/DailyView";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { CalendarNavigation } from "@/components/meal-plan/CalendarNavigation";
+import { CalendarNavigationContainer } from "@/components/meal-plan/CalendarNavigationContainer"; // Import the new component
+
 
 type ViewMode = "daily" | "weekly";
 
@@ -143,7 +144,7 @@ export default function MealPlanner() {
           <span className="font-medium">Meal Planner</span>
         </nav>
         <div className="hidden md:flex items-center justify-end">
-          <CalendarNavigation
+          <CalendarNavigationContainer
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             viewMode={viewMode}
@@ -154,30 +155,16 @@ export default function MealPlanner() {
           />
         </div>
         <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                <CalendarDays className="h-4 w-4 mr-2" />
-                {format(selectedDate, 'MMM d, yyyy')}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[400px]">
-              <SheetHeader>
-                <SheetTitle>Date & View Options</SheetTitle>
-              </SheetHeader>
-              <div className="py-4">
-                <CalendarNavigation
-                  selectedDate={selectedDate}
-                  setSelectedDate={setSelectedDate}
-                  viewMode={viewMode}
-                  weekStart={weekStart}
-                  setViewMode={setViewMode}
-                  navigate={navigate}
-                  goToToday={goToToday}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
+          <CalendarNavigationContainer
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            viewMode={viewMode}
+            weekStart={weekStart}
+            setViewMode={setViewMode}
+            navigate={navigate}
+            goToToday={goToToday}
+            variant="mobile"
+          />
         </div>
       </div>
 
@@ -191,7 +178,7 @@ export default function MealPlanner() {
                 weekEnd={weekEnd}
                 days={currentWeekPlan.days}
                 recipes={recipesLookup}
-                familyMembers={familyMembersMap} // Added familyMembers prop
+                familyMembers={familyMembersMap}
                 onAddRecipe={(day, mealType) => {
                   setSelectedDay(day);
                   setSelectedMeal(mealType);

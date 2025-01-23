@@ -74,30 +74,16 @@ export function DailyView({
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">{format(date, 'EEEE')}</h2>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                <CalendarDays className="h-4 w-4 mr-2" />
-                {format(date, 'MMM d, yyyy')}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[400px]">
-              <SheetHeader>
-                <SheetTitle>Date & View Options</SheetTitle>
-              </SheetHeader>
-              <div className="py-4">
-                <CalendarNavigation
-                  selectedDate={date}
-                  setSelectedDate={setSelectedDate}
-                  viewMode={viewMode}
-                  weekStart={weekStart}
-                  setViewMode={setViewMode}
-                  navigate={onNavigate}
-                  goToToday={goToToday}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
+          <CalendarNavigationContainer
+            selectedDate={date}
+            setSelectedDate={setSelectedDate}
+            viewMode={viewMode}
+            weekStart={weekStart}
+            setViewMode={setViewMode}
+            navigate={onNavigate}
+            goToToday={goToToday}
+            variant="mobile"
+          />
         </div>
       </div>
       <div className="divide-y">
