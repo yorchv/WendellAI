@@ -123,8 +123,8 @@ export function DailyView({
                   const recipe = recipes[id];
                   return recipe ? (
                     <div key={id} className="flex items-center justify-between py-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
+                      <div className="flex items-center gap-3">
+                        <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
                           {recipe.image ? (
                             <img 
                               src={recipe.image} 
@@ -133,13 +133,13 @@ export function DailyView({
                             />
                           ) : (
                             <div className="w-full h-full bg-muted flex items-center justify-center">
-                              <span className="text-muted-foreground text-[8px]">No img</span>
+                              <span className="text-muted-foreground text-xs">No img</span>
                             </div>
                           )}
                         </div>
                         <Button 
                           variant="link" 
-                          className="text-sm p-0 h-auto" 
+                          className="text-sm font-serif text-black p-0 h-auto" 
                           onClick={() => navigate(`/recipes/${recipe.id}`)}
                         >
                           {recipe.title}
