@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMealPlans } from "@/hooks/use-meal-plans";
+import { useCalendarNavigation } from "@/hooks/use-calendar-navigation";
 import { useRecipes } from "@/hooks/use-recipes";
 import { useFamilyMembers } from "@/hooks/use-family-members";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,11 +29,17 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 type ViewMode = "daily" | "weekly";
 
 export default function MealPlanner() {
-  const [viewMode, setViewMode] = useState<ViewMode>("daily");
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
   const [selectedMeal, setSelectedMeal] = useState<MealType>(MEAL_TYPES[0]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const {
+    selectedDate,
+    setSelectedDate,
+    viewMode,
+    setViewMode,
+    navigate,
+    goToToday
+  } = useCalendarNavigation();
   const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
   const { recipes } = useRecipes();
   const { familyMembers } = useFamilyMembers();
@@ -93,18 +100,7 @@ export default function MealPlanner() {
     }
   };
 
-  const navigate = (direction: "prev" | "next") => {
-    if (viewMode === "weekly") {
-      setSelectedDate(direction === "prev" ? subWeeks(selectedDate, 1) : addWeeks(selectedDate, 1));
-    } else {
-      setSelectedDate(direction === "prev" ? subDays(selectedDate, 1) : addDays(selectedDate, 1));
-    }
-  };
-
-  const goToToday = () => {
-    setSelectedDate(startOfToday());
-    setViewMode("daily");
-  };
+  
 
   const createEmptyMealPlan = async () => {
     try {
