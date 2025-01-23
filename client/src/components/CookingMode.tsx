@@ -34,27 +34,32 @@ export function CookingMode({ instructions, onClose }: CookingModeProps) {
         </Button>
       </div>
       
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-between px-12">
         <Button
           variant="ghost"
           size="icon"
-          className="fixed left-4"
           onClick={goToPreviousStep}
           disabled={currentStep === 0}
+          className="flex-shrink-0"
         >
           <ArrowLeft className="h-6 w-6" />
         </Button>
         
-        <p className="text-3xl text-center max-w-3xl font-serif">
-          {instructions[currentStep]}
-        </p>
+        <div className="flex flex-col items-center gap-6 px-8">
+          <div className="bg-primary/10 rounded-full px-4 py-1 text-primary font-medium">
+            Step {currentStep + 1} of {instructions.length}
+          </div>
+          <p className="text-3xl text-center font-serif">
+            {instructions[currentStep]}
+          </p>
+        </div>
         
         <Button
           variant="ghost"
           size="icon"
-          className="fixed right-4"
           onClick={goToNextStep}
           disabled={currentStep === instructions.length - 1}
+          className="flex-shrink-0"
         >
           <ArrowRight className="h-6 w-6" />
         </Button>
