@@ -135,8 +135,12 @@ export default function MealPlanner() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
-        <h1 className="text-3xl font-bold">Meal Planner</h1>
+      <div className="flex items-center justify-between border-b pb-4 mb-4">
+        <nav className="flex items-center space-x-2">
+          <span className="text-muted-foreground">Home</span>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          <span className="font-medium">Meal Planner</span>
+        </nav>
         <CalendarNavigation
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
