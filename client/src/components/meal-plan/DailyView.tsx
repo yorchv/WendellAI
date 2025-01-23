@@ -44,7 +44,21 @@ interface DailyViewProps {
   onRemoveRecipe?: (id: number) => void; // Added for removing recipes
 }
 
-export function DailyView({ planId, date, days, recipes, familyMembers, onAddRecipe, onRemoveRecipe }: DailyViewProps) {
+export function DailyView({ 
+  planId, 
+  date, 
+  days, 
+  recipes, 
+  familyMembers, 
+  viewMode, 
+  weekStart, 
+  setViewMode, 
+  setSelectedDate, 
+  navigate, 
+  goToToday,
+  onAddRecipe, 
+  onRemoveRecipe 
+}: DailyViewProps) {
   const [, navigate] = useLocation();
   const dayOfWeek = format(date, 'EEEE') as DayType;
   const dayData = days?.find(day => day.dayName === dayOfWeek);
