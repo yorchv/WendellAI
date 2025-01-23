@@ -201,12 +201,7 @@ export const apiUsage = pgTable("api_usage", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const apiUsageRelations = relations(apiUsage, ({ one }) => ({
-  user: one(users, {
-    fields: [apiUsage.userId],
-    references: [users.id],
-  }),
-}));
+// API usage no longer needs relations since we removed the user reference
 
 
 export const familyMemberRelations = relations(familyMembers, ({ one, many }) => ({
