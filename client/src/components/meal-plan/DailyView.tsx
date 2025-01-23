@@ -23,13 +23,7 @@ interface Recipe {
 
 interface DailyViewProps {
   planId: number | undefined;
-  date: Date;
-  viewMode: "daily" | "weekly";
   weekStart: Date;
-  setViewMode: (mode: "daily" | "weekly") => void;
-  setSelectedDate: (date: Date) => void;
-  onNavigate: (direction: "prev" | "next") => void;
-  goToToday: () => void;
   days: Array<{
     dayName: DayType;
     calendarDay: string;
@@ -43,7 +37,7 @@ interface DailyViewProps {
   recipes: Record<number, Recipe>;
   familyMembers: Record<number, { id: number; name: string }>;
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
-  onRemoveRecipe?: (id: number) => void; // Added for removing recipes
+  onRemoveRecipe?: (id: number) => void;
 }
 
 export function DailyView({ 

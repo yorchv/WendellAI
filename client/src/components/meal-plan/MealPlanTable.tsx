@@ -20,12 +20,6 @@ interface MealPlanTableProps {
   planId: number | undefined;
   weekStart: Date;
   weekEnd: Date;
-  selectedDate: Date;
-  setSelectedDate: (date: Date) => void;
-  viewMode: "daily" | "weekly";
-  setViewMode: (mode: "daily" | "weekly") => void;
-  navigate: (direction: "prev" | "next") => void;
-  goToToday: () => void;
   days: Array<{
     dayName: DayType;
     calendarDay: string;
@@ -39,7 +33,7 @@ interface MealPlanTableProps {
   recipes: Record<number, Recipe>;
   familyMembers: Record<number, { id: number; name: string }>;
   onAddRecipe?: (day: DayType, mealType: MealType) => void;
-  onDropRecipe?: (day: DayType, mealType: MealType, recipeId: number) => void;
+  onDropRecipe?: (id: number) => void;
 }
 
 export function MealPlanTable({ 
@@ -51,7 +45,7 @@ export function MealPlanTable({
   familyMembers,
   onAddRecipe,
   onDropRecipe 
-}: Omit<MealPlanTableProps, 'selectedDate' | 'setSelectedDate' | 'viewMode' | 'setViewMode' | 'navigate' | 'goToToday'>) {
+}: Omit<MealPlanTableProps, 'weekEnd'>) {
   const {
     selectedDate,
     setSelectedDate,
