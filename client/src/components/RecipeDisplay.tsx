@@ -73,10 +73,12 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
               {recipe.ingredients.map((ingredient, index) => (
                 <li 
                   key={index} 
-                  className="flex items-center gap-2 cursor-pointer"
+                  className="flex items-center gap-2 cursor-pointer group"
                   onClick={() => toggleIngredient(index)}
                 >
-                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  <span className={`w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center ${checkedIngredients.includes(index) ? "bg-primary" : "bg-transparent group-hover:bg-primary/20"}`}>
+                    {checkedIngredients.includes(index) && <span className="block w-1.5 h-1.5 rounded-full bg-background" />}
+                  </span>
                   <span className={`flex-1 ${checkedIngredients.includes(index) ? "line-through text-muted-foreground" : ""}`}>
                     {ingredient.quantity && (
                       <span className="font-medium">
