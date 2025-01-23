@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useMealPlans } from "@/hooks/use-meal-plans";
 
 import { useRecipes } from "@/hooks/use-recipes";
@@ -29,6 +30,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 type ViewMode = "daily" | "weekly";
 
 export default function MealPlanner() {
+  const [, navigate] = useLocation();
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
   const [selectedMeal, setSelectedMeal] = useState<MealType>(MEAL_TYPES[0]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
