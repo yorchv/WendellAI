@@ -35,6 +35,15 @@ export default function RecipeFormatter() {
         body: JSON.stringify({ text: recipeText }),
       });
 
+      if (response.status === 429) {
+        toast({
+          title: "Usage Limit Reached",
+          description: "The recipe formatter has reached its daily limit. Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (!response.ok) {
         throw new Error("Failed to format recipe");
       }
