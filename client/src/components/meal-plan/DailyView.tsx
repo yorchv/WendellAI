@@ -26,7 +26,7 @@ interface DailyViewProps {
   weekStart: Date;
   setViewMode: (mode: "daily" | "weekly") => void;
   setSelectedDate: (date: Date) => void;
-  navigate: (direction: "prev" | "next") => void;
+  onNavigate: (direction: "prev" | "next") => void;
   goToToday: () => void;
   days: Array<{
     dayName: DayType;
@@ -54,7 +54,7 @@ export function DailyView({
   weekStart, 
   setViewMode, 
   setSelectedDate, 
-  navigate, 
+  onNavigate, 
   goToToday,
   onAddRecipe, 
   onRemoveRecipe 
@@ -92,7 +92,7 @@ export function DailyView({
                   viewMode={viewMode}
                   weekStart={weekStart}
                   setViewMode={setViewMode}
-                  navigate={navigate}
+                  navigate={onNavigate}
                   goToToday={goToToday}
                 />
               </div>

@@ -52,7 +52,7 @@ export default function MealPlanner() {
     try {
       const updatedDays = currentWeekPlan?.days?.map(d => {
         if (d.dayName !== day) return d;
-        
+
         const currentMeal = d.meals?.[mealType] || { recipeIds: [], participants: [] };
         return {
           ...d,
@@ -210,7 +210,7 @@ export default function MealPlanner() {
                 weekStart={weekStart}
                 setViewMode={setViewMode}
                 setSelectedDate={setSelectedDate}
-                navigate={navigate}
+                onNavigate={navigate}
                 goToToday={goToToday}
                 onAddRecipe={(day, mealType) => {
                   setSelectedDay(day);
