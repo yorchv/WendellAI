@@ -36,22 +36,37 @@ function AppContent() {
     return null;
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Switch>
-          <Route path="/" component={Marketing} />
-          <Route path="/auth" component={AuthPage} />
-          {/* Add routes for standalone tools */}
-          <Route path="/tools/recipe-formatter" component={RecipeFormatter} />
-          <Route path="/tools/dietary-checker" component={DietaryChecker} />
-          <Route path="/tools/cookbook-to-phone" component={CookbookToPhone} />
-          <Route>404 - Not Found</Route>
-        </Switch>
-        <Toaster />
-      </div>
-    );
-  }
+  return (
+    <div className="min-h-screen bg-background">
+      <Switch>
+        {/* Public routes */}
+        <Route path="/" component={Marketing} />
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/tools/recipe-formatter" component={RecipeFormatter} />
+        <Route path="/tools/dietary-checker" component={DietaryChecker} />
+        <Route path="/tools/cookbook-to-phone" component={CookbookToPhone} />
+        
+        {/* Protected routes - only accessible when authenticated */}
+        {isAuthenticated ? (
+          <>
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/recipes" component={RecipesPage} />
+            <Route path="/recipe/:id" component={RecipeView} />
+            <Route path="/meal-planner" component={MealPlanner} />
+            <Route path="/meal/:id" component={MealView} />
+            <Route path="/shopping-list" component={ShoppingList} />
+            <Route path="/family" component={FamilyDashboard} />
+            <Route path="/cooking-mode/:id" component={CookingMode} />
+          </>
+        ) : (
+          <Route component={() => <div>Please log in to access this page</div>} />
+        )}
+        
+        <Route>404 - Not Found</Route>
+      </Switch>
+      <Toaster />
+    </div>
+  );
 
   return (
     <DndProvider backend={HTML5Backend}>
