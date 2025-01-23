@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { queryClient } from "./lib/queryClient";
 import { useUser } from "./hooks/use-user";
 import { AuthProvider, useAuth } from "./providers/AuthProvider";
+import { AnalyticsProvider, useAnalytics } from "./providers/AnalyticsProvider"; // Added import
 import Navigation from "./components/Navigation";
 import AuthPage from "./pages/AuthPage";
 import Marketing from "./pages/Marketing";
@@ -20,16 +21,18 @@ import ShoppingList from "./pages/ShoppingList";
 import FamilyDashboard from "./pages/FamilyDashboard";
 import StreamStarting from "./pages/StreamStarting";
 import StreamBreak from "./pages/StreamBreak";
+import { useEffect } from 'react';
+
 
 function AppContent() {
   const { isAuthenticated, handleAuthRedirect } = useAuth();
   const { user } = useUser();
   const path = window.location.pathname;
-  const { initAnalytics } = useAnalytics(); // Added this line
+  const { initAnalytics } = useAnalytics();
 
   useEffect(() => {
     initAnalytics();
-  }, [initAnalytics]); // Modified this line
+  }, [initAnalytics]);
 
   if (!handleAuthRedirect(path)) {
     return null;
@@ -75,9 +78,11 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <AnalyticsProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </AnalyticsProvider>
     </QueryClientProvider>
   );
 }
