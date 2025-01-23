@@ -4,6 +4,13 @@ import multer from "multer";
 import { Buffer } from "buffer";
 
 const router = Router();
+
+// Import the API usage tracking middleware
+import { trackApiUsage } from "../middleware/apiUsage";
+
+// Apply the middleware to all routes in this router
+router.use(trackApiUsage);
+
 const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
