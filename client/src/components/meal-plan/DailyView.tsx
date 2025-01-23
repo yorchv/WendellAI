@@ -20,6 +20,12 @@ interface Recipe {
 interface DailyViewProps {
   planId: number | undefined;
   date: Date;
+  viewMode: "daily" | "weekly";
+  weekStart: Date;
+  setViewMode: (mode: "daily" | "weekly") => void;
+  setSelectedDate: (date: Date) => void;
+  navigate: (direction: "prev" | "next") => void;
+  goToToday: () => void;
   days: Array<{
     dayName: DayType;
     calendarDay: string;
@@ -50,12 +56,33 @@ export function DailyView({ planId, date, days, recipes, familyMembers, onAddRec
   return (
     <Card className="w-full">
       <div className="p-4 border-b">
-        <h2 className="text-2xl font-semibold">
-          {format(date, 'EEEE')}
-          <span className="ml-2 text-muted-foreground font-normal">
-            {format(date, 'MMMM d, yyyy')}
-          </span>
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">{format(date, 'EEEE')}</h2>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                <CalendarDays className="h-4 w-4 mr-2" />
+                {format(date, 'MMM d, yyyy')}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[400px]">
+              <SheetHeader>
+                <SheetTitle>Date & View Options</SheetTitle>
+              </SheetHeader>
+              <div className="py-4">
+                <CalendarNavigation
+                  selectedDate={date}
+                  setSelectedDate={setSelectedDate}
+                  viewMode={viewMode}
+                  weekStart={weekStart}
+                  setViewMode={setViewMode}
+                  navigate={navigate}
+                  goToToday={goToToday}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
       <div className="divide-y">
         {["breakfast", "lunch", "dinner"].map((mealType: MealType) => {
