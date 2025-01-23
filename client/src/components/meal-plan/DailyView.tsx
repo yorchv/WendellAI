@@ -78,7 +78,7 @@ export function DailyView({
             viewMode={viewMode}
             weekStart={weekStart}
             setViewMode={setViewMode}
-            navigate={onNavigate}
+            navigate={calendarNavigate}
             goToToday={goToToday}
             variant="mobile"
           />
