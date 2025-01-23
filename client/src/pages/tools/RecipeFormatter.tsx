@@ -37,8 +37,8 @@ export default function RecipeFormatter() {
         throw new Error("Failed to format recipe");
       }
 
-      const data = await response.json();
-      setFormattedRecipe(data.formatted);
+      const recipe = await response.json();
+      setFormattedRecipe(recipe);
     } catch (error) {
       toast({
         title: "Error",
