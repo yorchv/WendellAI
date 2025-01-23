@@ -192,7 +192,7 @@ export default function MealPlanner() {
               Create Meal Plan
             </Button>
           </div>
-        ))}
+        )}
       </div>
 
       <RecipeSearchDialog
