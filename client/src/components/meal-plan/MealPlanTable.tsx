@@ -52,7 +52,7 @@ export function MealPlanTable({
     setSelectedDate,
     viewMode,
     setViewMode,
-    navigate,
+    navigate: calendarNavigate,
     goToToday
   } = useCalendarNavigation();
   const [selectedMeal, setSelectedMeal] = useState<{
