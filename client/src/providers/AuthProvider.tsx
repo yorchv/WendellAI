@@ -15,7 +15,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { user, isLoading } = useUser();
   
   const handleAuthRedirect = (path: string) => {
-    const isPublicRoute = path === "/" || path === "/auth";
+    const isPublicRoute = path === "/" || path === "/auth" || path.startsWith("/tools/");
     const isAuthenticated = !!user;
 
     if (!isAuthenticated && !isPublicRoute) {
