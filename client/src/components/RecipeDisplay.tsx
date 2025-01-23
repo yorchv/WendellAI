@@ -30,16 +30,8 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div>
           <h1 className="text-4xl font-heading font-bold">{recipe.title}</h1>
-          <Button 
-            variant="outline"
-            onClick={() => setIsCookingMode(true)}
-            className="flex items-center gap-2"
-          >
-            <PlayCircle className="h-4 w-4" />
-            Start Cooking Mode
-          </Button>
         </div>
 
         <div className="flex items-center gap-6 text-muted-foreground">
@@ -100,7 +92,17 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
 
         <Card>
           <CardContent className="pt-6">
-            <h2 className="text-xl font-heading font-semibold mb-4">Instructions</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-heading font-semibold">Instructions</h2>
+              <Button 
+                variant="outline"
+                onClick={() => setIsCookingMode(true)}
+                className="flex items-center gap-2"
+              >
+                <PlayCircle className="h-4 w-4" />
+                Start Cooking Mode
+              </Button>
+            </div>
             <ol className="space-y-4 font-serif">
               {recipe.instructions.map((step, index) => (
                 <li key={index} className="flex gap-4">
