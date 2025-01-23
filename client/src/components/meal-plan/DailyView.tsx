@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarNavigation } from "./CalendarNavigation";
 import { CalendarNavigationContainer } from "./CalendarNavigationContainer";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 import { useCalendarNavigation } from "@/hooks/use-calendar-navigation";
 
 interface Recipe {
@@ -58,6 +59,12 @@ export function DailyView({
     goToToday
   } = useCalendarNavigation();
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (viewMode === "weekly") {
+      navigate("/meal-planner");
+    }
+  }, [viewMode, navigate]);
   const dayOfWeek = format(date, 'EEEE') as DayType;
   const dayData = days?.find(day => day.dayName === dayOfWeek);
 
