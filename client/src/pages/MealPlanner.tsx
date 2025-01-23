@@ -5,6 +5,7 @@ import { useFamilyMembers } from "@/hooks/use-family-members";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { addWeeks, subWeeks, format, startOfToday, subDays, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -141,7 +142,7 @@ export default function MealPlanner() {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
           <span className="font-medium">Meal Planner</span>
         </nav>
-        <div className="flex items-center justify-end">
+        <div className="hidden md:flex items-center justify-end">
           <CalendarNavigation
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
@@ -151,6 +152,32 @@ export default function MealPlanner() {
             navigate={navigate}
             goToToday={goToToday}
           />
+        </div>
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                <CalendarDays className="h-4 w-4 mr-2" />
+                {format(selectedDate, 'MMM d, yyyy')}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[400px]">
+              <SheetHeader>
+                <SheetTitle>Date & View Options</SheetTitle>
+              </SheetHeader>
+              <div className="py-4">
+                <CalendarNavigation
+                  selectedDate={selectedDate}
+                  setSelectedDate={setSelectedDate}
+                  viewMode={viewMode}
+                  weekStart={weekStart}
+                  setViewMode={setViewMode}
+                  navigate={navigate}
+                  goToToday={goToToday}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
