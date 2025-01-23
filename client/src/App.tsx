@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 import { queryClient } from "./lib/queryClient";
 import { useUser } from "./hooks/use-user";
 import { AuthProvider, useAuth } from "./providers/AuthProvider";
-import { AnalyticsProvider, useAnalytics } from "./providers/AnalyticsProvider"; // Added import
+import { AnalyticsProvider, useAnalytics } from "./providers/AnalyticsProvider";
 import Navigation from "./components/Navigation";
 import AuthPage from "./pages/AuthPage";
 import Marketing from "./pages/Marketing";
@@ -22,6 +22,9 @@ import FamilyDashboard from "./pages/FamilyDashboard";
 import StreamStarting from "./pages/StreamStarting";
 import StreamBreak from "./pages/StreamBreak";
 import { useEffect } from 'react';
+import RecipeFormatter from "./pages/tools/RecipeFormatter"; // Added import
+import DietaryChecker from "./pages/tools/DietaryChecker";   // Added import
+import CookbookToPhone from "./pages/tools/CookbookToPhone"; // Added import
 
 
 function AppContent() {
@@ -39,6 +42,10 @@ function AppContent() {
         <Switch>
           <Route path="/" component={Marketing} />
           <Route path="/auth" component={AuthPage} />
+          {/* Add routes for standalone tools */}
+          <Route path="/tools/recipe-formatter" component={RecipeFormatter} />
+          <Route path="/tools/dietary-checker" component={DietaryChecker} />
+          <Route path="/tools/cookbook-to-phone" component={CookbookToPhone} />
           <Route>404 - Not Found</Route>
         </Switch>
         <Toaster />
