@@ -1,3 +1,4 @@
+import { useLocation } from "wouter";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { MealType, DayType } from "@db/schema";
 import { MealCell } from "./MealCell";
