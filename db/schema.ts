@@ -194,6 +194,22 @@ export const recipeIngredientRelations = relations(recipeIngredients, ({ one }) 
   }),
 }));
 
+export const apiUsage = pgTable("api_usage", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  endpoint: text("endpoint").notNull(),
+  count: integer("count").notNull().default(0),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const apiUsageRelations = relations(apiUsage, ({ one }) => ({
+  user: one(users, {
+    fields: [apiUsage.userId],
+    references: [users.id],
+  }),
+}));
+
+
 export const familyMemberRelations = relations(familyMembers, ({ one, many }) => ({
   user: one(users, {
     fields: [familyMembers.userId],

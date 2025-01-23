@@ -14,11 +14,48 @@ const upload = multer({
 router.post("/format-recipe", async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
+    const user = req.user as { id: number } | undefined;
     const { text } = req.body;
 
     if (!text) {
       return res.status(400).json({ message: "Recipe text is required" });
     }
+
+    // Get or create usage record
+    let [usage] = await db
+      .select()
+      .from(apiUsage)
+      .where(and(
+        eq(apiUsage.userId, user?.id || 0),
+        eq(apiUsage.endpoint, 'format-recipe')
+      ));
+
+    if (!usage) {
+      [usage] = await db
+        .insert(apiUsage)
+        .values({
+          userId: user?.id || 0,
+          endpoint: 'format-recipe',
+          count: 0
+        })
+        .returning();
+    }
+
+    // Check usage limit for free users
+    if (!user?.id && usage.count >= 100) {
+      return res.status(429).json({ 
+        message: "Free usage limit reached. Please sign up to continue using this feature."
+      });
+    }
+
+    // Increment usage count
+    await db
+      .update(apiUsage)
+      .set({ 
+        count: usage.count + 1,
+        updatedAt: new Date()
+      })
+      .where(eq(apiUsage.id, usage.id));
 
     // Format the recipe using Claude
     const recipe = await formatRecipeResponse(text);
