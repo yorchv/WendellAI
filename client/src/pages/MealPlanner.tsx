@@ -205,7 +205,13 @@ export default function MealPlanner() {
                 date={selectedDate}
                 days={currentWeekPlan.days}
                 recipes={recipesLookup}
-                familyMembers={familyMembersMap} // Added familyMembers prop
+                familyMembers={familyMembersMap}
+                viewMode={viewMode}
+                weekStart={weekStart}
+                setViewMode={setViewMode}
+                setSelectedDate={setSelectedDate}
+                navigate={navigate}
+                goToToday={goToToday}
                 onAddRecipe={(day, mealType) => {
                   setSelectedDay(day);
                   setSelectedMeal(mealType);
