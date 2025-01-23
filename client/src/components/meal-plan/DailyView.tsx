@@ -139,7 +139,7 @@ export function DailyView({
                         </div>
                         <Button 
                           variant="link" 
-                          className="text-sm font-serif text-black p-0 h-auto" 
+                          className="text-base font-serif text-black p-0 h-auto" 
                           onClick={() => navigate(`/recipes/${recipe.id}`)}
                         >
                           {recipe.title}
