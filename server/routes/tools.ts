@@ -12,6 +12,7 @@ const upload = multer({
 
 // Recipe formatter endpoint
 router.post("/format-recipe", async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
   try {
     const { text } = req.body;
 
