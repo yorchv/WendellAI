@@ -27,6 +27,14 @@ setupAuth(app);
 // Logger middleware
 app.use(loggerMiddleware);
 
+// API usage tracking middleware
+const trackApiUsage = (req: Request, res: Response, next: NextFunction) => {
+  console.log(`API request to ${req.path}`); // Basic tracking - log the request path
+  next();
+};
+app.use("/api", trackApiUsage);
+
+
 // Rate limiter removed from here as per instruction
 
 (async () => {
