@@ -21,34 +21,30 @@ router.post("/format-recipe", async (req, res) => {
       return res.status(400).json({ message: "Recipe text is required" });
     }
 
-    // Get or create usage record
+    // Get or create global usage record
     let [usage] = await db
       .select()
       .from(apiUsage)
-      .where(and(
-        eq(apiUsage.userId, user?.id || 0),
-        eq(apiUsage.endpoint, 'format-recipe')
-      ));
+      .where(eq(apiUsage.endpoint, 'format-recipe'));
 
     if (!usage) {
       [usage] = await db
         .insert(apiUsage)
         .values({
-          userId: user?.id || 0,
           endpoint: 'format-recipe',
           count: 0
         })
         .returning();
     }
 
-    // Check usage limit for free users
-    if (!user?.id && usage.count >= 100) {
+    // Check global usage limit
+    if (usage.count >= 100) {
       return res.status(429).json({ 
-        message: "Free usage limit reached. Please sign up to continue using this feature."
+        message: "Free usage limit reached. Please try again later."
       });
     }
 
-    // Increment usage count
+    // Increment global usage count
     await db
       .update(apiUsage)
       .set({ 

@@ -196,8 +196,7 @@ export const recipeIngredientRelations = relations(recipeIngredients, ({ one }) 
 
 export const apiUsage = pgTable("api_usage", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  endpoint: text("endpoint").notNull(),
+  endpoint: text("endpoint").notNull().unique(),
   count: integer("count").notNull().default(0),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
