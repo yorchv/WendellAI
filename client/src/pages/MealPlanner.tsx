@@ -148,8 +148,6 @@ export default function MealPlanner() {
                 setSelectedDate={setSelectedDate}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                navigate={navigate}
-                goToToday={goToToday}
                 days={currentWeekPlan.days}
                 recipes={recipesLookup}
                 familyMembers={familyMembersMap}

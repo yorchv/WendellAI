@@ -46,6 +46,7 @@ export function MealPlanTable({
   onAddRecipe,
   onDropRecipe 
 }: Omit<MealPlanTableProps, 'weekEnd'>) {
+  const [, navigate] = useLocation();
   const {
     selectedDate,
     setSelectedDate,
