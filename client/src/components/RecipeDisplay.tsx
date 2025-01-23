@@ -1,8 +1,10 @@
 
 import { Recipe, RecipeIngredient, Ingredient } from "@db/schema";
-import { Clock, Users, ChefHat } from "lucide-react";
+import { Clock, Users, ChefHat, PlayCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { CookingMode } from "./CookingMode";
 
 interface RecipeWithIngredients extends Recipe {
   ingredients: (RecipeIngredient & {
@@ -16,6 +18,7 @@ interface RecipeDisplayProps {
 
 export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
   const [checkedIngredients, setCheckedIngredients] = useState<number[]>([]);
+  const [isCookingMode, setIsCookingMode] = useState(false);
 
   const toggleIngredient = (index: number) => {
     setCheckedIngredients(prev => 
@@ -27,7 +30,17 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <h1 className="text-4xl font-heading font-bold">{recipe.title}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-4xl font-heading font-bold">{recipe.title}</h1>
+          <Button 
+            variant="outline"
+            onClick={() => setIsCookingMode(true)}
+            className="flex items-center gap-2"
+          >
+            <PlayCircle className="h-4 w-4" />
+            Start Cooking Mode
+          </Button>
+        </div>
 
         <div className="flex items-center gap-6 text-muted-foreground">
           {(recipe.prepTime || recipe.cookTime) && (
@@ -99,6 +112,12 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
           </CardContent>
         </Card>
       </div>
+    {isCookingMode && (
+        <CookingMode
+          instructions={recipe.instructions}
+          onClose={() => setIsCookingMode(false)}
+        />
+      )}
     </div>
   );
 }
