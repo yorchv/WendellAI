@@ -37,7 +37,7 @@ export default function MealPlanner() {
   const params = new URLSearchParams(window.location.search);
   const [viewMode, setViewMode] = useState<ViewMode>(params.get("view") as ViewMode || "daily");
   const [selectedDate, setSelectedDate] = useState<Date>(params.get("date") ? new Date(params.get("date")!) : new Date());
-  const { createMealPlan, updateMealPlan, mealPlans } = useMealPlans();
+  const { createMealPlan, updateMealPlan, mealPlans, isLoading } = useMealPlans();
   const { recipes } = useRecipes();
   const { familyMembers } = useFamilyMembers();
   const { toast } = useToast();
