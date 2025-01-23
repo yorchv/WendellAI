@@ -5,6 +5,7 @@ import { DetailedMealView } from "./DetailedMealView";
 import { CalendarNavigationContainer } from "./CalendarNavigationContainer";
 import { useState } from "react";
 import { format } from "date-fns";
+import { useCalendarNavigation } from "@/hooks/use-calendar-navigation";
 
 interface Recipe {
   id: number;
@@ -50,7 +51,15 @@ export function MealPlanTable({
   familyMembers,
   onAddRecipe,
   onDropRecipe 
-}: MealPlanTableProps) {
+}: Omit<MealPlanTableProps, 'selectedDate' | 'setSelectedDate' | 'viewMode' | 'setViewMode' | 'navigate' | 'goToToday'>) {
+  const {
+    selectedDate,
+    setSelectedDate,
+    viewMode,
+    setViewMode,
+    navigate,
+    goToToday
+  } = useCalendarNavigation();
   const [selectedMeal, setSelectedMeal] = useState<{
     day: DayType;
     type: MealType;

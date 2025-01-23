@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarNavigation } from "./CalendarNavigation";
 import { CalendarNavigationContainer } from "./CalendarNavigationContainer";
 import { useLocation } from "wouter";
+import { useCalendarNavigation } from "@/hooks/use-calendar-navigation";
 
 interface Recipe {
   id: number;
@@ -47,19 +48,21 @@ interface DailyViewProps {
 
 export function DailyView({ 
   planId, 
-  date, 
   days, 
   recipes, 
-  familyMembers, 
-  viewMode, 
-  weekStart, 
-  setViewMode, 
-  setSelectedDate, 
-  onNavigate, 
-  goToToday,
+  familyMembers,
+  weekStart,
   onAddRecipe, 
   onRemoveRecipe 
-}: DailyViewProps) {
+}: Omit<DailyViewProps, 'date' | 'viewMode' | 'setViewMode' | 'setSelectedDate' | 'onNavigate' | 'goToToday'>) {
+  const {
+    selectedDate: date,
+    setSelectedDate,
+    viewMode,
+    setViewMode,
+    navigate,
+    goToToday
+  } = useCalendarNavigation();
   const [, navigate] = useLocation();
   const dayOfWeek = format(date, 'EEEE') as DayType;
   const dayData = days?.find(day => day.dayName === dayOfWeek);
