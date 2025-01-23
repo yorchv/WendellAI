@@ -140,7 +140,12 @@ export default function MealPlanner() {
       </div>
 
       <div className="">
-        {currentWeekPlan ? (
+        {isLoading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading meal plan...</p>
+          </div>
+        ) : currentWeekPlan ? (
           <DndProvider backend={HTML5Backend}>
             {viewMode === "weekly" ? (
               <MealPlanTable
@@ -187,7 +192,7 @@ export default function MealPlanner() {
               Create Meal Plan
             </Button>
           </div>
-        )}
+        ))}
       </div>
 
       <RecipeSearchDialog
