@@ -22,7 +22,7 @@ import { MealPlanTable } from "@/components/meal-plan/MealPlanTable";
 import { DailyView } from "@/components/meal-plan/DailyView";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { CalendarNavigationContainer } from "@/components/meal-plan/CalendarNavigationContainer"; // Import the new component
+// import { CalendarNavigationContainer } from "@/components/meal-plan/CalendarNavigationContainer"; // Import the new component
 
 
 type ViewMode = "daily" | "weekly";
@@ -143,29 +143,7 @@ export default function MealPlanner() {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
           <span className="font-medium">Meal Planner</span>
         </nav>
-        <div className="hidden md:flex items-center justify-end">
-          <CalendarNavigationContainer
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            viewMode={viewMode}
-            weekStart={weekStart}
-            setViewMode={setViewMode}
-            navigate={navigate}
-            goToToday={goToToday}
-          />
-        </div>
-        <div className="md:hidden">
-          <CalendarNavigationContainer
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            viewMode={viewMode}
-            weekStart={weekStart}
-            setViewMode={setViewMode}
-            navigate={navigate}
-            goToToday={goToToday}
-            variant="mobile"
-          />
-        </div>
+        {/* Removed CalendarNavigationContainer from here */}
       </div>
 
       <div className="">
@@ -176,6 +154,12 @@ export default function MealPlanner() {
                 planId={currentWeekPlan.id}
                 weekStart={weekStart}
                 weekEnd={weekEnd}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                navigate={navigate}
+                goToToday={goToToday}
                 days={currentWeekPlan.days}
                 recipes={recipesLookup}
                 familyMembers={familyMembersMap}

@@ -2,6 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { MealType, DayType } from "@db/schema";
 import { MealCell } from "./MealCell";
 import { DetailedMealView } from "./DetailedMealView";
+import { CalendarNavigationContainer } from "./CalendarNavigationContainer";
 import { useState } from "react";
 import { format } from "date-fns";
 
@@ -18,6 +19,12 @@ interface MealPlanTableProps {
   planId: number | undefined;
   weekStart: Date;
   weekEnd: Date;
+  selectedDate: Date;
+  setSelectedDate: (date: Date) => void;
+  viewMode: "daily" | "weekly";
+  setViewMode: (mode: "daily" | "weekly") => void;
+  navigate: (direction: "prev" | "next") => void;
+  goToToday: () => void;
   days: Array<{
     dayName: DayType;
     calendarDay: string;
@@ -64,6 +71,17 @@ export function MealPlanTable({
 
   return (
     <div className="w-full">
+      <div className="flex justify-end mb-4">
+        <CalendarNavigationContainer
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          viewMode={viewMode}
+          weekStart={weekStart}
+          setViewMode={setViewMode}
+          navigate={navigate}
+          goToToday={goToToday}
+        />
+      </div>
       <div className="overflow-hidden border rounded-lg">
         <Table>
           <TableHeader>
