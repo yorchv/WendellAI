@@ -73,19 +73,17 @@ export default function RecipeFormatter() {
           Back to Home
         </Button>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-4">
-              <ChefHat className="w-8 h-8 text-primary" />
-              <div>
-                <CardTitle className="text-2xl">Quick Recipe Formatter</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Paste any recipe text below to get a beautifully formatted version
-                </p>
-              </div>
+        <div className="bg-background">
+          <div className="flex items-center gap-4 mb-6">
+            <ChefHat className="w-8 h-8 text-primary" />
+            <div>
+              <h1 className="text-2xl font-semibold">Quick Recipe Formatter</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Paste any recipe text below to get a beautifully formatted version
+              </p>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </div>
+          <div className="space-y-4">
             {showForm ? (
               <>
                 <Textarea
@@ -152,8 +150,8 @@ export default function RecipeFormatter() {
                 />
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
