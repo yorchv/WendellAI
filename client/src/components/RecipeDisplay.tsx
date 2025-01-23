@@ -2,6 +2,7 @@
 import { Recipe, RecipeIngredient, Ingredient } from "@db/schema";
 import { Clock, Users, ChefHat } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
 
 interface RecipeWithIngredients extends Recipe {
   ingredients: (RecipeIngredient & {
@@ -14,6 +15,15 @@ interface RecipeDisplayProps {
 }
 
 export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
+  const [checkedIngredients, setCheckedIngredients] = useState<number[]>([]);
+
+  const toggleIngredient = (index: number) => {
+    setCheckedIngredients(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
   return (
     <div className="space-y-8">
       <div className="space-y-4">
@@ -48,9 +58,13 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
             </h2>
             <ul className="space-y-2 font-serif">
               {recipe.ingredients.map((ingredient, index) => (
-                <li key={index} className="flex items-center gap-2">
+                <li 
+                  key={index} 
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => toggleIngredient(index)}
+                >
                   <span className="w-2 h-2 rounded-full bg-primary" />
-                  <span className="flex-1">
+                  <span className={`flex-1 ${checkedIngredients.includes(index) ? "line-through text-muted-foreground" : ""}`}>
                     {ingredient.quantity && (
                       <span className="font-medium">
                         {ingredient.quantity} {ingredient.unit || ''}{' '}
