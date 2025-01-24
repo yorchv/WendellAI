@@ -166,29 +166,31 @@ export default function CookbookToPhone() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
-              <div className="flex flex-col items-center gap-4">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="cursor-pointer flex flex-col items-center gap-2"
-                >
-                  <Upload className="w-8 h-8 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    Click to upload or drag and drop
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    PNG, JPG or JPEG (max. 5MB)
-                  </span>
-                </label>
+            {!extractedRecipe && (
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
+                <div className="flex flex-col items-center gap-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    <Upload className="w-8 h-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Click to upload or drag and drop
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      PNG, JPG or JPEG (max. 5MB)
+                    </span>
+                  </label>
+                </div>
               </div>
-            </div>
+            )}
 
             {preview && (
               <div className="space-y-4">
@@ -219,10 +221,24 @@ export default function CookbookToPhone() {
             </Button>
 
             {extractedRecipe && (
-              <div className="mt-8 space-y-4">
-                <h3 className="text-lg font-semibold">Extracted Recipe</h3>
-                <RecipeDisplay recipe={extractedRecipe} />
-              </div>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setImage(null);
+                    setPreview(null);
+                    setExtractedRecipe(null);
+                    setIsLoading(false);
+                  }}
+                  className="w-full"
+                >
+                  Start Over
+                </Button>
+                <div className="mt-8 space-y-4">
+                  <h3 className="text-lg font-semibold">Extracted Recipe</h3>
+                  <RecipeDisplay recipe={extractedRecipe} />
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
