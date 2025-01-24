@@ -11,9 +11,10 @@ const router = Router();
 // Import the API usage tracking middleware
 import { trackApiUsage } from "../middleware/apiUsage";
 
+import { ApiUsageManager } from "../libraries/api-usage";
+
 // Get remaining API requests
 router.get("/usage", async (req, res) => {
-  const DAILY_LIMIT = 100;
   const endpoint = req.query.endpoint as string;
 
   if (!endpoint) {
@@ -21,13 +22,7 @@ router.get("/usage", async (req, res) => {
   }
 
   try {
-    const usages = await db
-      .select()
-      .from(apiUsage)
-      .where(eq(apiUsage.endpoint, endpoint));
-    
-    const totalUsage = usages.reduce((sum, record) => sum + record.count, 0);
-    const remaining = Math.max(0, DAILY_LIMIT - totalUsage);
+    const remaining = await ApiUsageManager.getRemainingRequests(endpoint);
     res.json({ remaining });
   } catch (error) {
     console.error("Error getting API usage:", error);
@@ -55,37 +50,13 @@ router.post("/format-recipe", async (req, res) => {
       return res.status(400).json({ message: "Recipe text is required" });
     }
 
-    // Get or create global usage record
-    let [usage] = await db
-      .select()
-      .from(apiUsage)
-      .where(eq(apiUsage.endpoint, 'format-recipe'));
-
-    if (!usage) {
-      [usage] = await db
-        .insert(apiUsage)
-        .values({
-          endpoint: 'format-recipe',
-          count: 0
-        })
-        .returning();
-    }
-
-    // Check global usage limit
-    if (usage.count >= 100) {
+    const { allowed, remaining } = await ApiUsageManager.checkUsage('format-recipe');
+    
+    if (!allowed) {
       return res.status(429).json({ 
         message: "Free usage limit reached. Please try again later."
       });
     }
-
-    // Increment global usage count
-    await db
-      .update(apiUsage)
-      .set({ 
-        count: usage.count + 1,
-        updatedAt: new Date()
-      })
-      .where(eq(apiUsage.id, usage.id));
 
     // Format the recipe using Claude
     const recipe = await formatRecipeResponse(text);
