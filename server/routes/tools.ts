@@ -104,22 +104,8 @@ router.post("/extract-recipe", upload.single('image'), async (req, res) => {
     const mediaType = req.file.mimetype;
 
     // Use Claude to analyze the recipe image
-    const recipeData = await analyzeRecipeImage(base64Image, mediaType);
-
-    // Format the recipe text similarly to the recipe formatter
-    const recipe = `${recipeData.title}\n\n` +
-      `${recipeData.description}\n\n` +
-      'Ingredients:\n' +
-      recipeData.ingredients.map(ing => 
-        `${ing.quantity ? ing.quantity + ' ' : ''}${ing.unit ? ing.unit + ' ' : ''}${ing.name}${ing.notes ? ' (' + ing.notes + ')' : ''}`
-      ).join('\n') +
-      '\n\nInstructions:\n' +
-      recipeData.instructions.map((step, i) => `${i + 1}. ${step}`).join('\n') +
-      (recipeData.prepTime ? `\n\nPrep Time: ${recipeData.prepTime} minutes` : '') +
-      (recipeData.cookTime ? `\nCook Time: ${recipeData.cookTime} minutes` : '') +
-      (recipeData.servings ? `\nServings: ${recipeData.servings}` : '');
-
-    res.json({ recipe });
+    const recipe = await analyzeRecipeImage(base64Image, mediaType);
+    res.json(recipe);
   } catch (error) {
     console.error("Error extracting recipe from image:", error);
     res.status(500).json({ 
