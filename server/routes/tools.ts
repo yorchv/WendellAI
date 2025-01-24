@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { formatRecipeResponse, analyzeRecipeImage, anthropic } from "../libraries/claude";
+import { formatRecipeResponse, analyzeRecipeImage } from "../libraries/claude";
 import multer from "multer";
 import { Buffer } from "buffer";
 import { db } from "@db";
@@ -30,33 +30,9 @@ router.post("/format-recipe/upload", upload.single('file'), async (req, res) => 
     const buffer = req.file.buffer;
     
     if (req.file.mimetype === 'application/pdf') {
-      const base64Data = buffer.toString('base64');
-      const response = await anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
-        max_tokens: 2048,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: "application/pdf",
-                  data: base64Data
-                }
-              },
-              {
-                type: "text",
-                text: "Please extract the recipe text from this PDF. Return only the recipe text content."
-              }
-            ]
-          }
-        ]
-      });
-      
-      const extractedText = response.content[0].type === "text" ? response.content[0].text : "";
-      res.send(extractedText);
+      const pdfParse = await import('pdf-parse');
+      const data = await pdfParse.default(buffer);
+      res.send(data.text);
     } else {
       // Assume text file
       res.send(buffer.toString('utf-8'));
