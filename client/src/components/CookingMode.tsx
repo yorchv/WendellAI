@@ -1,6 +1,6 @@
 
 import { X, ArrowLeft, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 
 interface CookingModeProps {
