@@ -9,19 +9,30 @@ export default function CookbookToPhone() {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [extractedRecipe, setExtractedRecipe] = useState<{
-  title: string;
-  description: string | null;
-  ingredients: Array<{
-    name: string;
-    quantity: number | null;
-    unit: string | null;
-    notes: string | null;
-  }>;
-  instructions: string[];
-  prepTime: number | null;
-  cookTime: number | null;
-  servings: number | null;
-} | null>(null);
+    id: number;
+    userId: number;
+    title: string;
+    description: string | null;
+    ingredients: Array<{
+      recipeId: number;
+      ingredientId: number;
+      quantity: number | null;
+      unit: string | null;
+      notes: string | null;
+      ingredient: {
+        id: number;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    }>;
+    instructions: string[];
+    prepTime: number | null;
+    cookTime: number | null;
+    servings: number | null;
+    createdAt: Date;
+    updatedAt: Date;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -175,9 +186,7 @@ export default function CookbookToPhone() {
             {extractedRecipe && (
               <div className="mt-8 space-y-4">
                 <h3 className="text-lg font-semibold">Extracted Recipe</h3>
-                <div className="bg-card p-6 rounded-lg whitespace-pre-wrap font-serif">
-                  {extractedRecipe}
-                </div>
+                <RecipeDisplay recipe={extractedRecipe} />
               </div>
             )}
           </CardContent>
