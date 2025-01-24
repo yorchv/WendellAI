@@ -2,6 +2,9 @@ import { Router } from "express";
 import { formatRecipeResponse, analyzeRecipeImage } from "../libraries/claude";
 import multer from "multer";
 import { Buffer } from "buffer";
+import { db } from "@db";
+import { apiUsage } from "@db/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
