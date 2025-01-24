@@ -20,29 +20,6 @@ const upload = multer({
   }
 });
 
-// PDF upload endpoint
-router.post("/format-recipe/upload", upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).send("No file uploaded");
-    }
-
-    const buffer = req.file.buffer;
-    
-    if (req.file.mimetype === 'application/pdf') {
-      const pdfParse = require('pdf-parse');
-      const data = await pdfParse(buffer);
-      res.send(data.text);
-    } else {
-      // Assume text file
-      res.send(buffer.toString('utf-8'));
-    }
-  } catch (error) {
-    console.error("Error processing file:", error);
-    res.status(500).send("Failed to process file");
-  }
-});
-
 // Recipe formatter endpoint
 router.post("/format-recipe", async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
