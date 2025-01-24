@@ -11,6 +11,23 @@ const router = Router();
 // Import the API usage tracking middleware
 import { trackApiUsage } from "../middleware/apiUsage";
 
+// Get remaining API requests
+router.get("/usage", async (req, res) => {
+  const DAILY_LIMIT = 100;
+  try {
+    const [usage] = await db
+      .select()
+      .from(apiUsage)
+      .where(eq(apiUsage.endpoint, req.path));
+    
+    const remaining = DAILY_LIMIT - (usage?.count || 0);
+    res.json({ remaining });
+  } catch (error) {
+    console.error("Error getting API usage:", error);
+    res.status(500).json({ error: "Failed to get API usage" });
+  }
+});
+
 // Apply the middleware to all routes in this router
 router.use(trackApiUsage);
 

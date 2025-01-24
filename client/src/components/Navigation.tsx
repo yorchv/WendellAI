@@ -10,6 +10,7 @@ import {
 import { User } from "@db/schema";
 import { useUser } from "@/hooks/use-user";
 import { CalendarDays, ChefHat, List, LogOut, User as UserIcon, ShoppingBasket, Users } from "lucide-react";
+import { useApiUsage } from "@/hooks/use-api-usage"; // Added import
 
 interface NavigationProps {
   user: User;
@@ -17,6 +18,7 @@ interface NavigationProps {
 
 export default function Navigation({ user }: NavigationProps) {
   const { logout } = useUser();
+  const apiUsage = useApiUsage();
 
   return (
     <nav className="border-b bg-card">
@@ -25,6 +27,14 @@ export default function Navigation({ user }: NavigationProps) {
           <Link href="/">
             <a className="text-2xl font-bold logo">WendellAI</a>
           </Link>
+          <div className="flex items-center gap-4"> {/* Added div for API usage display */}
+            <Button onClick={() => {}}> {/* Placeholder button -  Original code lacked a target for replacement */}
+              <span>Dashboard</span>
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              {apiUsage.data?.remaining || "..."} requests remaining
+            </div>
+          </div> {/* End of added div */}
           <div className="hidden md:flex items-center gap-4">
             <Link href="/meal-planner">
               <Button variant="ghost" className="flex items-center gap-2">
@@ -45,7 +55,7 @@ export default function Navigation({ user }: NavigationProps) {
               </Button>
             </Link>
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon">
