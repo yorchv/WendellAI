@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useApiUsage } from "@/hooks/use-api-usage";
 import { CalendarCheck2, ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { RecipeDisplay } from "@/components/RecipeDisplay";
