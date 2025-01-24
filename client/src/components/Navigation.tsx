@@ -25,7 +25,7 @@ export default function Navigation({ user }: NavigationProps) {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/">
-            <a className="text-2xl font-bold logo">WendellAI</a>
+            <a className="text-2xl font-bold logo">Wendell</a>
           </Link>
           <div className="flex items-center gap-4"> {/* Added div for API usage display */}
             <Button onClick={() => {}}> {/* Placeholder button -  Original code lacked a target for replacement */}

@@ -79,7 +79,7 @@ export default function Marketing() {
       {/* Navigation */}
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold logo">WendellAI</div>
+          <div className="text-2xl font-bold logo">Wendell</div>
           <div className="text-sm text-muted-foreground bg-secondary/20 px-3 py-1.5 rounded-md">
             Currently in closed beta
           </div>
@@ -281,7 +281,7 @@ export default function Marketing() {
               </a>
             </div>
             <div className="text-center text-sm text-muted-foreground font-serif">
-              © {new Date().getFullYear()} WendellAI. An open source project built in public.
+              © {new Date().getFullYear()} Wendell. An open source project built in public.
             </div>
           </div>
         </div>

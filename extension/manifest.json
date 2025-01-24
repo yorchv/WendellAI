@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "WendellAI Recipe Capture",
+  "name": "Wendell Recipe Capture",
   "version": "1.0",
   "description": "Capture recipes from websites and save them to your WendellAI meal planner",
   "permissions": [
