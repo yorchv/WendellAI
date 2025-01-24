@@ -14,11 +14,17 @@ import { trackApiUsage } from "../middleware/apiUsage";
 // Get remaining API requests
 router.get("/usage", async (req, res) => {
   const DAILY_LIMIT = 100;
+  const endpoint = req.query.endpoint as string;
+
+  if (!endpoint) {
+    return res.status(400).json({ error: "Endpoint parameter is required" });
+  }
+
   try {
     const usages = await db
       .select()
       .from(apiUsage)
-      .where(eq(apiUsage.endpoint, 'format-recipe'));
+      .where(eq(apiUsage.endpoint, endpoint));
     
     const totalUsage = usages.reduce((sum, record) => sum + record.count, 0);
     const remaining = Math.max(0, DAILY_LIMIT - totalUsage);
