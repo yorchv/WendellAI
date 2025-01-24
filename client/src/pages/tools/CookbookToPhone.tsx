@@ -153,19 +153,17 @@ export default function CookbookToPhone() {
           Back to Home
         </Button>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-4">
-              <CalendarCheck2 className="w-8 h-8 text-primary" />
-              <div>
-                <CardTitle className="text-2xl">Cookbook to Phone</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Convert cookbook photos to digital recipes you can cook from anywhere
-                </p>
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <CalendarCheck2 className="w-8 h-8 text-primary" />
+            <div>
+              <h1 className="text-2xl font-semibold">Cookbook to Phone</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Convert cookbook photos to digital recipes you can cook from anywhere
+              </p>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          </div>
+          <div className="space-y-6">
             {!extractedRecipe && (
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
                 <div className="flex flex-col items-center gap-4">
@@ -240,8 +238,8 @@ export default function CookbookToPhone() {
                 </div>
               </>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
