@@ -8,7 +8,20 @@ import { useLocation } from "wouter";
 export default function CookbookToPhone() {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [extractedRecipe, setExtractedRecipe] = useState<string | null>(null);
+  const [extractedRecipe, setExtractedRecipe] = useState<{
+  title: string;
+  description: string | null;
+  ingredients: Array<{
+    name: string;
+    quantity: number | null;
+    unit: string | null;
+    notes: string | null;
+  }>;
+  instructions: string[];
+  prepTime: number | null;
+  cookTime: number | null;
+  servings: number | null;
+} | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -69,8 +82,8 @@ export default function CookbookToPhone() {
         throw new Error("Failed to extract recipe from image");
       }
 
-      const data = await response.json();
-      setExtractedRecipe(data.recipe);
+      const recipe = await response.json();
+      setExtractedRecipe(recipe);
     } catch (error) {
       toast({
         title: "Error",
