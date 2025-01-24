@@ -30,8 +30,8 @@ router.post("/format-recipe/upload", upload.single('file'), async (req, res) => 
     const buffer = req.file.buffer;
     
     if (req.file.mimetype === 'application/pdf') {
-      const pdfParse = require('pdf-parse');
-      const data = await pdfParse(buffer);
+      const pdfParse = await import('pdf-parse');
+      const data = await pdfParse.default(buffer);
       res.send(data.text);
     } else {
       // Assume text file
