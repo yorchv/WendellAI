@@ -38,7 +38,7 @@ export default function CookbookToPhone() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const { data: usageData } = useApiUsage('extract-recipe');
+  const { data: usageData } = useApiUsage('/extract-recipe');
 
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
