@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RecipeDisplay } from "@/components/RecipeDisplay";
 import { useToast } from "@/hooks/use-toast";
+import { useApiUsage } from "@/hooks/use-api-usage";
 import { ChefHat, Copy, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
 
