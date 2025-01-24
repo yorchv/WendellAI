@@ -15,12 +15,13 @@ import { trackApiUsage } from "../middleware/apiUsage";
 router.get("/usage", async (req, res) => {
   const DAILY_LIMIT = 100;
   try {
-    const [usage] = await db
+    const usages = await db
       .select()
       .from(apiUsage)
-      .where(eq(apiUsage.endpoint, req.path));
+      .where(eq(apiUsage.endpoint, 'format-recipe'));
     
-    const remaining = DAILY_LIMIT - (usage?.count || 0);
+    const totalUsage = usages.reduce((sum, record) => sum + record.count, 0);
+    const remaining = Math.max(0, DAILY_LIMIT - totalUsage);
     res.json({ remaining });
   } catch (error) {
     console.error("Error getting API usage:", error);
