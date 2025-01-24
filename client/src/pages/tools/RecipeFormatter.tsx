@@ -70,9 +70,23 @@ export default function RecipeFormatter() {
     });
   }
 
+  const [remainingRequests, setRemainingRequests] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch('/api/auth/limits')
+      .then(res => res.json())
+      .then(data => setRemainingRequests(data.remaining))
+      .catch(console.error);
+  }, [formattedRecipe]);
+
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="container max-w-4xl mx-auto">
+        {remainingRequests !== null && (
+          <div className="text-sm text-muted-foreground mb-4">
+            Remaining requests today: {remainingRequests}
+          </div>
+        )}
         <Button 
           variant="ghost" 
           className="mb-8"
