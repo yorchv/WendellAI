@@ -25,6 +25,7 @@ import { useEffect } from 'react';
 import RecipeFormatter from "./pages/tools/RecipeFormatter"; // Added import
 import DietaryChecker from "./pages/tools/DietaryChecker";   // Added import
 import CookbookToPhone from "./pages/tools/CookbookToPhone"; // Added import
+import CookingMode from "./pages/CookingMode";
 
 
 function AppContent() {
@@ -37,52 +38,33 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Switch>
-        {/* Public routes */}
-        <Route path="/" component={Marketing} />
-        <Route path="/auth" component={AuthPage} />
-        <Route path="/tools/recipe-formatter" component={RecipeFormatter} />
-        <Route path="/tools/dietary-checker" component={DietaryChecker} />
-        <Route path="/tools/cookbook-to-phone" component={CookbookToPhone} />
-        
-        {/* Protected routes - only accessible when authenticated */}
-        {isAuthenticated ? (
-          <>
-            <Route path="/dashboard" component={Dashboard} />
-            <Route path="/recipes" component={RecipesPage} />
-            <Route path="/recipe/:id" component={RecipeView} />
-            <Route path="/meal-planner" component={MealPlanner} />
-            <Route path="/meal/:id" component={MealView} />
-            <Route path="/shopping-list" component={ShoppingList} />
-            <Route path="/family" component={FamilyDashboard} />
-            <Route path="/cooking-mode/:id" component={CookingMode} />
-          </>
-        ) : (
-          <Route component={() => <div>Please log in to access this page</div>} />
-        )}
-        
-        <Route>404 - Not Found</Route>
-      </Switch>
-      <Toaster />
-    </div>
-  );
-
-  return (
     <DndProvider backend={HTML5Backend}>
       <div className="min-h-screen bg-background">
-        <Navigation user={user} />
+        <Navigation user={user || undefined} />
         <main className="container mx-auto px-4 py-8">
           <Switch>
-            <Route path="/" component={MealPlanner} />
-            <Route path="/recipes" component={RecipesPage} />
-            <Route path="/recipes/:id" component={RecipeView} />
-            <Route path="/meal-planner" component={MealPlanner} />
-            <Route path="/meal/:planId/:day/:type" component={MealView} />
-            <Route path="/shopping-list" component={ShoppingList} />
-            <Route path="/family" component={FamilyDashboard} />
-            <Route path="/stream/starting" component={StreamStarting} />
-            <Route path="/stream/break" component={StreamBreak} />
+            {/* Protected routes - only accessible when authenticated */}
+            {isAuthenticated ? (
+              <>
+                <Route path="/" component={MealPlanner} />
+                <Route path="/dashboard" component={Dashboard} />
+                <Route path="/recipes" component={RecipesPage} />
+                <Route path="/recipes/:id" component={RecipeView} />
+                <Route path="/meal-planner" component={MealPlanner} />
+                <Route path="/meals/:planId/:day/:type" component={MealView} />
+                <Route path="/shopping-list" component={ShoppingList} />
+                <Route path="/family" component={FamilyDashboard} />
+                <Route path="/recipes/:id/cooking" component={CookingMode} />
+              </>
+            ) : (
+              <>
+                <Route path="/" component={Marketing} />
+                <Route path="/auth" component={AuthPage} />
+                <Route path="/tools/recipe-formatter" component={RecipeFormatter} />
+                <Route path="/tools/dietary-checker" component={DietaryChecker} />
+                <Route path="/tools/cookbook-to-phone" component={CookbookToPhone} />
+              </>
+            )}
             <Route>404 - Not Found</Route>
           </Switch>
         </main>

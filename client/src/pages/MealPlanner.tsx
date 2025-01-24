@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "wouter";
 import { useMealPlans } from "@/hooks/use-meal-plans";
 
 import { useRecipes } from "@/hooks/use-recipes";
@@ -30,13 +30,12 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 type ViewMode = "daily" | "weekly";
 
 export default function MealPlanner() {
-  const [, navigate] = useLocation();
+  const [searchParams] = useSearchParams();
   const [selectedDay, setSelectedDay] = useState<DayType>(DAYS[0]);
   const [selectedMeal, setSelectedMeal] = useState<MealType>(MEAL_TYPES[0]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const params = new URLSearchParams(window.location.search);
-  const [viewMode, setViewMode] = useState<ViewMode>(params.get("view") as ViewMode || "daily");
-  const [selectedDate, setSelectedDate] = useState<Date>(params.get("date") ? new Date(params.get("date")!) : new Date());
+  const [viewMode, setViewMode] = useState<ViewMode>(searchParams.get("view") === "weekly" ? "weekly" : "daily");
+  const [selectedDate, setSelectedDate] = useState<Date>(searchParams.get("date") ? new Date(searchParams.get("date")!) : new Date());
   const { createMealPlan, updateMealPlan, mealPlans, isLoading } = useMealPlans();
   const { recipes } = useRecipes();
   const { familyMembers } = useFamilyMembers();
@@ -51,7 +50,6 @@ export default function MealPlanner() {
   }), {}) ?? {};
 
   const familyMembersMap = familyMembers?.reduce((map, member) => ({...map, [member.id]: member}), {}) ?? {};
-
 
   const handleRecipeSelection = async (day: DayType, mealType: MealType, recipeId: number) => {
     try {
@@ -147,7 +145,7 @@ export default function MealPlanner() {
           </div>
         ) : currentWeekPlan ? (
           <DndProvider backend={HTML5Backend}>
-            {viewMode === "weekly" ? (
+            {searchParams.get("view") === "weekly" ? (
               <MealPlanTable
                 planId={currentWeekPlan.id}
                 weekStart={weekStart}
