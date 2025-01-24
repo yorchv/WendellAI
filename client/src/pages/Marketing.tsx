@@ -129,6 +129,38 @@ export default function Marketing() {
               </Form>
             </div>
 
+            {/* Free Tools Section */}
+            <div className="mt-16">
+              <h2 className="text-3xl font-heading text-center mb-8">
+                Try Our Recipe Tools
+              </h2>
+              <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-12 font-serif">
+                Experience the power of WendellAI with our free recipe tools. No registration required.
+              </p>
+              <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="bg-card p-8 rounded-lg flex flex-col items-center text-center">
+                  <ChefHat className="h-12 w-12 text-primary mb-4" />
+                  <h3 className="text-xl font-heading mb-4">Quick Recipe Formatter</h3>
+                  <p className="text-muted-foreground mb-6 font-serif">
+                    Paste any recipe text and get a beautifully formatted version ready to save or share.
+                  </p>
+                  <Button onClick={() => navigate("/tools/recipe-formatter")} variant="outline">
+                    Format Recipe
+                  </Button>
+                </div>
+                <div className="bg-card p-8 rounded-lg flex flex-col items-center text-center">
+                  <CalendarCheck2 className="h-12 w-12 text-primary mb-4" />
+                  <h3 className="text-xl font-heading mb-4">Cookbook to Phone</h3>
+                  <p className="text-muted-foreground mb-6 font-serif">
+                    Convert cookbook photos to digital recipes you can cook from anywhere.
+                  </p>
+                  <Button onClick={() => navigate("/tools/cookbook-to-phone")} variant="outline">
+                    Convert Recipe
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             {/* Feature Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-12">
               <div className="p-6 bg-card">
@@ -200,49 +232,7 @@ export default function Marketing() {
         </div>
       </section>
 
-      {/* Free Tools Section */}
-      <section className="py-20 bg-secondary/10 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl font-heading text-center mb-8">
-            Try Our Recipe Tools
-          </h2>
-          <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-12 font-serif">
-            Experience the power of WendellAI with our free recipe tools. No registration required.
-          </p>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-card p-8 rounded-lg flex flex-col items-center text-center">
-              <ChefHat className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-heading mb-4">Quick Recipe Formatter</h3>
-              <p className="text-muted-foreground mb-6 font-serif">
-                Paste any recipe text and get a beautifully formatted version ready to save or share.
-              </p>
-              <Button onClick={() => navigate("/tools/recipe-formatter")} variant="outline">
-                Format Recipe
-              </Button>
-            </div>
-            <div className="bg-card p-8 rounded-lg flex flex-col items-center text-center">
-              <Heart className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-heading mb-4">Dietary Checker</h3>
-              <p className="text-muted-foreground mb-6 font-serif">
-                Check if a recipe meets specific dietary requirements instantly.
-              </p>
-              <Button onClick={() => navigate("/tools/dietary-checker")} variant="outline">
-                Check Recipe
-              </Button>
-            </div>
-            <div className="bg-card p-8 rounded-lg flex flex-col items-center text-center">
-              <CalendarCheck2 className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-heading mb-4">Cookbook to Phone</h3>
-              <p className="text-muted-foreground mb-6 font-serif">
-                Convert cookbook photos to digital recipes you can cook from anywhere.
-              </p>
-              <Button onClick={() => navigate("/tools/cookbook-to-phone")} variant="outline">
-                Convert Recipe
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Why Wendell Section */}
       <section className="py-20 px-4">
