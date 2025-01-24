@@ -50,7 +50,7 @@ router.post("/format-recipe", async (req, res) => {
       return res.status(400).json({ message: "Recipe text is required" });
     }
 
-    const { allowed, remaining } = await ApiUsageManager.checkUsage('format-recipe');
+    const { allowed, remaining } = await ApiUsageManager.checkUsage('/format-recipe');
     
     if (!allowed) {
       return res.status(429).json({ 
@@ -74,6 +74,14 @@ router.post("/extract-recipe", upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "Image file is required" });
+    }
+
+    const { allowed, remaining } = await ApiUsageManager.checkUsage('/extract-recipe');
+    
+    if (!allowed) {
+      return res.status(429).json({ 
+        message: "Free usage limit reached. Please try again later."
+      });
     }
 
     // Convert buffer to base64
