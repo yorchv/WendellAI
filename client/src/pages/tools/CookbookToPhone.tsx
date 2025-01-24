@@ -43,7 +43,7 @@ export default function CookbookToPhone() {
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    
+
     const MAX_FILE_SIZE = 5242880; // 5MB in bytes
     if (file.size > MAX_FILE_SIZE) {
       toast({
@@ -106,8 +106,25 @@ export default function CookbookToPhone() {
         throw new Error("Failed to extract recipe from image");
       }
 
-      const recipe = await response.json();
-      setExtractedRecipe(recipe);
+      const extractedRecipe = await response.json();
+      // Transform the recipe data to match the expected structure
+      const transformedRecipe = {
+        ...extractedRecipe,
+        ingredients: extractedRecipe.ingredients.map((ing, index) => ({
+          recipeId: extractedRecipe.id, // Added recipeId
+          ingredientId: index + 1, // Added ingredientId -  replace with actual ID if available
+          ingredient: {
+            name: ing.name,
+            id: index + 1, // Added id - replace with actual ID if available
+            createdAt: new Date(), // Added placeholder date
+            updatedAt: new Date(), // Added placeholder date
+          },
+          quantity: ing.quantity,
+          unit: ing.unit,
+          notes: ing.notes
+        }))
+      };
+      setExtractedRecipe(transformedRecipe);
     } catch (error) {
       toast({
         title: "Error",
