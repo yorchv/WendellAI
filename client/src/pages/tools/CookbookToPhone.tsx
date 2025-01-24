@@ -36,6 +36,7 @@ export default function CookbookToPhone() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const { data: usageData } = useApiUsage('extract-recipe');
 
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -119,6 +120,11 @@ export default function CookbookToPhone() {
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="container max-w-4xl mx-auto">
+        {usageData?.remaining !== undefined && (
+          <div className="text-sm text-muted-foreground mb-4">
+            Remaining requests today: {usageData.remaining}
+          </div>
+        )}
         <Button 
           variant="ghost" 
           className="mb-8"
