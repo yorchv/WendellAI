@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarCheck2, ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { RecipeDisplay } from "@/components/RecipeDisplay";
 
 export default function CookbookToPhone() {
   const [image, setImage] = useState<File | null>(null);
