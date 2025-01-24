@@ -71,7 +71,7 @@ export default function RecipeFormatter() {
     });
   }
 
-  const { data: usageData } = useApiUsage('format-recipe');
+  const { data: usageData } = useApiUsage('/format-recipe');
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">
