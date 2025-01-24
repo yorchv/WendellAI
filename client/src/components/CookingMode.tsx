@@ -44,8 +44,8 @@ export function CookingMode({ instructions, onClose }: CookingModeProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      <div className="flex justify-between items-center p-4 border-b">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col overflow-hidden">
+      <div className="flex justify-between items-center p-4 border-b flex-shrink-0">
         <span className="text-muted-foreground">
           Step {currentStep + 1} of {instructions.length}
         </span>
@@ -54,7 +54,7 @@ export function CookingMode({ instructions, onClose }: CookingModeProps) {
         </Button>
       </div>
       
-      <div className="flex-1 flex items-center justify-between">
+      <div className="flex-1 flex items-center justify-between min-h-0">
         <Button
           variant="ghost"
           size="icon"
@@ -65,7 +65,7 @@ export function CookingMode({ instructions, onClose }: CookingModeProps) {
           <ArrowLeft className="h-6 w-6" />
         </Button>
         
-        <div className="flex flex-col items-center gap-6 px-4 max-w-[85%]">
+        <div className="flex flex-col items-center gap-6 px-4 max-w-[85%] overflow-y-auto h-full py-8">
           <div className="bg-primary/10 rounded-full px-4 py-1 text-primary font-medium">
             Step {currentStep + 1} of {instructions.length}
           </div>
