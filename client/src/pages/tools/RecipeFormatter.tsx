@@ -1,11 +1,12 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RecipeDisplay } from "@/components/RecipeDisplay";
 import { useToast } from "@/hooks/use-toast";
-import { ChefHat, Copy, ArrowLeft } from "lucide-react";
+import { ChefHat, Copy, ArrowLeft, Upload } from "lucide-react";
 import { useLocation } from "wouter";
+import { Input } from "@/components/ui/input";
 
 export default function RecipeFormatter() {
   const [recipeText, setRecipeText] = useState("");
@@ -14,6 +15,37 @@ export default function RecipeFormatter() {
   const [showForm, setShowForm] = useState(true);
   const { toast } = useToast();
   const [, navigate] = useLocation();
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch("/api/tools/format-recipe/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to process file");
+      }
+
+      const text = await response.text();
+      setRecipeText(text);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function handleFormatRecipe() {
     if (!recipeText.trim()) {
@@ -88,19 +120,29 @@ export default function RecipeFormatter() {
             <div>
               <h1 className="text-2xl font-semibold">Quick Recipe Formatter</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Paste any recipe text below to get a beautifully formatted version
+                Upload a PDF or paste any recipe text below to get a beautifully formatted version
               </p>
             </div>
           </div>
           <div className="space-y-4">
             {showForm ? (
               <>
-                <Textarea
-                  placeholder="Paste your recipe here..."
-                  className="min-h-[200px]"
-                  value={recipeText}
-                  onChange={(e) => setRecipeText(e.target.value)}
-                />
+                <div className="space-y-4">
+                  <Input
+                    type="file"
+                    accept=".pdf,text/plain"
+                    onChange={handleFileUpload}
+                    className="mb-4"
+                  />
+                  <div className="relative">
+                    <Textarea
+                      placeholder="Paste your recipe here..."
+                      className="min-h-[200px]"
+                      value={recipeText}
+                      onChange={(e) => setRecipeText(e.target.value)}
+                    />
+                  </div>
+                </div>
                 <Button 
                   className="w-full" 
                   onClick={handleFormatRecipe}
