@@ -40,6 +40,16 @@ export default function CookbookToPhone() {
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+    
+    const MAX_FILE_SIZE = 5242880; // 5MB in bytes
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: "Error",
+        description: "Image size must be less than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
 
     // Check file type
     if (!file.type.startsWith('image/')) {
